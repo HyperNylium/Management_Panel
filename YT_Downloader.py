@@ -64,14 +64,14 @@ clear_command = "cls" if platform.system() == "Windows" else "clear"
 root=Tk()
 root.title("YouTube Content Downloader")
 root.resizable(False,False)
-root.iconbitmap("[YOUR OWN DIRECTORY HERE]/Management_Panel/Assets/icon.ico")
+root.iconbitmap("C:/Users/david/Desktop/Stuff/GitHub/Side-Projects/Management_Panel/Assets/icon.ico")
 root.configure(background="#474747")
 canvas=Canvas(root,width=620,height=110, bg="#474747", highlightbackground="#474747", highlightthickness="1")
 canvas.grid(row=0,column=0, pady=6)
 os.system(clear_command)
 print(CLR_GREEN + "\n  launched Successfully \n\n" + RESET_ALL)
 
-Banner = ImageTk.PhotoImage(Image.open("[YOUR OWN DIRECTORY HERE]/Management_Panel/Assets/youtube.png"))
+Banner = ImageTk.PhotoImage(Image.open("C:/Users/david/Desktop/Stuff/GitHub/Side-Projects/Management_Panel/Assets/youtube.png"))
 canvas.create_image(5,0,image=Banner,anchor=NW)
 
 tab1=Frame(root,width=800,height=500, bg="#474747")
@@ -88,12 +88,12 @@ canvas.grid(row=3,column=1,rowspan=6,pady=6)
 
 
 Directory="Downloads"
-Dir_Name="[YOUR OWN DIRECTORY HERE]/Desktop"
+Dir_Name="C:/Users/david/Desktop"
 path=os.path.join(Dir_Name,Directory)
 try:
   os.mkdir(path)
-  os.mkdir("[YOUR OWN DIRECTORY HERE]/Desktop/Downloads/Video")
-  os.mkdir("[YOUR OWN DIRECTORY HERE]/Desktop/Downloads/Audio")
+  os.mkdir("C:/Users/david/Desktop/Downloads/Video")
+  os.mkdir("C:/Users/david/Desktop/Downloads/Audio")
 except OSError as error:
   pass
 
@@ -208,7 +208,7 @@ def download():
     my_progress.config(mode="determinate")
     my_progress.stop()
     label2.grid(row=9,column=1)
-    os.chdir("[YOUR OWN DIRECTORY HERE]/Desktop/Downloads/Video")
+    os.chdir("C:/Users/david/Desktop/Downloads/Video")
     try:
       file=yt.streams.filter(res=clicked.get()).first()
       size=file.filesize
@@ -232,7 +232,7 @@ def download():
     my_progress.config(mode="determinate")
     my_progress.stop()
     label2.grid(row=9,column=1)
-    os.chdir("[YOUR OWN DIRECTORY HERE]/Desktop/Downloads/Audio")
+    os.chdir("C:/Users/david/Desktop/Downloads/Audio")
     try:
       mp3=yt.streams.filter(only_audio=True).first()
       size=mp3.filesize

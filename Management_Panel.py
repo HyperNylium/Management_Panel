@@ -73,10 +73,10 @@ RESET_ALL = "\033[0m"
 OldAppVersion = "3.0.1"
 OldAppCommand = f"Version = {OldAppVersion}"
 
-VersionTXT = "http://www.hypernylium.com/Python-Projects/Management_Panel/Version.txt"
+'''VersionTXT = "http://www.hypernylium.com/Python-Projects/Management_Panel/Version.txt"
 with requests.get(VersionTXT) as rq:
         with open("Version.txt", "wb") as file:
-            file.write(rq.content)
+            file.write(rq.content)'''
 
 delimeter = "="
 file = open(os.path.join(sys.path[0], "Version.txt"), "r")
@@ -106,35 +106,35 @@ if App_Version != OldAppVersion:
 else:
     pass
 
-Website = "[YOUR OWN LINK HERE]"
-GithubURL = "[YOUR OWN LINK HERE]"
-DiscordURL = "[YOUR OWN LINK HERE]"
-instagramURL = "[YOUR OWN LINK HERE]"
-YoutubeURL = "[YOUR OWN LINK HERE]"
-TikTokURL = "[YOUR OWN LINK HERE]"
-FacebookURL = "[YOUR OWN LINK HERE]"
-TwitterURL = "[YOUR OWN LINK HERE]"
+Website = "http://hypernylium.com/"
+GithubURL = "https://github.com/HyperNylium"
+DiscordURL = "https://discord.gg/4FHTjAgw95"
+instagramURL = "https://www.instagram.com/hypernylium/"
+YoutubeURL = "https://www.youtube.com/channel/UCpJ4F4dMn_DIhtrCJwDUK2A"
+TikTokURL = "https://www.tiktok.com/foryou?lang=en"
+FacebookURL = "https://www.facebook.com/HyperNylium/"
+TwitterURL = "https://twitter.com/HyperNylium"
 
 
 """
-Game_1 = 
-Game_2 = 
-Game_3 = 
-Game_4 = 
-Game_5 = 
-Game_6 = 
-Game_7 = 
-Game_8 = 
+Game_1 = Rocket League
+Game_2 = ARK
+Game_3 = Destiny 2 
+Game_4 = Fall Guys
+Game_5 = Warships
+Game_6 = Control
+Game_7 = GTA5
+Game_8 = War Thunder
 """
 
-Game_1 = "[YOUR OWN GAME SHORTCUT LINK HERE]"
-Game_2 = "[YOUR OWN GAME SHORTCUT LINK HERE]"
-Game_3 = "[YOUR OWN GAME SHORTCUT LINK HERE"
-Game_4 = "[YOUR OWN GAME SHORTCUT LINK HERE]"
-Game_5 = "[YOUR OWN GAME SHORTCUT LINK HERE]"
-Game_6 = "[YOUR OWN GAME SHORTCUT LINK HERE]"
-Game_7 = "[YOUR OWN GAME SHORTCUT LINK HERE]"
-Game_8 = "[YOUR OWN GAME SHORTCUT LINK HERE]"
+Game_1 = "com.epicgames.launcher://apps/9773aa1aa54f4f7b80e44bef04986cea%3A530145df28a24424923f5828cc9031a1%3ASugar?action=launch&silent=true"
+Game_2 = "com.epicgames.launcher://apps/ark%3A743e47ee84ac49a1a49f4781da70e0d0%3Aaafc587fbf654758802c8e41e4fb3255?action=launch&silent=true"
+Game_3 = "com.epicgames.launcher://apps/428115def4ca4deea9d69c99c5a5a99e%3A06bd477f9fbe4259a1421fb3f559aa46%3A592c359fb0e0413fb46dee2d24448eb4?action=launch&silent=true"
+Game_4 = "com.epicgames.launcher://apps/50118b7f954e450f8823df1614b24e80%3A38ec4849ea4f4de6aa7b6fb0f2d278e1%3A0a2d9f6403244d12969e11da6713137b?action=launch&silent=true"
+Game_5 = "com.epicgames.launcher://apps/84c76746bce94effb8e1047fabfd7eb7%3Ab9e23e5fa8e84064b356677022beb37a%3Aa79746038c6948558274065d24f3faa3?action=launch&silent=true"
+Game_6 = "com.epicgames.launcher://apps/calluna%3A9afb582e90b74bdd9e2146fb79c78589%3ACalluna?action=launch&silent=true"
+Game_7 = "steam://rungameid/271590"
+Game_8 = "steam://rungameid/236390"
 
 spacers = 20
 
@@ -353,28 +353,28 @@ class App(customtkinter.CTk):
         self.GameMediabutton_1 = customtkinter.CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.GameGoBack)
         self.GameMediabutton_1.grid(column=0, row=0, padx=0, pady=10)
 
-        self.GameMediabutton_2 = customtkinter.CTkButton(text="YOUR GAME NAME", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_1)
+        self.GameMediabutton_2 = customtkinter.CTkButton(text="Rocket League", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_1)
         self.GameMediabutton_2.grid(column=1, row=1, padx=20, pady=20)
 
-        self.GameMediabutton_3 = customtkinter.CTkButton(text="YOUR GAME NAME", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_2)
+        self.GameMediabutton_3 = customtkinter.CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_2)
         self.GameMediabutton_3.grid(column=2, row=1, padx=0, pady=5)
 
-        self.GameMediabutton_4 = customtkinter.CTkButton(text="YOUR GAME NAME", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_3)
+        self.GameMediabutton_4 = customtkinter.CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_3)
         self.GameMediabutton_4.grid(column=1, row=2, padx=0, pady=5)
 
-        self.GameMediabutton_5 = customtkinter.CTkButton(text="YOUR GAME NAME", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_4)
+        self.GameMediabutton_5 = customtkinter.CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_4)
         self.GameMediabutton_5.grid(column=2, row=2, padx=0, pady=20)
 
-        self.GameMediabutton_6 = customtkinter.CTkButton(text="YOUR GAME NAME", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_5)
+        self.GameMediabutton_6 = customtkinter.CTkButton(text="Warships", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_5)
         self.GameMediabutton_6.grid(column=1, row=3, padx=0, pady=20)
 
-        self.GameMediabutton_7 = customtkinter.CTkButton(text="YOUR GAME NAME", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_6)
+        self.GameMediabutton_7 = customtkinter.CTkButton(text="Control", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_6)
         self.GameMediabutton_7.grid(column=2, row=3, padx=0, pady=5)
 
-        self.GameMediabutton_8 = customtkinter.CTkButton(text="YOUR GAME NAME", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_7)
+        self.GameMediabutton_8 = customtkinter.CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_7)
         self.GameMediabutton_8.grid(column=1, row=4, padx=0, pady=20)
 
-        self.GameMediabutton_9 = customtkinter.CTkButton(text="YOUR GAME NAME", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_8)
+        self.GameMediabutton_9 = customtkinter.CTkButton(text="War Thunder", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.LaunchGame_8)
         self.GameMediabutton_9.grid(column=2, row=4, padx=0, pady=20)
     def GameGoBack(self):
         self.GameMedialabel_1.destroy()
@@ -554,6 +554,8 @@ class App(customtkinter.CTk):
         time.sleep(1.5)
         pyautogui.press("down")
         pyautogui.press("enter")
+    def NetworkDriveReset(self):
+            os.startfile("NetworkDriveReset.bat")
 
 
     def github(self):
@@ -579,12 +581,12 @@ class App(customtkinter.CTk):
         self.destroy()
 
     def YTDownloader(self):
-        os.startfile("[YOUR OWN DIRECTORY HERE]/Management_Panel/YT_Downloader.py")
+        os.startfile("C:/Users/david/Desktop/Stuff/GitHub/Side-Projects/Management_Panel/YT_Downloader.py")
         time.sleep(0.3)
         exit()
 
     def Jarvis(self):
-        os.startfile("[YOUR OWN DIRECTORY HERE]/Management_Panel/Jarvis.py")
+        os.startfile("C:/Users/david/Desktop/Stuff/GitHub/Side-Projects/Management_Panel/Jarvis.py")
         time.sleep(0.3)
         exit()
 
