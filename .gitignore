@@ -1,7 +1,5 @@
-# Ignore everything
+#~~~~ Created .gitignore ~~~~#
 *
-
-# But not these files...
 !.gitignore
 !jarvis.py
 !Management_Panel.py
@@ -9,6 +7,4 @@
 !requirements.txt
 !Updater.exe
 !YT_Downloader.py
-
-# ...even if they are in subdirectories
 !*/
