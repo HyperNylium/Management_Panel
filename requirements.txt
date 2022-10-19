@@ -1,0 +1,16 @@
+
+1. tkinter (pip install tk)
+2. customtkinter (pip install customtkinter)
+3. tqdm (pip install tqdm)
+4. pyjokes (pip install pyjokes)
+5. wikipedia (pip install wikipedia)
+6. SpeechRecognition (pip install SpeechRecognition)
+7. pyttsx3 (pip install pyttsx3)
+8. requests (pip install requests)
+9. pyautogui (pip install pyautogui)
+10. plyer (pip install plyer)
+11. urllib (pip install urllib3)
+12. pytube (pip install pytube)
+13. Pillow-PIL (pip install Pillow-PIL)
+
+NOT: Before installing these you need to have python on your computer. of these libraries will be downloaded/installed automatically including the python installer once Updater.exe is opened/executed
