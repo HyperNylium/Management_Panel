@@ -24,7 +24,7 @@ Last updated Github Repo: 10/14/2022</h2>
 
 4. Rename the parts of the code that start with `C:/Users/david/` or `C:\Users\david\` to whatever you want
 
-5. Try to launch the `Management_Panel.py`. When opening the `Management_Panel.py` file, only `Management_Panel.py` launches. `jarvis.py` and `YT_Downloader.py`will launch only when you click on the button in the panel
+5. Try to launch the `Management_Panel.py`. When opening the `Management_Panel.py` file, only `Management_Panel.py` launches. `jarvis.py` and `YT_Downloader.py` will launch only when you click on the button in the panel
 
 
 
