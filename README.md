@@ -22,23 +22,9 @@ Last updated Github Repo: 10/14/2022</h2>
     <br>
     `jarvis.py`
 
-4. Rename the part of the code that say 
-        <br>
-        `"YOUR GAME NAME"`
-        <br>
-        ![alt text](http://www.hypernylium.com/Python-Projects/Management_Panel/GAMENAME.png)
-        <br>
-        `[YOUR OWN LINK HERE]`
-        <br>
-        ![alt text](http://www.hypernylium.com/Python-Projects/Management_Panel/OWNLINK.png)
-        <br>
-        `[YOUR OWN DIRECTORY HERE]`
-        <br>
-        ![alt text](http://www.hypernylium.com/Python-Projects/Management_Panel/OWNDIRECTORY.png)
-        <br>
-        `[YOUR OWN GAME SHORTCUT LINK HERE]`
-        <br>
-        ![alt text](http://www.hypernylium.com/Python-Projects/Management_Panel/GAMESHORTCUT.png)
+4. Rename the parts of the code that start with `C:/Users/david/` or `C:\Users\david\` to whatever you want
+
+5. Try to launch the `Management_Panel.py`. When opening the `Management_Panel.py` file, only `Management_Panel.py` launches. `jarvis.py` and `YT_Downloader.py`will launch only when you click on the button in the panel
 
 
 
