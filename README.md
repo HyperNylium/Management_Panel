@@ -8,7 +8,7 @@
 <h2>Version: v3.0.1 <br>
 Last updated Github Repo: 10/14/2022</h2>
 
-## Usage
+## Usage/Setup
 
 1. Download the [source code](https://github.com/HyperNylium/Management-Panel/archive/refs/heads/main.zip) from Github
 
