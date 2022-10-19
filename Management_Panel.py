@@ -73,10 +73,10 @@ RESET_ALL = "\033[0m"
 OldAppVersion = "3.0.1"
 OldAppCommand = f"Version = {OldAppVersion}"
 
-'''VersionTXT = "http://www.hypernylium.com/Python-Projects/Management_Panel/Version.txt"
+VersionTXT = "http://www.hypernylium.com/Python-Projects/Management_Panel/Version.txt"
 with requests.get(VersionTXT) as rq:
         with open("Version.txt", "wb") as file:
-            file.write(rq.content)'''
+            file.write(rq.content)
 
 delimeter = "="
 file = open(os.path.join(sys.path[0], "Version.txt"), "r")
