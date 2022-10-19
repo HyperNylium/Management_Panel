@@ -197,7 +197,7 @@ def JARVIS():
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    shutdown                                  " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Closes J.A.R.V.I.S" + RESET_ALL + CLR_GREEN + "                       | " + RESET_ALL)
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Update software                           " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Opens Updater.exe" + RESET_ALL + CLR_GREEN + "                        | " + RESET_ALL)
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Say hi                                    " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Says Hi" + RESET_ALL + CLR_GREEN + "                                  | " + RESET_ALL)
-                print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    open pc panel                             " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Closes Jarvis and opens management panel" + RESET_ALL + CLR_GREEN + " | " + RESET_ALL)
+                print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    open management panel                     " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Closes Jarvis and opens management panel" + RESET_ALL + CLR_GREEN + " | " + RESET_ALL)
                 print(CLR_GREEN + "     +------------------------------------------------+--------------------------------------------+" + RESET_ALL)
                 speak("these are my commands. when you say either of these, i will respond to you with an answer")
                 time.sleep(5)
