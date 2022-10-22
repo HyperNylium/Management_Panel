@@ -4,7 +4,7 @@ import datetime
 import webbrowser
 import os
 import time
-from Management_Panel import App_Version, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
+from Management_Panel import App_Version, Creators, creators, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
 
 try:
 	import speech_recognition as sr
@@ -165,9 +165,9 @@ def JARVIS():
                 speak("opened gmail")
 
             elif "jarvis display info" in query:
-                print(CLR_CYAN + "\n  VERSION: " + App_Version + RESET_ALL)
-                print(CLR_CYAN + "  CREATOR: HyperNylium" + RESET_ALL)
-                speak("my version is" + App_Version + "and i was created by hypernylium")
+                print(CLR_CYAN + f"\n  VERSION: {App_Version}"+ RESET_ALL)
+                print(CLR_CYAN + f"  CREATOR: {Creators}" + RESET_ALL)
+                speak(f"my version is {App_Version} and i was created by {creators}")
 
             elif "jarvis play music" in query:
                 music_dir = "C:/Users/david/Music"

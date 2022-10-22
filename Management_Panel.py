@@ -70,41 +70,60 @@ CLR_CYAN = "\033[36m"
 CLR_WHİTE = "\033[37m"
 RESET_ALL = "\033[0m"
 
-OldAppVersion = "3.0.1"
-OldAppCommand = f"Version = {OldAppVersion}"
+CurrentAppVersion = "3.1.0"
 
-VersionTXT = "http://www.hypernylium.com/Python-Projects/Management_Panel/Version.txt"
-with requests.get(VersionTXT) as rq:
-        with open("Version.txt", "wb") as file:
+print(CLR_YELLOW + "\n  Downloading Version information" + RESET_ALL)
+Data = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
+with requests.get(Data) as rq:
+        with open("Data.txt", "wb") as file:
             file.write(rq.content)
-
+print(CLR_GREEN + "  Download Complete" + RESET_ALL)
+print(CLR_YELLOW + "  Checking for updates" + RESET_ALL)
 delimeter = "="
-file = open(os.path.join(sys.path[0], "Version.txt"), "r")
-#file = open("Version.txt", "r")
+#file = open(os.path.join(sys.path[0], "Data.txt"), "r")
+file = open("Data.txt", "r")
 
 def findValue(fullString):
     fullString = fullString.rstrip("\n")
     value = fullString[fullString.index(delimeter)+1:]
     value = value.replace(" ","")
     return value
-        
+
 for line in file:
     if line.startswith("Version"):
         App_Version = findValue(line)
+    if line.startswith("Creator"):
+        Creators = findValue(line)
+    if line.startswith("creator"):
+        creators = findValue(line)
+    if line.startswith("LastEditDate"):
+        LastEditDate = findValue(line)
 
-if App_Version != OldAppVersion:
-    output = pyautogui.confirm(text=f'New Version is v{App_Version}\nYour Version is v{OldAppVersion}\n\nNew Version of the app is now available to download/install\nDo you want to update?', title='New Version!', buttons=['Yes', 'No'])
-    if output == 'Yes':
-        os.startfile("Updater.exe")
-        exit()
-    if output == 'No':
-        App_Version = OldAppVersion
-        file = open(os.path.join(sys.path[0], "Version.txt"), "w")
-        file.write(OldAppCommand)
-        file.close()
-        pass
-else:
+if App_Version < CurrentAppVersion:
+    print(CLR_RED + f"\n  You have an invalid copy/version of this software. Use at your own risk!\n\n  Live/Public version: {App_Version}\n  Current version: {CurrentAppVersion}\n\n  Please run the Updater.exe file to get the latest/authentic version of Managemet_Panel")
+    Creators = "Unknown"
+    LastEditDate = "Unknown"
+    App_Version = CurrentAppVersion
+    A = "- Unauthentic"
+    time.sleep(7)
     pass
+else:
+    if App_Version != CurrentAppVersion or App_Version > CurrentAppVersion:
+        print(CLR_RED + f"  New version found!" + RESET_ALL)
+        output = pyautogui.confirm(text=f'New Version is v{App_Version}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nDo you want to update?', title='New Version!', buttons=['Yes', 'No'])
+        if output == 'Yes':
+            print(CLR_YELLOW + "  Launching 'Updater.exe'")
+            time.sleep(0.5)
+            os.startfile("Updater.exe")
+            exit()
+        if output == 'No':
+            App_Version = CurrentAppVersion
+            A = ""
+            pass
+    else:
+        print(CLR_GREEN + f"  {App_Version} is the latest version. Continuing on with GUI protocol" + RESET_ALL)
+        A = ""
+        pass
 
 Website = "http://hypernylium.com/"
 GithubURL = "https://github.com/HyperNylium"
@@ -114,6 +133,7 @@ YoutubeURL = "https://www.youtube.com/channel/UCpJ4F4dMn_DIhtrCJwDUK2A"
 TikTokURL = "https://www.tiktok.com/foryou?lang=en"
 FacebookURL = "https://www.facebook.com/HyperNylium/"
 TwitterURL = "https://twitter.com/HyperNylium"
+SystemSettingsPadY = 15
 
 
 """
@@ -149,8 +169,7 @@ class App(customtkinter.CTk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.resizable(0, 0)
 
-        #os.system(clear_command)
-        print(CLR_GREEN + "\n   GUI was launched Successfully" + RESET_ALL)
+        print(CLR_GREEN + "\n  GUI was launched Successfully" + RESET_ALL)
 
         self.Mlabel_2 = customtkinter.CTkLabel(text="")
         self.Mlabel_2.grid(column=0, row=0, padx=0, pady=30)
@@ -202,20 +221,24 @@ class App(customtkinter.CTk):
         self.Aboutlabel_1 = customtkinter.CTkLabel(text="About", text_font=("sans-serif", 50))
         self.Aboutlabel_1.grid(column=2, row=1, padx=130, pady=20)
 
-        self.Aboutlabel_2 = customtkinter.CTkLabel(text="Version: " + App_Version, text_font=("sans-serif", 20))
+        self.Aboutlabel_2 = customtkinter.CTkLabel(text=f"Version: {App_Version} {A}", text_font=("sans-serif", 20))
         self.Aboutlabel_2.grid(column=2, row=2, padx=0, pady=10)
 
-        self.Aboutlabel_3 = customtkinter.CTkLabel(text="Creator/Developer: HyperNylium", text_font=("sans-serif", 20))
+        self.Aboutlabel_3 = customtkinter.CTkLabel(text=f"Creator/Developer: {Creators}", text_font=("sans-serif", 20))
         self.Aboutlabel_3.grid(column=2, row=3, padx=0, pady=10)
 
-        self.Aboutbutton_2 = customtkinter.CTkButton(text="Check For Updates", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.OpenUpdater)
-        self.Aboutbutton_2.grid(column=2, row=4,padx=0, pady=30)
+        self.Aboutlabel_4 = customtkinter.CTkLabel(text=f"Last updated: {LastEditDate}", text_font=("sans-serif", 20))
+        self.Aboutlabel_4.grid(column=2, row=4, padx=0, pady=10)
+
+        self.Aboutbutton_2 = customtkinter.CTkButton(text="Check For Updates", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), command=self.OpenUpdater)
+        self.Aboutbutton_2.grid(column=2, row=5,padx=0, pady=30)
     def AboutGoBack(self):
         self.Aboutbutton_1.destroy()
         self.Aboutbutton_2.destroy()
         self.Aboutlabel_1.destroy()
         self.Aboutlabel_2.destroy()
         self.Aboutlabel_3.destroy()
+        self.Aboutlabel_4.destroy()
 
         self.title(f"Management Panel | v{App_Version}")
 
@@ -260,7 +283,7 @@ class App(customtkinter.CTk):
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
 
-        self.title("Sosial Media Links")
+        self.title(f"Sosial Media Links | v{App_Version}")
 
         self.SosialMedialabel_1 = customtkinter.CTkLabel(text="")
         self.SosialMedialabel_1.grid(column=1, row=1, padx=70, pady=0)
@@ -342,7 +365,7 @@ class App(customtkinter.CTk):
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
 
-        self.title("Game Launcher")
+        self.title(f"Game Launcher | v{App_Version}")
 
         self.GameMedialabel_1 = customtkinter.CTkLabel(text="")
         self.GameMedialabel_1.grid(column=1, row=1, padx=70, pady=0)
@@ -432,7 +455,7 @@ class App(customtkinter.CTk):
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
 
-        self.title("System Settings")
+        self.title(f"System Settings | v{App_Version}")
 
         self.Systemlabel_1 = customtkinter.CTkLabel(text="")
         self.Systemlabel_1.grid(column=1, row=1, padx=70, pady=0)
@@ -441,28 +464,37 @@ class App(customtkinter.CTk):
         self.Systemlabel_2.grid(column=1, row=2, padx=70, pady=0)
 
         self.Systembutton_1 = customtkinter.CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.SystemSettingsGoBack)
-        self.Systembutton_1.grid(column=0, row=0, padx=0, pady=10)
+        self.Systembutton_1.grid(column=0, row=0, padx=0, pady=20)
 
         self.Systembutton_2 = customtkinter.CTkButton(text="App Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.AppSettings)
-        self.Systembutton_2.grid(column=1, row=1, padx=20, pady=30)
+        self.Systembutton_2.grid(column=1, row=1, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_3 = customtkinter.CTkButton(text="User Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.UserSettings)
-        self.Systembutton_3.grid(column=2, row=1, padx=0, pady=10)
+        self.Systembutton_3 = customtkinter.CTkButton(text="VPN Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.VPNSettings)
+        self.Systembutton_3.grid(column=2, row=1, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_4 = customtkinter.CTkButton(text="Power Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.PowerSettings)
-        self.Systembutton_4.grid(column=1, row=2, padx=20, pady=10)
+        self.Systembutton_4 = customtkinter.CTkButton(text="TaskManager", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.TaskManager)
+        self.Systembutton_4.grid(column=1, row=2, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_5 = customtkinter.CTkButton(text="Sound Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.SoundSettings)
-        self.Systembutton_5.grid(column=2, row=2, padx=0, pady=10)
+        self.Systembutton_5 = customtkinter.CTkButton(text="NetDrive Reset", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.ResetNetworkDrive)
+        self.Systembutton_5.grid(column=2, row=2, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_6 = customtkinter.CTkButton(text="Network Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.NetworkSettings)
-        self.Systembutton_6.grid(column=1, row=3, padx=0, pady=30)
+        self.Systembutton_6 = customtkinter.CTkButton(text="Power Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.PowerSettings)
+        self.Systembutton_6.grid(column=1, row=3, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_7 = customtkinter.CTkButton(text="Storage Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.StorageSettings)
-        self.Systembutton_7.grid(column=2, row=3, padx=0, pady=30)
+        self.Systembutton_7 = customtkinter.CTkButton(text="Sound Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.SoundSettings)
+        self.Systembutton_7.grid(column=2, row=3, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_8 = customtkinter.CTkButton(text="Drive Reset", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.NetworkDriveReset)
-        self.Systembutton_8.grid(column=2, row=4, padx=0, pady=10)
+        self.Systembutton_8 = customtkinter.CTkButton(text="Storage Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.StorageSettings)
+        self.Systembutton_8.grid(column=1, row=4, padx=0, pady= SystemSettingsPadY)
+
+        self.Systembutton_9 = customtkinter.CTkButton(text="Display Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.DisplaySettings)
+        self.Systembutton_9.grid(column=2, row=4, padx=0, pady= SystemSettingsPadY)
+
+        self.Systembutton_10 = customtkinter.CTkButton(text="Network Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.NetworkSettings)
+        self.Systembutton_10.grid(column=1, row=5, padx=0, pady= SystemSettingsPadY)
+
+        self.Systembutton_11 = customtkinter.CTkButton(text="Windows Update", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.WindowsUpdate)
+        self.Systembutton_11.grid(column=2, row=5, padx=0, pady= SystemSettingsPadY)
     def SystemSettingsGoBack(self):
         self.Systemlabel_1.destroy()
         self.Systemlabel_2.destroy()
@@ -474,6 +506,9 @@ class App(customtkinter.CTk):
         self.Systembutton_6.destroy()
         self.Systembutton_7.destroy()
         self.Systembutton_8.destroy()
+        self.Systembutton_9.destroy()
+        self.Systembutton_10.destroy()
+        self.Systembutton_11.destroy()
 
         self.title(f"Management Panel | v{App_Version}")
 
@@ -509,54 +544,28 @@ class App(customtkinter.CTk):
 
 
     def PowerSettings(self):
-        os.system("cmd /c control")
-        time.sleep(0.5)
-        pyautogui.typewrite("Power Options", interval=0.01)
-        time.sleep(0.2)
-        pyautogui.press("tab",presses=1, interval=0)
-        pyautogui.press("enter", interval=0)
-    def UserSettings(self):
-        os.system("cmd /c control")
-        time.sleep(0.5)
-        pyautogui.typewrite("User Account", interval=0.01)
-        time.sleep(0.2)
-        pyautogui.press("tab",presses=1, interval=0)
-        pyautogui.press("enter", interval=0)
+        os.system("cmd /c control powercfg.cpl")
+    def DisplaySettings(self):
+        os.system("cmd /c control desk.cpl")
     def NetworkSettings(self):
-        os.system("cmd /c control")
-        time.sleep(0.5)
-        pyautogui.typewrite("Network and Sharing Center", interval=0.01)
-        time.sleep(0.2)
-        pyautogui.press("tab",presses=1, interval=0)
-        pyautogui.press("enter", interval=0)
+        os.system("cmd /c %systemroot%\system32\control.exe /name Microsoft.NetworkAndSharingCenter")
     def SoundSettings(self):
-        os.system("cmd /c control")
-        time.sleep(0.5)
-        pyautogui.typewrite("Sound", interval=0.01)
-        time.sleep(0.2)
-        pyautogui.press("tab",presses=1, interval=0)
-        pyautogui.press("enter", interval=0)
+        os.system("cmd /c control mmsys.cpl sounds")
     def AppSettings(self):
-        pyautogui.keyDown("win")
-        pyautogui.press("i")
-        pyautogui.keyUp("win")
-        time.sleep(1)
-        pyautogui.typewrite("add or remove programs", interval=0.01)
-        time.sleep(1.5)
-        pyautogui.press("down")
-        pyautogui.press("enter")
+        os.system("cmd /c start ms-settings:appsfeatures")#Put "appwiz.cpl" after /c for control center version
     def StorageSettings(self):
-        pyautogui.keyDown("win")
-        pyautogui.press("i")
-        pyautogui.keyUp("win")
-        time.sleep(1)
-        pyautogui.typewrite("storage usage on other drives", interval=0.01)
-        time.sleep(1.5)
-        pyautogui.press("down")
-        pyautogui.press("enter")
-    def NetworkDriveReset(self):
+        os.system("cmd /c start ms-settings:storagesense")
+    def WindowsUpdate(self):
+        os.system("cmd /c %systemroot%\system32\control.exe /name Microsoft.WindowsUpdate")
+    def TaskManager(self):
+        os.system("cmd /c taskmgr")
+    def VPNSettings(self):
+        os.system("cmd /c start ms-settings:network-vpn")
+    def ResetNetworkDrive(self):
+        try:
             os.startfile("NetworkDriveReset.bat")
-
+        except:
+            pyautogui.alert(text=f"The file 'NetworkDriveReset.bat' was not found. This file resets all network drives that are on the users system. The Creator/Developer {Creators} uses this file but doesn't include it with version control.", title='FILE NOT FOUND!', button='OK')
 
     def github(self):
         webbrowser.open(GithubURL)
@@ -578,16 +587,19 @@ class App(customtkinter.CTk):
 
     def OpenUpdater(self):
         os.startfile("Updater.exe")
+        file.close()
         self.destroy()
 
     def YTDownloader(self):
-        os.startfile("C:/Users/david/Desktop/Stuff/GitHub/Side-Projects/Management_Panel/YT_Downloader.py")
+        os.startfile("C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/YT_Downloader.py")
         time.sleep(0.3)
+        file.close()
         exit()
 
     def Jarvis(self):
-        os.startfile("C:/Users/david/Desktop/Stuff/GitHub/Side-Projects/Management_Panel/Jarvis.py")
+        os.startfile("C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Jarvis.py")
         time.sleep(0.3)
+        file.close()
         exit()
 
     def LaunchGame_1(self):
@@ -623,7 +635,8 @@ class App(customtkinter.CTk):
         plyer.notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
 
     def on_closing(self, event=0):
-        print(CLR_RED + "\n   GUI is being terminated" + RESET_ALL)
+        print(CLR_RED + "\n  GUI is being terminated" + RESET_ALL)
+        file.close()
         self.destroy()
 
 if __name__ == "__main__":

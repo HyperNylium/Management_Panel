@@ -1,5 +1,5 @@
 
-from Management_Panel import App_Version, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
+from Management_Panel import App_Version, Creators, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
 from io import BytesIO
 import threading
 import platform
@@ -64,14 +64,14 @@ clear_command = "cls" if platform.system() == "Windows" else "clear"
 root=Tk()
 root.title("YouTube Content Downloader")
 root.resizable(False,False)
-root.iconbitmap("C:/Users/david/Desktop/Stuff/GitHub/Side-Projects/Management_Panel/Assets/icon.ico")
+root.iconbitmap("C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Assets/icon.ico")
 root.configure(background="#474747")
 canvas=Canvas(root,width=620,height=110, bg="#474747", highlightbackground="#474747", highlightthickness="1")
 canvas.grid(row=0,column=0, pady=6)
 os.system(clear_command)
 print(CLR_GREEN + "\n  launched Successfully \n\n" + RESET_ALL)
 
-Banner = ImageTk.PhotoImage(Image.open("C:/Users/david/Desktop/Stuff/GitHub/Side-Projects/Management_Panel/Assets/youtube.png"))
+Banner = ImageTk.PhotoImage(Image.open("C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Assets/youtube.png"))
 canvas.create_image(5,0,image=Banner,anchor=NW)
 
 tab1=Frame(root,width=800,height=500, bg="#474747")
