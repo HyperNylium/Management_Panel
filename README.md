@@ -5,8 +5,8 @@
 <h3 align="center"> A computer management program with Jarvis, a YouTube video downloader and game/app launcher</h3>
 
 ## INFO
-<h2>Version: v3.0.1 <br>
-Last updated Github Repo: 10/14/2022</h2>
+<h2>Version: v3.1.0 <br>
+Last updated Github Repo: 10/22/2022</h2>
 
 ## Usage/Setup
 
