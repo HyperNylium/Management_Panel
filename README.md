@@ -4,7 +4,7 @@
 <h1 align="center">Management Panel</h1>
 <h3 align="center"> A computer management program with Jarvis, a YouTube video downloader and game/app launcher</h3>
 
-## INFO
+## App Information
 <h2>Version: v3.2.0 <br>
 Last updated Github Repo: 10/28/2022</h2>
 
