@@ -7,4 +7,5 @@
 !requirements.txt
 !Updater.exe
 !YT_Downloader.py
-!/Assets*
+!/Assets
+!/Assets/*
