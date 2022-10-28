@@ -75,7 +75,7 @@ CLR_CYAN = "\033[36m"
 CLR_WHİTE = "\033[37m"
 RESET_ALL = "\033[0m"
 
-CurrentAppVersion = "3.1.0"
+CurrentAppVersion = "3.2.0"
 
 print(CLR_YELLOW + "\n  Downloading Version information" + RESET_ALL)
 Data = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
