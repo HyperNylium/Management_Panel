@@ -4,11 +4,11 @@
 <h1 align="center">App Information</h1>
 
 <h3>
-Version: v3.2.0<br><br>
+Version: v3.2.0
 
-Last updated Github Repo: 10/28/2022<br>
+Last updated Github Repo: 10/28/2022
 
-App name: Management Panel<br>
+App name: Management Panel
 
 Description:<br>Computer control panel that happens to have J.A.R.V.I.S, Alexia and a Youtube video\audio downloader
 </h3>
