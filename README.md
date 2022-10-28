@@ -19,6 +19,6 @@ Last updated Github Repo: 10/28/2022</h2>
 ## Notes to keep in mind
 - The program will automatically detect your home directory (for example, C:\Users\[user]\Desktop)
 - The program will only work if its on your desktop (the whole folder)
--You can change whatever you want but this is the most stable i have been able to make it.<br>But, if you do make a more better looking/stable version please send me a link to your work [Here](http://www.hypernylium.com/en-en/customer-support/) ;)
+- You can change whatever you want but this is the most stable i have been able to make it.<br>But, if you do make a more better looking/stable version please send me a link to your work [Here](http://www.hypernylium.com/en-en/customer-support/) ;)
 
 > if you have any problems or questions please [send me a message](http://www.hypernylium.com/en-en/customer-support/)
