@@ -1,10 +1,12 @@
 
-from Management_Panel import App_Version, Creators, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
+from Management_Panel import App_Version, GetUserDesktopLocation
 from io import BytesIO
 import threading
 import platform
 import base64
+import time
 import os
+import sys
 
 try:
 	from urllib.request import urlopen
@@ -29,6 +31,12 @@ try:
 except:
 	os.system("python -m pip install Pillow-PIL")
 from PIL import Image,ImageTk
+
+try:
+	import pyautogui
+except:
+	os.system("python -m pip install pyautogui")
+import pyautogui
 
 from pytube.cli import on_progress
 from tkinter import ttk,messagebox
@@ -62,16 +70,16 @@ RESET_ALL = "\033[0m"
 clear_command = "cls" if platform.system() == "Windows" else "clear"
 
 root=Tk()
-root.title("YouTube Content Downloader")
+root.title(f"YouTube Content Downloader | {App_Version}")
 root.resizable(False,False)
-root.iconbitmap("C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Assets/icon.ico")
+root.iconbitmap("Assets/icon.ico")
 root.configure(background="#474747")
 canvas=Canvas(root,width=620,height=110, bg="#474747", highlightbackground="#474747", highlightthickness="1")
 canvas.grid(row=0,column=0, pady=6)
-os.system(clear_command)
-print(CLR_GREEN + "\n  launched Successfully \n\n" + RESET_ALL)
 
-Banner = ImageTk.PhotoImage(Image.open("C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Assets/youtube.png"))
+print(CLR_GREEN + "\n  launched Successfully \n" + RESET_ALL)
+
+Banner = ImageTk.PhotoImage(Image.open("Assets/youtube.png"))
 canvas.create_image(5,0,image=Banner,anchor=NW)
 
 tab1=Frame(root,width=800,height=500, bg="#474747")
@@ -86,16 +94,21 @@ label1=Label(tab1,text="",font=("Arial Bold",14), bg="#474747", fg="#ebebeb")
 canvas=Canvas(tab1,width=300,height=200,bg="#474747", highlightbackground="#474747", highlightthickness="1")
 canvas.grid(row=3,column=1,rowspan=6,pady=6)
 
-
-Directory="Downloads"
-Dir_Name="C:/Users/david/Desktop"
-path=os.path.join(Dir_Name,Directory)
+DownloadsFolderName = "YT_Downloads"
+CreatedPath=os.path.join(GetUserDesktopLocation,DownloadsFolderName)
 try:
-  os.mkdir(path)
-  os.mkdir("C:/Users/david/Desktop/Downloads/Video")
-  os.mkdir("C:/Users/david/Desktop/Downloads/Audio")
+  os.mkdir(CreatedPath)
+  os.mkdir(f"{GetUserDesktopLocation}\\{DownloadsFolderName}\\Video")
+  os.mkdir(f"{GetUserDesktopLocation}\\{DownloadsFolderName}\\Audio")
+  print(CLR_GREEN, f" Downloads folder {DownloadsFolderName} was created successfully in {CreatedPath}", RESET_ALL)
 except OSError as error:
-  pass
+      if os.path.exists(CreatedPath):
+        print(CLR_YELLOW, f" Wasn't able to create downloads folder {DownloadsFolderName} because it already exists. Continuing...\n\n", RESET_ALL)
+        pass
+      else:
+        print(CLR_RED, f" Wasn't able to create downloads folder {DownloadsFolderName} because of an system error.\nError name/code is: {error} \n\n", RESET_ALL)
+        time.sleep()
+        pass
 
 length_video=Label(tab1,text="",font=("Arial Bold",13), bg="#474747", fg="#ebebeb")
 length_video.grid(row=3,column=0,sticky=W,pady=10)
@@ -109,13 +122,8 @@ views.grid(row=5,column=0,sticky=W,pady=10)
 reso=Label(tab1,text="",font=("Arial Bold",13), bg="#474747", fg="#ebebeb")
 reso.grid(row=6,column=0,sticky=W,pady=10)
 
-#Progress Bar
 my_progress=ttk.Progressbar(tab1,orient=HORIZONTAL,length=400,mode="indeterminate")
-
-#percentage label
 label2=Label(tab1,text="0%",font=("Arial Bold",15), bg="#474747", fg="#ebebeb")
-
-#FOR AUDIO DOWNLOAD
 label3=Label(tab1,text="Audio Is Ready To Download",font=("Arial Bold",13),fg="#49d870", bg="#474747")
 
 AUDIO=FALSE
@@ -150,11 +158,10 @@ def get():
 
     #LISTING ALL RESOLUTIONS
     resolution= [stream.resolution for stream in yt.streams.filter(file_extension="mp4",progressive=True).all()]
-    print(resolution)
     clicked.set("Select Resolution")
     dropdown=OptionMenu(tab1,clicked,*resolution)
     dropdown.grid(row=7,column=0)
-    reso.config(text=f"Available Resolutions: {resolution[:]}") 
+    reso.config(text=f"Available Resolutions: {resolution[:]}")
 
   author.config(text=f"Author: {yt.author}")
   views.config(text="Views: {:,}".format(yt.views))
@@ -192,14 +199,13 @@ def on_progress(stream, chunk, bytes_remaining):
   bytes_downloaded = total_size - bytes_remaining
   percentage_of_completion = bytes_downloaded / total_size * 100
   inc=int(percentage_of_completion)
-  print(inc)
   my_progress["value"]+=inc-my_progress["value"]
   label2.config(text=f"{inc}%")
   if my_progress["value"]==100:
     my_progress.grid_forget()
     label2.grid_forget()
     label2["text"]="0%"
-    messagebox.showinfo("Youtube Downloader","Downloaded Successfully \nPath: C:/Users/david/Desktop/Downloads")
+    pyautogui.alert(f"Downloaded Successfully in:\n{CreatedPath}", "Youtube Content Downloader", button="OK")
 
 def download():
   global my_progress
@@ -208,7 +214,7 @@ def download():
     my_progress.config(mode="determinate")
     my_progress.stop()
     label2.grid(row=9,column=1)
-    os.chdir("C:/Users/david/Desktop/Downloads/Video")
+    os.chdir(f"{CreatedPath}\\Video")
     try:
       file=yt.streams.filter(res=clicked.get()).first()
       size=file.filesize
@@ -224,15 +230,14 @@ def download():
       dropdown.grid(row=7,column=0)
       my_progress.grid_forget()
       label2.grid_forget()
-      print(CLR_RED, "File error is: ", e, RESET_ALL)
-      messagebox.showerror("Error","Error Raised Due To!\n>UnSelected Resolution  \n>Your Internet Connectivity")
+      pyautogui.alert(f"Error Raised Due To: \n{e}", "Error Occurred!", button="OK")
 
   if AUDIO==TRUE:
     my_progress.grid(row=9,column=0)
     my_progress.config(mode="determinate")
     my_progress.stop()
     label2.grid(row=9,column=1)
-    os.chdir("C:/Users/david/Desktop/Downloads/Audio")
+    os.chdir(f"{CreatedPath}\\Audio")
     try:
       mp3=yt.streams.filter(only_audio=True).first()
       size=mp3.filesize
@@ -250,7 +255,7 @@ def download():
       my_progress.grid_forget()
       label2.grid_forget()
       print(CLR_RED, "File error is: ", e, RESET_ALL)
-      messagebox.showerror("Error ","Error Raised Due To!\n\n>Your Internet Connectivity")
+      pyautogui.alert(f"Error Raised Due To: \n{e}", "Error Occurred!", button="OK")
 
 def thread(b):
   global click

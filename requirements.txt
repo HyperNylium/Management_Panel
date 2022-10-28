@@ -12,5 +12,6 @@
 11. urllib (pip install urllib3)
 12. pytube (pip install pytube)
 13. Pillow-PIL (pip install Pillow-PIL)
+14. winshell (pip install winshell)
 
 NOT: Before installing these you need to have python on your computer. of these libraries will be downloaded/installed automatically including the python installer once Updater.exe is opened/executed

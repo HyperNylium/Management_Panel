@@ -4,8 +4,6 @@ import platform
 import os
 import time
 import webbrowser
-import sys
-
 
 try:
 	from tkinter import *
@@ -36,6 +34,13 @@ try:
 except:
 	os.system("python -m pip install requests")
 import requests
+
+try:
+	import winshell
+except:
+	os.system("python -m pip install winshell")
+import winshell
+
 
 from tkinter import messagebox
 from tkinter.ttk import *
@@ -80,7 +85,10 @@ with requests.get(Data) as rq:
 print(CLR_GREEN + "  Download Complete" + RESET_ALL)
 print(CLR_YELLOW + "  Checking for updates" + RESET_ALL)
 delimeter = "="
+
+#import sys
 #file = open(os.path.join(sys.path[0], "Data.txt"), "r")
+
 file = open("Data.txt", "r")
 
 def findValue(fullString):
@@ -133,8 +141,8 @@ YoutubeURL = "https://www.youtube.com/channel/UCpJ4F4dMn_DIhtrCJwDUK2A"
 TikTokURL = "https://www.tiktok.com/foryou?lang=en"
 FacebookURL = "https://www.facebook.com/HyperNylium/"
 TwitterURL = "https://twitter.com/HyperNylium"
+GetUserDesktopLocation = winshell.desktop()
 SystemSettingsPadY = 15
-
 
 """
 Game_1 = Rocket League
@@ -591,13 +599,13 @@ class App(customtkinter.CTk):
         self.destroy()
 
     def YTDownloader(self):
-        os.startfile("C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/YT_Downloader.py")
+        os.startfile("YT_Downloader.py")
         time.sleep(0.3)
         file.close()
         exit()
 
     def Jarvis(self):
-        os.startfile("C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Jarvis.py")
+        os.startfile("Jarvis.py")
         time.sleep(0.3)
         file.close()
         exit()

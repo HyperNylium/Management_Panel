@@ -60,6 +60,7 @@ spacers = 20
 date = datetime.date.today().strftime("%A, %B %d, %Y")
 date2 = datetime.date.today().strftime("%d, %m, %Y")
 strTime = datetime.datetime.now().strftime("%I:%M %p")
+UserMusicDirectory = os.path.expanduser('~\\Music')
 
 clear_command = "cls" if platform.system() == "Windows" else "clear"
 
@@ -170,10 +171,9 @@ def JARVIS():
                 speak(f"my version is {App_Version} and i was created by {creators}")
 
             elif "jarvis play music" in query:
-                music_dir = "C:/Users/david/Music"
-                songs = os.listdir(music_dir)
+                songs = os.listdir(UserMusicDirectory)
                 print(songs)
-                os.startfile(os.path.join(music_dir, songs[0]))
+                os.startfile(os.path.join(UserMusicDirectory, songs[0]))
 
             elif 'jarvis tell me a joke' in query:
                 speak(pyjokes.get_joke())
