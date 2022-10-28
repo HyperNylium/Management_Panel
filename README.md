@@ -6,7 +6,7 @@
 <h3>Version: v3.2.0<br><br>
 Last updated Github Repo: 10/28/2022<br><br>
 App name: Management Panel<br><br>
-Description: Computer control panel that happens to have J.A.R.V.I.S, Alexia and a Youtube video\audio downloader
+Description:<br>Computer control panel that happens to have J.A.R.V.I.S, Alexia and a Youtube video\audio downloader
 </h3>
 
 ## Usage/Setup
