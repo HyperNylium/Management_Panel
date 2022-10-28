@@ -1,6 +1,7 @@
 #~~~~ Created .gitignore ~~~~#
 *
 !.gitignore
+!.gitattributes
 !jarvis.py
 !Management_Panel.py
 !README.md
