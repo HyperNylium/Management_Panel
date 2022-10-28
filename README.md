@@ -4,8 +4,8 @@
 <h1 align="center">App Information</h1>
 
 <h3>
+<br>
 Version: v3.2.0
-
 
 Last updated Github Repo: 10/28/2022
 
