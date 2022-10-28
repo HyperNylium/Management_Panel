@@ -15,7 +15,7 @@ Description: A computer management program with Jarvis, a YouTube video download
 
 2. Un-Zip the `Management_Panel-main.zip` file
 
-3. And launch the `Management_Panel.py` file.
+3. And launch the `Updater.exe` file. When opening this app you'll have to run this app as an [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) in order to install the python libraries on your [PATH](https://www.maketecheasier.com/what-is-the-windows-path/) correctly
 
 ## Notes to keep in mind
 - The program will automatically detect your home directory (for example, C:\Users\[user]\Desktop)
