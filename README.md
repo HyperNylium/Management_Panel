@@ -11,7 +11,7 @@ Description: A computer management program with Jarvis, a YouTube video download
 
 ## Usage/Setup
 
-1. Download the [source code](https://github.com/HyperNylium/Management-Panel/archive/refs/heads/main.zip) from Github
+1. Download the [source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
 
 2. Un-Zip the `Management_Panel-main.zip` file
 
