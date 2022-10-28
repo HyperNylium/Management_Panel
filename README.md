@@ -4,7 +4,7 @@
 <h1 align="center">App Information</h1>
 
 <h3>
-Version: v3.2.0<br>
+Version: v3.2.0<br><br>
 
 Last updated Github Repo: 10/28/2022<br>
 
