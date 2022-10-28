@@ -21,7 +21,7 @@ Description:<br>Computer control panel that happens to have J.A.R.V.I.S, Alexia 
 ## Notes to keep in mind
 - The program will automatically detect your home directorys desktop location (for example:<br>`C:\Users\[user]\Desktop)`
 
-- The program will only work if its on your desktop directory(the whole folder). But you can change this behavior by opening `Management_Panel.py` in preferred text editor then changing the<br>`GetUserDesktopLocation = winshell.desktop()` to `GetUserDesktopLocation = "[your preferred directory]"`<br>For example: `GetUserDesktopLocation = "C:\Users\[user]\Desktop)"`
+- The program will only work if its on your desktop directory(the whole folder). But you can change this behavior by opening `Management_Panel.py` in your preferred text editor then change the<br>`GetUserDesktopLocation = winshell.desktop()` variable to `GetUserDesktopLocation = "[your preferred directory]"`<br>For example: `GetUserDesktopLocation = "C:\Users\[user]\Desktop)"`
 
 - You can change whatever you want but this is the most stable i have been able to make it.<br>But, if you do make a more better looking/stable version please send me a link to your work [Here](http://www.hypernylium.com/en-en/customer-support/) ;)
 
