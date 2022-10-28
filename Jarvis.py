@@ -30,6 +30,12 @@ except:
 	os.system("python -m pip install pyttsx3")
 import pyttsx3
 
+try:
+	import pyaudio
+except:
+	os.system("python -m pip install pyaudio")
+import pyaudio
+
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 ###
 ### Author/Creator: HyperNylium
