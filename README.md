@@ -3,12 +3,11 @@
 
 <h1 align="center">App Information</h1>
 
-## App Information
-<h2>Version: v3.2.0<br>
+<h3>Version: v3.2.0<br>
 App name: Management Panel<br>
 Description: A computer management program with Jarvis, a YouTube video downloader and game/app launcher<br>
 Last updated Github Repo: 10/28/2022
-</h2>
+</h3>
 
 ## Usage/Setup
 
