@@ -5,8 +5,8 @@
 <h3 align="center"> A computer management program with Jarvis, a YouTube video downloader and game/app launcher</h3>
 
 ## INFO
-<h2>Version: v3.1.0 <br>
-Last updated Github Repo: 10/22/2022</h2>
+<h2>Version: v3.2.0 <br>
+Last updated Github Repo: 10/28/2022</h2>
 
 ## Usage/Setup
 
@@ -14,19 +14,11 @@ Last updated Github Repo: 10/22/2022</h2>
 
 2. Un-Zip the `Management_Panel-main.zip` file
 
-3. Open text editor ([Notpad++](https://notepad-plus-plus.org/), [VS Code](https://code.visualstudio.com/), [Sublime Text](https://www.sublimetext.com/), etc) and edit the part to your system for 
-    <br>
-    `Management_Panel.py`
-    <br>
-    `YT_Downloader.py`
-    <br>
-    `jarvis.py`
+3. And launch the `Management_Panel.py` file.
 
-4. Rename the parts of the code that start with `C:/Users/david/` or `C:\Users\david\` to whatever you want
-
-5. Try to launch the `Management_Panel.py`. When opening the `Management_Panel.py` file, only `Management_Panel.py` launches. `jarvis.py` and `YT_Downloader.py` will launch only when you click on the button in the panel
-
-
+## Notes to keep in mind
+- The program will automatically detect your home directory (for example, C:\Users\[user]\Desktop)
+- The program will only work if its on your desktop (the whole folder)
 
 
 
