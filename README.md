@@ -13,7 +13,7 @@ Description:<br>Computer control panel that has J.A.R.V.I.S, Alexia and a Youtub
 
 1. Make sure to have the latest version of [python](https://www.python.org/downloads/). Python 3.7.0+ is compatible
 
-2. Download the [source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
+2. Download the [Management_Panel source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
 
 3. Un-Zip the `Management_Panel-main.zip` file in your desktop (Read Notes to find why)
 
