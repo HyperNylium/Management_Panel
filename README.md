@@ -6,17 +6,18 @@
 <h3>
 Version: v3.2.0<br><br>
 Last updated Github Repo: 10/28/2022<br><br>
-App name: Management Panel<br><br>
-Description:<br>Computer control panel that happens to have J.A.R.V.I.S, Alexia and a Youtube video\audio downloader
+Description:<br>Computer control panel that has J.A.R.V.I.S, Alexia and a Youtube video\audio downloader
 </h3>
 
 ## Usage/Setup
 
-1. Download the [source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
+1. Make sure to have the latest version of [python](https://www.python.org/downloads/). Python 3.7.0+ is compatible
 
-2. Un-Zip the `Management_Panel-main.zip` file in your desktop (Read Notes to find why)
+2. Download the [source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
 
-3. And launch the `Updater.exe` file. When opening this app you'll have to run this app as an [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) in order to install the python libraries on your [PATH](https://www.maketecheasier.com/what-is-the-windows-path/) correctly
+3. Un-Zip the `Management_Panel-main.zip` file in your desktop (Read Notes to find why)
+
+4. And launch the `Updater.exe` file in [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) mode in order for the libraries to install correctly
 
 ## Notes to keep in mind
 - The program will automatically detect your home directorys desktop location (for example:<br>`C:\Users\[user]\Desktop)`
