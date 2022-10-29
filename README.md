@@ -17,7 +17,7 @@ Description:<br>Computer control panel that has J.A.R.V.I.S, Alexia and a Youtub
 
 3. Un-Zip the `Management_Panel-main.zip` file in your desktop (Read Notes to find why)
 
-4. And launch the `Updater.exe` file in [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) mode in order for the libraries to install correctly
+4. And launch the `Updater.exe` file in [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) mode in order for everything to install correctly
 
 ## Notes to keep in mind
 - The program will automatically detect your home directorys desktop location (for example:<br>`C:\Users\[user]\Desktop)`
