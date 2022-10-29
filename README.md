@@ -20,9 +20,9 @@ Description:<br>Computer control panel that has J.A.R.V.I.S, Alexia and a Youtub
 4. And launch the `Updater.exe` file in [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) mode in order for everything to install correctly
 
 ## Notes to keep in mind
-- The program will automatically detect your home directorys desktop location (for example:<br>`C:\Users\[user]\Desktop)`
+- The program will automatically detect your home directorys desktop location. For example:<br>`C:\Users\[user]\Desktop)`
 
-- The program will only work if its on your desktop directory(the whole folder). But you can change this behavior by opening `Management_Panel.py` in your preferred text editor then change the<br>`GetUserDesktopLocation = winshell.desktop()` variable to:<br>`GetUserDesktopLocation = "[your preferred directory]"`<br>For example: `GetUserDesktopLocation = "C:\Users\[user]\Desktop)"`
+- The program will only work if its on your desktop directory(the whole folder). But you can change this behavior by opening `Management_Panel.py` in your preferred text editor then change the<br>`GetUserDesktopLocation = winshell.desktop()` variable to:<br>`GetUserDesktopLocation = "[your preferred directory]"`<br>For example: `GetUserDesktopLocation = "C:\Users\[user]\Downloads)"`
 
 - You can change whatever you want but this is the most stable i have been able to make it.<br>But, if you do make a more better looking/stable version please send me a link to your work [Here](http://www.hypernylium.com/en-en/customer-support/) ;)
 
