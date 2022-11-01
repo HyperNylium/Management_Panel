@@ -15,11 +15,11 @@ Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\aud
 
 2. Download the [Management_Panel source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
 
-3. Un-Zip the `Management_Panel-main.zip` file in your desktop (Read Notes to find why)
+3. Un-Zip the `Management_Panel-main.zip` file in your desktop (Read (Things to keep in mind)[https://github.com/HyperNylium/Management_Panel#notes-to-keep-in-mind] to find why)
 
 4. And launch the `Updater.exe` file in [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) mode in order for everything to install correctly
 
-## Notes to keep in mind
+## Things to keep in mind
 - The program will automatically detect your home directorys desktop location. For example:<br>`C:\Users\[user]\Desktop)`
 
 - The program will only work if its on your desktop directory(the whole folder). But you can change this behavior by opening `Management_Panel.py` in your preferred text editor then change the<br>`GetUserDesktopLocation = winshell.desktop()`<br> variable to:<br>`GetUserDesktopLocation = "[your preferred directory]"`<br>For example: <br>`GetUserDesktopLocation = "C:\Users\[user]\Downloads)"`
