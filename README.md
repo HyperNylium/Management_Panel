@@ -22,7 +22,7 @@ Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\aud
 ## Things to keep in mind
 - The program will automatically detect your home directorys desktop location. For example:<br>`C:\Users\[user]\Desktop)`
 
-- The program will only work if its on your desktop directory(the whole folder). But you can change this behavior by opening `Management_Panel.py` in your preferred text editor then change the<br>`GetUserDesktopLocation = winshell.desktop()`<br> variable to:<br>`GetUserDesktopLocation = "[your preferred directory]"`<br>For example: <br>`GetUserDesktopLocation = "C:\Users\[user]\Downloads)"`
+- The program will only work if its on your desktop directory (the whole folder). But you can change this behavior by opening `Management_Panel.py` in your preferred text editor then change the<br>`GetUserDesktopLocation = winshell.desktop()`<br> variable to:<br>`GetUserDesktopLocation = "[your preferred directory]"`<br>For example: <br>`GetUserDesktopLocation = "C:\Users\[user]\Downloads)"`
 
 - You can download/un-zip this project where ever you want. But for now, it can only be run/executed from your desktop directory. You can make the folder a hidden folder and have a shortcut of the `Management_Panel.py` script to run it from whatever directory you want.
 
