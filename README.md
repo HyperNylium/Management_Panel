@@ -26,6 +26,6 @@ Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\aud
 
 - If you do not open the `Updater.exe` file in [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) mode then you'll need to uninstall the version of python that you installed as well as delete the Pacific folders that the python installer created. You could also do the `pip list -V` to view all of the libraries that are installed on your pc and the `pip uninstall [library name]` command to uninstall the libraries individually. But because there are 15 libraries to uninstall i highly suggest theleading all files corresponding to python and re-installing python should do the trick
 
-- You can change whatever you want but this is the most stable i have been able to make it.<br>But, if you do make a more better looking/stable version please send me a link to your work [Here](http://www.hypernylium.com/en-en/customer-support/) ;)
+* You can change whatever you want but this is the most stable i have been able to make it.<br>But, if you do make a more better looking/stable version please send me a link to your work [Here](http://www.hypernylium.com/en-en/customer-support/) ;)
 
 > if you have any problems or questions please [send me a message](http://www.hypernylium.com/en-en/customer-support/)
