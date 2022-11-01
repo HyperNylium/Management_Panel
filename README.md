@@ -15,7 +15,7 @@ Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\aud
 
 2. Download the [Management_Panel source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
 
-3. Un-Zip the `Management_Panel-main.zip` file in your desktop (Read [Things to keep in mind](https://github.com/HyperNylium/Management_Panel#notes-to-keep-in-mind) to find why)
+3. Un-Zip the `Management_Panel-main.zip` file in your desktop (Read [Things to keep in mind](https://github.com/HyperNylium/Management_Panel#notes-to-keep-in-mind) to learn why)
 
 4. And launch the `Updater.exe` file in [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) mode in order for everything to install correctly
 
