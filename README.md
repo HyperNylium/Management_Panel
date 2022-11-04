@@ -4,8 +4,8 @@
 <h1 align="center">App Information</h1>
 
 <h3>
-Version: v3.2.0<br><br>
-Last updated Github Repo: 10/28/2022<br><br>
+Version: v3.2.0<br>
+Last updated Github Repo: 10/28/2022<br>
 Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\audio downloader
 </h3>
 
