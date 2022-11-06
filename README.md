@@ -4,7 +4,7 @@
 <h1 align="center">App Information</h1>
 
 <h3>
-Version: v3.5.0<br>
+Version: v3.5.1<br>
 Last updated Github Repo: 11/6/2022<br>
 Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\audio downloader and talking updater (Alexia)
 </h3>
