@@ -74,7 +74,7 @@ CLR_CYAN = "\033[36m"
 CLR_WHİTE = "\033[37m"
 RESET_ALL = "\033[0m"
 
-CurrentAppVersion = "3.2.0"
+CurrentAppVersion = "3.5.1"
 
 print(CLR_YELLOW + "\n  Downloading Version information" + RESET_ALL)
 Data = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
@@ -96,10 +96,10 @@ def findValue(fullString):
 for line in file:
     if line.startswith("Version"):
         App_Version = findValue(line)
-    if line.startswith("Creator"):
-        Creators = findValue(line)
-    if line.startswith("creator"):
-        creators = findValue(line)
+    if line.startswith("DevName"):
+        Developer = findValue(line)
+    if line.startswith("Developer_Lowercase"):
+        Developer_Lowercase = findValue(line)
     if line.startswith("LastEditDate"):
         LastEditDate = findValue(line)
     if line.startswith("LatestVersionPythonLink"):
@@ -234,7 +234,7 @@ class App(customtkinter.CTk):
         self.Aboutlabel_2 = customtkinter.CTkLabel(text=f"Version: {App_Version} {A}", text_font=("sans-serif", 20))
         self.Aboutlabel_2.grid(column=2, row=2, padx=0, pady=10)
 
-        self.Aboutlabel_3 = customtkinter.CTkLabel(text=f"Creator/Developer: {Creators}", text_font=("sans-serif", 20))
+        self.Aboutlabel_3 = customtkinter.CTkLabel(text=f"Creator/Developer: {Developer}", text_font=("sans-serif", 20))
         self.Aboutlabel_3.grid(column=2, row=3, padx=0, pady=10)
 
         self.Aboutlabel_4 = customtkinter.CTkLabel(text=f"Last updated: {LastEditDate}", text_font=("sans-serif", 20))

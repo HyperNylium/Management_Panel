@@ -1,5 +1,5 @@
 
-from Management_Panel import App_Version, Creators, creators, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
+from Management_Panel import App_Version, Developer, Developer_Lowercase, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
 import platform
 import datetime
 import webbrowser
@@ -173,8 +173,8 @@ def JARVIS():
 
             elif "jarvis display info" in query:
                 print(CLR_CYAN + f"\n  VERSION: {App_Version}"+ RESET_ALL)
-                print(CLR_CYAN + f"  CREATOR: {Creators}" + RESET_ALL)
-                speak(f"my version is {App_Version} and i was created by {creators}")
+                print(CLR_CYAN + f"  CREATOR: {Developer}" + RESET_ALL)
+                speak(f"my version is {App_Version} and i was created by {Developer_Lowercase}")
 
             elif "jarvis play music" in query:
                 songs = os.listdir(UserMusicDirectory)
