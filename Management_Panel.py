@@ -1,5 +1,4 @@
 
-
 import platform
 import os
 import time
@@ -86,9 +85,6 @@ print(CLR_GREEN + "  Download Complete" + RESET_ALL)
 print(CLR_YELLOW + "  Checking for updates" + RESET_ALL)
 delimeter = "="
 
-#import sys
-#file = open(os.path.join(sys.path[0], "Data.txt"), "r")
-
 file = open("Data.txt", "r")
 
 def findValue(fullString):
@@ -106,6 +102,12 @@ for line in file:
         creators = findValue(line)
     if line.startswith("LastEditDate"):
         LastEditDate = findValue(line)
+    if line.startswith("LatestVersionPythonLink"):
+        LatestVersionPythonLink = findValue(line)
+    if line.startswith("LatestVersionPythonFileName"):
+        LatestVersionPythonFileName = findValue(line)
+    if line.startswith("LatestVersionProjectLink"):
+        LatestVersionProjectLink = findValue(line)
 
 if App_Version < CurrentAppVersion:
     print(CLR_RED + f"\n  You have an invalid copy/version of this software. Use at your own risk!\n\n  Live/Public version: {App_Version}\n  Current version: {CurrentAppVersion}\n\n  Please run the Updater.exe file to get the latest/authentic version of Managemet_Panel")

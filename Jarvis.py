@@ -1,10 +1,10 @@
 
+from Management_Panel import App_Version, Creators, creators, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
 import platform
 import datetime
 import webbrowser
 import os
 import time
-from Management_Panel import App_Version, Creators, creators, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
 
 try:
 	import speech_recognition as sr

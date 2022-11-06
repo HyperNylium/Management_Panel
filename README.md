@@ -4,9 +4,9 @@
 <h1 align="center">App Information</h1>
 
 <h3>
-Version: v3.2.0<br>
-Last updated Github Repo: 10/28/2022<br>
-Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\audio downloader
+Version: v3.5.0<br>
+Last updated Github Repo: 11/6/2022<br>
+Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\audio downloader and talking updater (Alexia)
 </h3>
 
 ## Usage/Setup
@@ -22,13 +22,11 @@ Description:<br>Computer control panel that has J.A.R.V.I.S, a Youtube video\aud
 ## Things to keep in mind
 - The program will automatically detect your home directorys desktop location. For example:<br>`C:\Users\[user]\Desktop)`
 
-- The program will only work if its on your desktop directory (the whole folder). But you can change this behavior by opening `Management_Panel.py` in your preferred text editor then change the<br>`GetUserDesktopLocation = winshell.desktop()`<br> variable to:<br>`GetUserDesktopLocation = "[your preferred directory]"`<br>For example: <br>`GetUserDesktopLocation = "C:\Users\[user]\Downloads)"`
+- You can now run/execute the app in whatever directory you want.
 
-- You can download/un-zip this project where ever you want. But for now, it can only be run/executed from your desktop directory. You can make the folder a hidden folder and have a shortcut of the `Management_Panel.py` script to run it from whatever directory you want.
+- Please keep in mind that the `Updater.exe` is only for installing the required libraries and small updates. The updater gets updates to lol. So, i added a "Creators notes" section in the updater. If there is a update to the `Updater.exe` it self, no matter what it will tell you. 
 
-- Please keep in mind that the `Updater.exe` is only for installing the required libraries and small updates. The updater gets updates to lol. So, if it crashes once you try to launch it or click the "Check for updates" button, its because the links that it was using before are now not in use anymore or broken. Now since you know that be sure to check Github for updates all the time (or when the Updater.exe crashes) for updates until v4.5.0 at least
-
-- If you do not open the `Updater.exe` file in [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) mode then you'll need to uninstall the version of python that you installed as well as delete the Pacific folders that the python installer created. You could also do the `pip list -V` to view all of the libraries that are installed on your pc and the `pip uninstall [library name]` command to uninstall the libraries individually. But because there are 15 libraries to uninstall i highly suggest theleading all files corresponding to python and re-installing python should do the trick
+- The `Updater.exe` file requests [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) privileges to run. If you click "No" when prompted, the updater will terminate itself and not run. The reason for that is, if you are going to download/install the required python libraries they need to be installed onto your computers PATH. Or else the program will have errors such as, crashing, not even launching, not able to find required files and more.
 
 - All of the apps (Management_Panel.py, Updater.exe, etc) will look for updates automatically. If your version is greater then the live/public version (which for now is 3.2.0), You'll be prompted that that verion isn't a authentic version and the app boot time will be delayed by 10 seconds so you can read the prompt. It will also show you the current verion on your PC and the current live/public version. If you do not touch the variable at the very top of the program called `CurrentAppVersion` you will not see this prompt at all. And if you do see it for some reason, download the project again from this Github page and it should go away (but once again, if you don't touch the `CurrentAppVersion` variable, you wont see this in the first place)
 
