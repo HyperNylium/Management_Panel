@@ -40,6 +40,12 @@ except:
 	os.system("python -m pip install winshell")
 import winshell
 
+try:
+	from colorama import *
+except:
+	os.system("python -m pip install colorama")
+from colorama import *
+
 
 from tkinter import messagebox
 from tkinter.ttk import *
@@ -66,15 +72,17 @@ from tkinter.ttk import *
 customtkinter.set_appearance_mode("dark")
 
 # Text Colors
-CLR_RED = "\033[31m"
-CLR_GREEN = "\033[32m"
-CLR_YELLOW = "\033[33m"
-CLR_BLUE = "\033[34m"
-CLR_CYAN = "\033[36m"
-CLR_WHİTE = "\033[37m"
-RESET_ALL = "\033[0m"
+CLR_RED = Fore.RED
+CLR_GREEN = Fore.GREEN
+CLR_YELLOW = Fore.YELLOW
+CLR_BLUE = Fore.BLUE
+CLR_CYAN = Fore.CYAN
+CLR_WHİTE = Fore.WHITE
+CLR_BLACK = Fore.BLACK
+CLR_MAGENTA = Fore.MAGENTA
+RESET_ALL = Fore.RESET
 
-CurrentAppVersion = "3.5.1"
+CurrentAppVersion = "3.6.0"
 
 print(CLR_YELLOW + "\n  Downloading Version information" + RESET_ALL)
 Data = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
@@ -111,10 +119,11 @@ for line in file:
 
 if App_Version < CurrentAppVersion:
     print(CLR_RED + f"\n  You have an invalid copy/version of this software. Use at your own risk!\n\n  Live/Public version: {App_Version}\n  Current version: {CurrentAppVersion}\n\n  Please run the Updater.exe file to get the latest/authentic version of Managemet_Panel")
-    Creators = "Unknown"
+    Developer = "Unknown"
+    Developer_Lowercase = "Unknown"
     LastEditDate = "Unknown"
     App_Version = CurrentAppVersion
-    A = "- Unauthentic"
+    ShowUserInfo = "- Unauthentic"
     time.sleep(7)
     pass
 else:
@@ -127,12 +136,12 @@ else:
             os.startfile("Updater.exe")
             exit()
         if output == 'No':
+            ShowUserInfo = f"- Update available v{App_Version}"
             App_Version = CurrentAppVersion
-            A = ""
             pass
     else:
-        print(CLR_GREEN + f"  {App_Version} is the latest version. Continuing on with GUI protocol" + RESET_ALL)
-        A = ""
+        print(CLR_GREEN + f"  {App_Version} is the latest version. Continuing on with launch protocol" + RESET_ALL)
+        ShowUserInfo = "- Latest version"
         pass
 
 Website = "http://hypernylium.com/"
@@ -187,7 +196,7 @@ class App(customtkinter.CTk):
         self.Mlabel_1 = customtkinter.CTkLabel(text="")
         self.Mlabel_1.grid(column=0, row=1, padx=spacers, pady=0)
 
-        self.Mbutton_1 = customtkinter.CTkButton(text="Sosial Media", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.SosialMedia)
+        self.Mbutton_1 = customtkinter.CTkButton(text="Social Media", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.SosialMedia)
         self.Mbutton_1.grid(column=1, row=1, padx=0, pady=0)
 
         self.Mbutton_2 = customtkinter.CTkButton(text="YT Downloader", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.YTDownloader)
@@ -211,6 +220,9 @@ class App(customtkinter.CTk):
         self.Mbutton_7 = customtkinter.CTkButton(text="Exit", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.on_closing)
         self.Mbutton_7.grid(column=2, row=3, padx=0, pady=30)
 
+        self.Mbutton_8 = customtkinter.CTkButton(text="MP_MINI", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.MP_MINI)
+        self.Mbutton_8.grid(column=3, row=3, padx=0, pady=30)
+
 #~~~ Funtions ~~~#
     def About(self):
         self.Mlabel_1.destroy()
@@ -222,6 +234,8 @@ class App(customtkinter.CTk):
         self.Mbutton_5.destroy()
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
+        self.Mbutton_8.destroy()
+        self.Mbutton_8.destroy()
 
         self.title("About")
 
@@ -231,7 +245,7 @@ class App(customtkinter.CTk):
         self.Aboutlabel_1 = customtkinter.CTkLabel(text="About", text_font=("sans-serif", 50))
         self.Aboutlabel_1.grid(column=2, row=1, padx=130, pady=20)
 
-        self.Aboutlabel_2 = customtkinter.CTkLabel(text=f"Version: {App_Version} {A}", text_font=("sans-serif", 20))
+        self.Aboutlabel_2 = customtkinter.CTkLabel(text=f"Version: {App_Version} {ShowUserInfo}", text_font=("sans-serif", 20))
         self.Aboutlabel_2.grid(column=2, row=2, padx=0, pady=10)
 
         self.Aboutlabel_3 = customtkinter.CTkLabel(text=f"Creator/Developer: {Developer}", text_font=("sans-serif", 20))
@@ -282,6 +296,9 @@ class App(customtkinter.CTk):
         self.Mbutton_7 = customtkinter.CTkButton(text="Exit", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.on_closing)
         self.Mbutton_7.grid(column=2, row=3, padx=0, pady=30)
 
+        self.Mbutton_8 = customtkinter.CTkButton(text="MP_MINI", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.MP_MINI)
+        self.Mbutton_8.grid(column=3, row=3, padx=0, pady=30)
+
     def SosialMedia(self):
         self.Mlabel_1.destroy()
         self.Mlabel_2.destroy()
@@ -292,6 +309,7 @@ class App(customtkinter.CTk):
         self.Mbutton_5.destroy()
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
+        self.Mbutton_8.destroy()
 
         self.title(f"Sosial Media Links | v{App_Version}")
 
@@ -364,6 +382,9 @@ class App(customtkinter.CTk):
         self.Mbutton_7 = customtkinter.CTkButton(text="Exit", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.on_closing)
         self.Mbutton_7.grid(column=2, row=3, padx=0, pady=30)
 
+        self.Mbutton_8 = customtkinter.CTkButton(text="MP_MINI", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.MP_MINI)
+        self.Mbutton_8.grid(column=3, row=3, padx=0, pady=30)
+
     def GameLauncher(self):
         self.Mlabel_1.destroy()
         self.Mlabel_2.destroy()
@@ -374,6 +395,7 @@ class App(customtkinter.CTk):
         self.Mbutton_5.destroy()
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
+        self.Mbutton_8.destroy()
 
         self.title(f"Game Launcher | v{App_Version}")
 
@@ -454,6 +476,9 @@ class App(customtkinter.CTk):
         self.Mbutton_7 = customtkinter.CTkButton(text="Exit", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.on_closing)
         self.Mbutton_7.grid(column=2, row=3, padx=0, pady=30)
 
+        self.Mbutton_8 = customtkinter.CTkButton(text="MP_MINI", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.MP_MINI)
+        self.Mbutton_8.grid(column=3, row=3, padx=0, pady=30)
+
     def SystemSettings(self):
         self.Mlabel_1.destroy()
         self.Mlabel_2.destroy()
@@ -464,6 +489,7 @@ class App(customtkinter.CTk):
         self.Mbutton_5.destroy()
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
+        self.Mbutton_8.destroy()
 
         self.title(f"System Settings | v{App_Version}")
 
@@ -552,6 +578,9 @@ class App(customtkinter.CTk):
         self.Mbutton_7 = customtkinter.CTkButton(text="Exit", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.on_closing)
         self.Mbutton_7.grid(column=2, row=3, padx=0, pady=30)
 
+        self.Mbutton_8 = customtkinter.CTkButton(text="MP_MINI", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.MP_MINI)
+        self.Mbutton_8.grid(column=3, row=3, padx=0, pady=30)
+
 
     def PowerSettings(self):
         os.system("cmd /c control powercfg.cpl")
@@ -575,7 +604,7 @@ class App(customtkinter.CTk):
         try:
             os.startfile("NetworkDriveReset.bat")
         except:
-            pyautogui.alert(text=f"The file 'NetworkDriveReset.bat' was not found. This file resets all network drives that are on the users system. The Creator/Developer {Creators} uses this file but doesn't include it with version control.", title='FILE NOT FOUND!', button='OK')
+            pyautogui.alert(text=f"The file 'NetworkDriveReset.bat' was not found. This file resets all network drives that are on the users system. The Creator/Developer {Developer} uses this file but doesn't include it with version control.", title='FILE NOT FOUND!', button='OK')
 
     def github(self):
         webbrowser.open(GithubURL)
@@ -608,6 +637,12 @@ class App(customtkinter.CTk):
 
     def Jarvis(self):
         os.startfile("Jarvis.py")
+        time.sleep(0.3)
+        file.close()
+        exit()
+
+    def MP_MINI(self):
+        os.startfile("MP_MINI.py")
         time.sleep(0.3)
         file.close()
         exit()

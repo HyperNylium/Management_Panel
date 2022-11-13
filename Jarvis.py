@@ -1,5 +1,7 @@
 
-from Management_Panel import App_Version, Developer, Developer_Lowercase, Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL
+from Management_Panel import App_Version, CurrentAppVersion, clear_command, GetUserDesktopLocation, Developer, Developer_Lowercase, file, LastEditDate, LatestVersionPythonLink, LatestVersionPythonFileName, LatestVersionProjectLink, ShowUserInfo
+from Management_Panel import Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL, Game_1, Game_2, Game_3, Game_4, Game_5, Game_6, Game_7, Game_8
+from Management_Panel import CLR_RED, CLR_GREEN, CLR_YELLOW, CLR_BLUE, CLR_CYAN, CLR_WHİTE, CLR_BLACK, CLR_MAGENTA, RESET_ALL
 import platform
 import datetime
 import webbrowser
@@ -36,6 +38,12 @@ except:
 	os.system("python -m pip install pyaudio")
 import pyaudio
 
+try:
+	from colorama import *
+except:
+	os.system("python -m pip install colorama")
+from colorama import *
+
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 ###
 ### Author/Creator: HyperNylium
@@ -52,15 +60,6 @@ import pyaudio
 ###             I tested it on my own and implemented some failsafes as best as I could,
 ###             but there could always be some kind of bug.
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-# Text Colors
-CLR_RED = "\033[31m"
-CLR_GREEN = "\033[32m"
-CLR_YELLOW = "\033[33m"
-CLR_BLUE = "\033[34m"
-CLR_CYAN = "\033[36m"
-CLR_WHİTE = "\033[37m"
-RESET_ALL = "\033[0m"
 
 spacers = 20
 date = datetime.date.today().strftime("%A, %B %d, %Y")
@@ -103,7 +102,7 @@ def takeCommand():
         audio = r.listen(source)
 
     try:
-        print(CLR_YELLOW+ "  Recognizing..." + RESET_ALL)
+        print(CLR_YELLOW + "  Recognizing..." + RESET_ALL)
         query = r.recognize_google(audio, language="en")
         print(f"\n  command: {query}\n")
         time.sleep(0.5)
