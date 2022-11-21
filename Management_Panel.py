@@ -77,7 +77,7 @@ CLR_GREEN = Fore.GREEN
 CLR_YELLOW = Fore.YELLOW
 CLR_BLUE = Fore.BLUE
 CLR_CYAN = Fore.CYAN
-CLR_WHİTE = Fore.WHITE
+CLR_WHITE = Fore.WHITE
 CLR_BLACK = Fore.BLACK
 CLR_MAGENTA = Fore.MAGENTA
 RESET_ALL = Fore.RESET
@@ -167,7 +167,7 @@ Game_8 = War Thunder
 """
 
 Game_1 = "com.epicgames.launcher://apps/9773aa1aa54f4f7b80e44bef04986cea%3A530145df28a24424923f5828cc9031a1%3ASugar?action=launch&silent=true"
-Game_2 = "com.epicgames.launcher://apps/ark%3A743e47ee84ac49a1a49f4781da70e0d0%3Aaafc587fbf654758802c8e41e4fb3255?action=launch&silent=true"
+Game_2 = "steam://rungameid/346110"
 Game_3 = "com.epicgames.launcher://apps/428115def4ca4deea9d69c99c5a5a99e%3A06bd477f9fbe4259a1421fb3f559aa46%3A592c359fb0e0413fb46dee2d24448eb4?action=launch&silent=true"
 Game_4 = "com.epicgames.launcher://apps/50118b7f954e450f8823df1614b24e80%3A38ec4849ea4f4de6aa7b6fb0f2d278e1%3A0a2d9f6403244d12969e11da6713137b?action=launch&silent=true"
 Game_5 = "com.epicgames.launcher://apps/84c76746bce94effb8e1047fabfd7eb7%3Ab9e23e5fa8e84064b356677022beb37a%3Aa79746038c6948558274065d24f3faa3?action=launch&silent=true"
