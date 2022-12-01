@@ -44,7 +44,7 @@ The beta program: https://github.com/HyperNylium/Management_Panel_BETA
 
 
 ## Things to keep in mind
-- The program will automatically detect your home directorys desktop location. For example:<br>`C:\Users\[user]\Desktop)`
+- The program will automatically detect your computers desktop location (used for `YT_Downloader.py`). For example:<br>`C:\Users\[user]\Desktop)`
 
 
 
