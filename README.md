@@ -1,7 +1,7 @@
 
 
 
-<h1 align="center">App Information</h1>
+<h1 align="center">App Information (STILL WORKING...)</h1>
 
 <h3>
 Version: v3.7.0<br>
