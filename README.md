@@ -30,6 +30,8 @@ Description:<br>Computer management panel that has J.A.R.V.I.S, a Youtube video\
 
 - All of the apps (Management_Panel.py, Updater.exe, etc) will look for updates automatically. If your version is greater then the live/public version (which for now is 3.5.0), You'll be prompted that that verion isn't an authentic version and the app boot time will be delayed by 10 seconds so you can read the prompt. It will also show you the current verion on your PC and the current live/public version. If you do not touch the variable at the very top of the program called `CurrentAppVersion` you will not see this prompt at all. And if you do see it for some reason, download the project again from this Github page and it should go away (but once again, if you don't touch the `CurrentAppVersion` variable, you wont see this in the first place)
 
+> NEW! Go check out the beta program [Here](https://github.com/HyperNylium/Management_Panel_BETA)
+
 > You can change whatever you want but this is the most stable i have been able to make it.<br>But, if you do make a more better looking/stable version please send me a link to your work [Here](http://www.hypernylium.com/en-en/customer-support/) ;)
 
 > if you have any problems or questions please [send me a message](http://www.hypernylium.com/en-en/customer-support/)
