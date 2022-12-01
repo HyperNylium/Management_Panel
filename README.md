@@ -35,6 +35,8 @@ The beta program: https://github.com/HyperNylium/Management_Panel_BETA
 
 - Added "help" command to `Jarvis` (Whenever you say "help", jarvis will show you all of his commands for 5 seconds then go back to take commands)<br><br>
 
+- The `Updater.exe` now launches it self in [administrator mode](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) so it can install the Libraries on your systems [PATH](https://www.maketecheasier.com/what-is-the-windows-path#incontent-ad1)<br><br>
+
 - Upgraded the "Jarvis play music" function. Should now scan for .mp3 (more format support coming soon) files in your music dir (C:\Users\[user]\Music) and list them one by one.<br><br>
   For example:<br>
     [1] Musicfile1.mp3<br>
