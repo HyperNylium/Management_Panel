@@ -6,7 +6,7 @@
 <h3>
 Version: v3.7.0<br>
 Last updated Github Repo: 12/1/2022<br>
-The [Beta program](https://github.com/HyperNylium/Management_Panel_BETA)
+The beta program: https://github.com/HyperNylium/Management_Panel_BETA
 </h3>
 
 ## Usage/Setup
