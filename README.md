@@ -37,7 +37,7 @@ The beta program: https://github.com/HyperNylium/Management_Panel_BETA
 
 - The `Updater.exe` now launches it self in [administrator mode](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) so it can install the Libraries on your systems [PATH](https://www.maketecheasier.com/what-is-the-windows-path#incontent-ad1)<br><br>
 
-- Upgraded the "Jarvis play music" function. Should now scan for .mp3 (more format support coming soon) files in your music dir (C:\Users\[user]\Music) and list them one by one.<br><br>
+- Updated the "Jarvis play music" function. Should now scan for .mp3 (more format support coming soon) files in your music dir (C:\Users\[user]\Music) and list them one by one.<br><br>
   For example:<br>
     [1] Musicfile1.mp3<br>
     [2] Musicfile2.mp3<br>
