@@ -1,53 +1,66 @@
 
 from Management_Panel import App_Version, CurrentAppVersion, clear_command, GetUserDesktopLocation, Developer, Developer_Lowercase, file, LastEditDate, LatestVersionPythonLink, LatestVersionPythonFileName, LatestVersionProjectLink, ShowUserInfo
-from Management_Panel import Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL, Game_1, Game_2, Game_3, Game_4, Game_5, Game_6, Game_7, Game_8
+from Management_Panel import Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL, Game_1, Game_2, Game_3, Game_4, Game_5, Game_6, Game_7, Game_8, exit
 from Management_Panel import CLR_RED, CLR_GREEN, CLR_YELLOW, CLR_BLUE, CLR_CYAN, CLR_WHITE, CLR_BLACK, CLR_MAGENTA, RESET_ALL
 from io import BytesIO
 import threading
 import platform
 import base64
-import time
+from time import sleep
 import os
-import sys
 
 try:
 	from urllib.request import urlopen
 except:
-	os.system("python -m pip install urllib3")
-from urllib.request import urlopen
+  print("\033[31m" + "\nIt looks like you don't have a critical the python library: urllib3\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install urllib3 ' + "\033[31m" + "to install correctly")
+  sleep(8)
+  exit()
+
+try:
+	from customtkinter import set_appearance_mode, CTk, CTkLabel, CTkButton, CTkInputDialog
+except:
+  print("\033[31m" + "\nIt looks like you don't have a critical the python library: customtkinter\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install customtkinter ' + "\033[31m" + "to install correctly")
+  sleep(8)
+  exit()
 
 try:
 	from pytube import YouTube
 except:
-	os.system("python -m pip install pytube")
-from pytube import YouTube
+  print("\033[31m" + "\nIt looks like you don't have a critical the python library: pytube\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install pytube ' + "\033[31m" + "to install correctly")
+  sleep(8)
+  exit()
 
 try:
 	from tkinter import *
 except:
-	os.system("python -m pip install tk")
-from tkinter import *
+  print("\033[31m" + "\nIt looks like you don't have a critical the python library: tkinter\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install tk ' + "\033[31m" + "to install correctly")
+  sleep(8)
+  exit()
 
 try:
 	from PIL import Image,ImageTk
 except:
-	os.system("python -m pip install Pillow-PIL")
-from PIL import Image,ImageTk
+  print("\033[31m" + "\nIt looks like you don't have a critical the python library: PIL\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install Pillow-PIL ' + "\033[31m" + "to install correctly")
+  sleep(8)
+  exit()
 
 try:
 	import pyautogui
 except:
-	os.system("python -m pip install pyautogui")
-import pyautogui
+  print("\033[31m" + "\nIt looks like you don't have a critical the python library: pyautogui\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install pyautogui ' + "\033[31m" + "to install correctly")
+  sleep(8)
+  exit()
 
 try:
 	from colorama import *
 except:
-	os.system("python -m pip install colorama")
-from colorama import *
+  print("\033[31m" + "\nIt looks like you don't have a critical the python library: colorama\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install colorama ' + "\033[31m" + "to install correctly")
+  sleep(8)
+  exit()
+
 
 from pytube.cli import on_progress
-from tkinter import ttk,messagebox
+from tkinter import ttk, messagebox
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 ###
@@ -65,8 +78,7 @@ from tkinter import ttk,messagebox
 ###             I tested it on my own and implemented some failsafes as best as I could,
 ###             but there could always be some kind of bug.
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-root=Tk()
+root = Tk()
 root.title(f"YouTube Content Downloader | {App_Version}")
 root.resizable(False,False)
 root.iconbitmap("Assets/icon.ico")
@@ -104,7 +116,6 @@ except OSError as error:
         pass
       else:
         print(CLR_RED, f" Wasn't able to create downloads folder {DownloadsFolderName} because of an system error.\nError name/code is: {error} \n\n", RESET_ALL)
-        time.sleep()
         pass
 
 length_video=Label(tab1,text="",font=("Arial Bold",13), bg="#474747", fg="#ebebeb")
