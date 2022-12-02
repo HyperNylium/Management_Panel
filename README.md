@@ -1,7 +1,7 @@
 
 
 
-<h1 align="center">App Information (WORKING ON UPDATER.EXE)</h1>
+<h1 align="center">App Information (UPDATING APP SETTINGS...)</h1>
 
 <h3>
 Version: v3.7.0<br>
@@ -34,6 +34,10 @@ The beta program: https://github.com/HyperNylium/Management_Panel_BETA
 - Full re-design of `MP_MINI` (Some text was to small and sometimes hard to read. So, i made things a bit bigger and easier to navigate)<br><br>
 
 - Added "help" command to `Jarvis` (Whenever you say "help", jarvis will show you all of his commands for 5 seconds then go back to take commands)<br><br>
+
+- All updates coming from `Updater.exe` will download much more faster now (instead of 300-500KB/s it will be more like 20-35MB/s)<br><br>
+
+- Added user error detection to `Updater.exe`. When you enter the Incorrect answer in the input, It will return with an error
 
 - The `Updater.exe` now launches it self in [administrator mode](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) so it can install the Libraries on your systems [PATH](https://www.maketecheasier.com/what-is-the-windows-path#incontent-ad1)<br><br>
 
