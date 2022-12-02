@@ -1,7 +1,7 @@
 
 
 
-<h1 align="center">Management_Panel(Public)</h1>
+<h1 align="center">Management_Panel</h1>
 
 ## App Information
 
