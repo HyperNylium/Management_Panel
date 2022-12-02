@@ -52,7 +52,7 @@ The beta program: https://github.com/HyperNylium/Management_Panel_BETA
     All you need to do is type the number infront of the file name in the given input and wait for your song to launch. If `Jarvis` has any problems, he will let you know and return to taking commands shortly after that.<br><br>
 
 
-## Upcoming updates
+## Upcoming update ideas
 - `Updater.exe` will overwrite all files while updating instead of downloading a `.zip` file
 
 
