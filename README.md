@@ -11,7 +11,7 @@ The beta program: https://github.com/HyperNylium/Management_Panel_BETA
 
 ## Usage/Setup
 
-1. Make sure to have the latest version of [python](https://www.python.org/downloads/). Python 3.7.0+ is compatible
+1. Make sure to have the latest version of [python](https://www.python.org/downloads/). Python 3.9.0 is recommended
 
 2. Download the [Management_Panel source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
 
