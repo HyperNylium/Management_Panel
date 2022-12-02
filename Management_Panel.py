@@ -165,7 +165,7 @@ SystemSettingsPadY = 15
 """
 Game_1 = Rocket League
 Game_2 = ARK
-Game_3 = Destiny 2 
+Game_3 = Destiny 2
 Game_4 = Fall Guys
 Game_5 = Warships
 Game_6 = Control
@@ -272,7 +272,7 @@ class App(CTk):
         self.Mbutton_5.destroy()
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
-        
+
 
         self.title(f"Sosial Media Links | v{App_Version}")
 
@@ -417,7 +417,7 @@ class App(CTk):
         self.Mbutton_5.destroy()
         self.Mbutton_6.destroy()
         self.Mbutton_7.destroy()
-        
+
 
         self.title(f"System Settings | v{App_Version}")
 
