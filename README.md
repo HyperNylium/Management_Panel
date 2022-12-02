@@ -1,14 +1,14 @@
 
 
 
-<h1 align="center">App Information</h1>
-
-<h3>
+<h1 align="center">Management_Panel(Public)</h1>
+## App Information
+<h4>
 Version: v3.7.0<br>
 Status: Ready for update/download<br>
 Last updated Github Repo: 12/1/2022<br>
 The beta program: https://github.com/HyperNylium/Management_Panel_BETA
-</h3>
+</h4>
 
 ## Usage/Setup
 
