@@ -89,7 +89,7 @@ CLR_BLACK = Fore.BLACK
 CLR_MAGENTA = Fore.MAGENTA
 RESET_ALL = Fore.RESET
 
-CurrentAppVersion = "3.6.0"
+CurrentAppVersion = "3.7.0"
 
 print(CLR_YELLOW + "\n  Downloading Version information" + RESET_ALL)
 Data = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
