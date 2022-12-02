@@ -2,7 +2,7 @@
 
 
 <h1 align="center">Management_Panel(Public)</h1>
-## App Information
+
 <h4>
 Version: v3.7.0<br>
 Status: Ready for update/download<br>
