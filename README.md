@@ -54,6 +54,7 @@ The beta program: https://github.com/HyperNylium/Management_Panel_BETA
 
 ## Upcoming update ideas
 - `Updater.exe` will overwrite all files while updating instead of downloading a `.zip` file
+- Thinking of re-designing `YT_Downloader` into a more terminal style. What do you think? 
 
 
 ## Things to keep in mind
