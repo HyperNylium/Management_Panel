@@ -147,7 +147,7 @@ try:
         ShowUserInfo = "- Latest version"
         pass
 except Exception as e:
-    print(CLR_RED + f"\n  Receiving app information was unable to execute successfully!\n  Passing 'N/A' in all variables" + RESET_ALL)
+    print(CLR_RED + f"\n  Was unable to fetch app information file!\n  Passing 'N/A' in all variables and continuing in offine mode" + RESET_ALL)
     App_Version = "N/A"
     Developer = "N/A"
     Developer_Lowercase = "N/A"
