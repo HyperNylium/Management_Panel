@@ -21,7 +21,7 @@ except:
     exit()
 
 try:
-	from customtkinter import set_appearance_mode, CTk, CTkLabel, CTkButton
+	from customtkinter import set_appearance_mode, CTk, CTkLabel, CTkButton, CTkInputDialog
 except:
     print("\033[31m" + "\nIt looks like you don't have a critical the python library: customtkinter\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install customtkinter ' + "\033[31m" + "to install correctly")
     sleep(8)
@@ -191,34 +191,34 @@ class App(CTk):
     def MainMenu(self):
         self.title(f"Management Panel | v{App_Version}")
 
-        self.Mlabel_1 = CTkLabel(self, text="")
+        self.Mlabel_1 = CTkLabel(text="")
         self.Mlabel_1.grid(column=0, row=1, padx=spacers, pady=0)
 
-        self.Mlabel_2 = CTkLabel(self, text="")
+        self.Mlabel_2 = CTkLabel(text="")
         self.Mlabel_2.grid(column=0, row=0, padx=0, pady=30)
 
-        self.Mbutton_1 = CTkButton(self, text="Social Media", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10,command=self.SosialMedia)
+        self.Mbutton_1 = CTkButton(text="Social Media", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10,command=self.SosialMedia)
         self.Mbutton_1.grid(column=1, row=1, padx=0, pady=0)
 
-        self.Mbutton_2 = CTkButton(self, text="Apps", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.Apps)
+        self.Mbutton_2 = CTkButton(text="Apps", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.Apps)
         self.Mbutton_2.grid(column=2, row=1, padx=20, pady=0)
 
-        self.Mbutton_3 = CTkButton(self, text="About", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.About)
+        self.Mbutton_3 = CTkButton(text="About", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.About)
         self.Mbutton_3.grid(column=3, row=1, padx=0, pady=0)
 
-        self.Mlabel_3 = CTkLabel(self, text="")
+        self.Mlabel_3 = CTkLabel(text="")
         self.Mlabel_3.grid(column=0, row=2, padx=spacers, pady=40)
 
-        self.Mbutton_4 = CTkButton(self, text="Games", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.GameLauncher)
+        self.Mbutton_4 = CTkButton(text="Games", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.GameLauncher)
         self.Mbutton_4.grid(column=1, row=2, padx=0, pady=0)
 
-        self.Mbutton_5 = CTkButton(self, text="MP_MINI", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.MP_MINI)
+        self.Mbutton_5 = CTkButton(text="MP_MINI", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.MP_MINI)
         self.Mbutton_5.grid(column=2, row=2, padx=20, pady=0)
 
-        self.Mbutton_6 = CTkButton(self, text="System", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.SystemSettings)
+        self.Mbutton_6 = CTkButton(text="System", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.SystemSettings)
         self.Mbutton_6.grid(column=3, row=2, padx=0, pady=0)
 
-        self.Mbutton_7 = CTkButton(self, text="Exit", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.on_closing)
+        self.Mbutton_7 = CTkButton(text="Exit", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.on_closing)
         self.Mbutton_7.grid(column=2, row=3, padx=0, pady=30)
 
     def About(self):
@@ -235,22 +235,22 @@ class App(CTk):
 
         self.title("About")
 
-        self.Aboutbutton_1 = CTkButton(self, text="Go Back", fg_color=("gray75", "gray30"), font=("sans-serif", 15), command=self.AboutGoBack)
+        self.Aboutbutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 15), command=self.AboutGoBack)
         self.Aboutbutton_1.grid(column=0, row=0, padx=10, pady=10)
 
-        self.Aboutlabel_1 = CTkLabel(self, text="About", font=("sans-serif", 50))
+        self.Aboutlabel_1 = CTkLabel(text="About", text_font=("sans-serif", 50))
         self.Aboutlabel_1.grid(column=2, row=1, padx=130, pady=20)
 
-        self.Aboutlabel_2 = CTkLabel(self, text=f"Version: {App_Version} {ShowUserInfo}", font=("sans-serif", 20))
+        self.Aboutlabel_2 = CTkLabel(text=f"Version: {App_Version} {ShowUserInfo}", text_font=("sans-serif", 20))
         self.Aboutlabel_2.grid(column=2, row=2, padx=0, pady=10)
 
-        self.Aboutlabel_3 = CTkLabel(self, text=f"Creator/Developer: {Developer}", font=("sans-serif", 20))
+        self.Aboutlabel_3 = CTkLabel(text=f"Creator/Developer: {Developer}", text_font=("sans-serif", 20))
         self.Aboutlabel_3.grid(column=2, row=3, padx=0, pady=10)
 
-        self.Aboutlabel_4 = CTkLabel(self, text=f"Last updated: {LastEditDate}", font=("sans-serif", 20))
+        self.Aboutlabel_4 = CTkLabel(text=f"Last updated: {LastEditDate}", text_font=("sans-serif", 20))
         self.Aboutlabel_4.grid(column=2, row=4, padx=0, pady=10)
 
-        self.Aboutbutton_2 = CTkButton(self, text="Check For Updates", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10,command=self.OpenUpdater)
+        self.Aboutbutton_2 = CTkButton(text="Check For Updates", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10,command=self.OpenUpdater)
         self.Aboutbutton_2.grid(column=2, row=5,padx=0, pady=30)
     def AboutGoBack(self):
         self.Aboutbutton_1.destroy()
@@ -276,31 +276,31 @@ class App(CTk):
 
         self.title(f"Sosial Media Links | v{App_Version}")
 
-        self.SosialMedialabel_1 = CTkLabel(self, text="")
+        self.SosialMedialabel_1 = CTkLabel(text="")
         self.SosialMedialabel_1.grid(column=1, row=1, padx=70, pady=0)
 
-        self.SosialMedialabel_2 = CTkLabel(self, text="")
+        self.SosialMedialabel_2 = CTkLabel(text="")
         self.SosialMedialabel_2.grid(column=1, row=2, padx=70, pady=0)
 
-        self.SosialMediabutton_1 = CTkButton(self, text="Go Back", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.SosialMediaGoBack)
+        self.SosialMediabutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.SosialMediaGoBack)
         self.SosialMediabutton_1.grid(column=0, row=0, padx=10, pady=10)
 
-        self.SosialMediabutton_2 = CTkButton(self, text="Discord", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.discord)
+        self.SosialMediabutton_2 = CTkButton(text="Discord", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.discord)
         self.SosialMediabutton_2.grid(column=1, row=1, padx=20, pady=30)
 
-        self.SosialMediabutton_3 = CTkButton(self, text="Github", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.github)
+        self.SosialMediabutton_3 = CTkButton(text="Github", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.github)
         self.SosialMediabutton_3.grid(column=2, row=1, padx=0, pady=10)
 
-        self.SosialMediabutton_4 = CTkButton(self, text="Instagram", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.instagram)
+        self.SosialMediabutton_4 = CTkButton(text="Instagram", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.instagram)
         self.SosialMediabutton_4.grid(column=1, row=2, padx=20, pady=10)
 
-        self.SosialMediabutton_5 = CTkButton(self, text="YouTube", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.youtube)
+        self.SosialMediabutton_5 = CTkButton(text="YouTube", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.youtube)
         self.SosialMediabutton_5.grid(column=2, row=2, padx=0, pady=10)
 
-        self.SosialMediabutton_6 = CTkButton(self, text="Website", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.OpenSite)
+        self.SosialMediabutton_6 = CTkButton(text="Website", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.OpenSite)
         self.SosialMediabutton_6.grid(column=1, row=3, padx=0, pady=30)
 
-        self.SosialMediabutton_7 = CTkButton(self, text="TikTok", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.TikTok)
+        self.SosialMediabutton_7 = CTkButton(text="TikTok", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.TikTok)
         self.SosialMediabutton_7.grid(column=2, row=3, padx=0, pady=30)
     def SosialMediaGoBack(self):
         self.SosialMedialabel_1.destroy()
@@ -328,16 +328,16 @@ class App(CTk):
 
         self.title(f"Apps section | v{App_Version}")
 
-        self.AppsBackbutton_1 = CTkButton(self, text="Go Back", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.GoBackApps)
+        self.AppsBackbutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.GoBackApps)
         self.AppsBackbutton_1.grid(column=0, row=0, padx=10, pady=10)
 
-        self.Appsbutton_1 = CTkLabel(self, text="")
+        self.Appsbutton_1 = CTkLabel(text="")
         self.Appsbutton_1.grid(column=1, row=1, padx=90, pady=0)
 
-        self.Appsbutton_2 = CTkButton(self, text="YT Downloader", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.YTDownloader)
+        self.Appsbutton_2 = CTkButton(text="YT Downloader", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.YTDownloader)
         self.Appsbutton_2.grid(column=1, row=2, padx=0, pady=0)
 
-        self.Appsbutton_3 = CTkButton(self, text="J.A.R.V.I.S", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.Jarvis)
+        self.Appsbutton_3 = CTkButton(text="J.A.R.V.I.S", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.Jarvis)
         self.Appsbutton_3.grid(column=2, row=2, padx=0, pady=0)
     def GoBackApps(self):
         self.AppsBackbutton_1.destroy()
@@ -360,37 +360,37 @@ class App(CTk):
 
         self.title(f"Game Launcher | v{App_Version}")
 
-        self.GameMedialabel_1 = CTkLabel(self, text="")
+        self.GameMedialabel_1 = CTkLabel(text="")
         self.GameMedialabel_1.grid(column=1, row=1, padx=70, pady=0)
 
-        self.GameMedialabel_2 = CTkLabel(self, text="")
+        self.GameMedialabel_2 = CTkLabel(text="")
         self.GameMedialabel_2.grid(column=1, row=2, padx=70, pady=0)
 
-        self.GameMediabutton_1 = CTkButton(self, text="Go Back", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.GameGoBack)
+        self.GameMediabutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.GameGoBack)
         self.GameMediabutton_1.grid(column=0, row=0, padx=10, pady=10)
 
-        self.GameMediabutton_2 = CTkButton(self, text="Rocket League", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_1)
+        self.GameMediabutton_2 = CTkButton(text="Rocket League", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_1)
         self.GameMediabutton_2.grid(column=1, row=1, padx=20, pady=20)
 
-        self.GameMediabutton_3 = CTkButton(self, text="ARK", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_2)
+        self.GameMediabutton_3 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_2)
         self.GameMediabutton_3.grid(column=2, row=1, padx=0, pady=5)
 
-        self.GameMediabutton_4 = CTkButton(self, text="Destiny 2", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_3)
+        self.GameMediabutton_4 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_3)
         self.GameMediabutton_4.grid(column=1, row=2, padx=0, pady=5)
 
-        self.GameMediabutton_5 = CTkButton(self, text="Fall Guys", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_4)
+        self.GameMediabutton_5 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_4)
         self.GameMediabutton_5.grid(column=2, row=2, padx=0, pady=20)
 
-        self.GameMediabutton_6 = CTkButton(self, text="Warships", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_5)
+        self.GameMediabutton_6 = CTkButton(text="Warships", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_5)
         self.GameMediabutton_6.grid(column=1, row=3, padx=0, pady=20)
 
-        self.GameMediabutton_7 = CTkButton(self, text="Control", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_6)
+        self.GameMediabutton_7 = CTkButton(text="Control", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_6)
         self.GameMediabutton_7.grid(column=2, row=3, padx=0, pady=5)
 
-        self.GameMediabutton_8 = CTkButton(self, text="GTA5", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_7)
+        self.GameMediabutton_8 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_7)
         self.GameMediabutton_8.grid(column=1, row=4, padx=0, pady=20)
 
-        self.GameMediabutton_9 = CTkButton(self, text="War Thunder", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_8)
+        self.GameMediabutton_9 = CTkButton(text="War Thunder", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_8)
         self.GameMediabutton_9.grid(column=2, row=4, padx=0, pady=20)
     def GameGoBack(self):
         self.GameMedialabel_1.destroy()
@@ -421,43 +421,43 @@ class App(CTk):
 
         self.title(f"System Settings | v{App_Version}")
 
-        self.Systemlabel_1 = CTkLabel(self, text="")
+        self.Systemlabel_1 = CTkLabel(text="")
         self.Systemlabel_1.grid(column=1, row=1, padx=70, pady=0)
 
-        self.Systemlabel_2 = CTkLabel(self, text="")
+        self.Systemlabel_2 = CTkLabel(text="")
         self.Systemlabel_2.grid(column=1, row=2, padx=70, pady=0)
 
-        self.Systembutton_1 = CTkButton(self, text="Go Back", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.SystemSettingsGoBack)
+        self.Systembutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.SystemSettingsGoBack)
         self.Systembutton_1.grid(column=0, row=0, padx=10, pady=20)
 
-        self.Systembutton_2 = CTkButton(self, text="App Settings", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.AppSettings)
+        self.Systembutton_2 = CTkButton(text="App Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.AppSettings)
         self.Systembutton_2.grid(column=1, row=1, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_3 = CTkButton(self, text="VPN Settings", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.VPNSettings)
+        self.Systembutton_3 = CTkButton(text="VPN Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.VPNSettings)
         self.Systembutton_3.grid(column=2, row=1, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_4 = CTkButton(self, text="TaskManager", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.TaskManager)
+        self.Systembutton_4 = CTkButton(text="TaskManager", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.TaskManager)
         self.Systembutton_4.grid(column=1, row=2, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_5 = CTkButton(self, text="NetDrive Reset", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.ResetNetworkDrive)
+        self.Systembutton_5 = CTkButton(text="NetDrive Reset", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.ResetNetworkDrive)
         self.Systembutton_5.grid(column=2, row=2, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_6 = CTkButton(self, text="Power Settings", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.PowerSettings)
+        self.Systembutton_6 = CTkButton(text="Power Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.PowerSettings)
         self.Systembutton_6.grid(column=1, row=3, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_7 = CTkButton(self, text="Sound Settings", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.SoundSettings)
+        self.Systembutton_7 = CTkButton(text="Sound Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.SoundSettings)
         self.Systembutton_7.grid(column=2, row=3, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_8 = CTkButton(self, text="Storage Settings", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.StorageSettings)
+        self.Systembutton_8 = CTkButton(text="Storage Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.StorageSettings)
         self.Systembutton_8.grid(column=1, row=4, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_9 = CTkButton(self, text="Display Settings", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.DisplaySettings)
+        self.Systembutton_9 = CTkButton(text="Display Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.DisplaySettings)
         self.Systembutton_9.grid(column=2, row=4, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_10 = CTkButton(self, text="Network Settings", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.NetworkSettings)
+        self.Systembutton_10 = CTkButton(text="Network Settings", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.NetworkSettings)
         self.Systembutton_10.grid(column=1, row=5, padx=0, pady= SystemSettingsPadY)
 
-        self.Systembutton_11 = CTkButton(self, text="Windows Update", fg_color=("gray75", "gray30"), font=("sans-serif", 17), corner_radius=10, command=self.WindowsUpdate)
+        self.Systembutton_11 = CTkButton(text="Windows Update", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.WindowsUpdate)
         self.Systembutton_11.grid(column=2, row=5, padx=0, pady= SystemSettingsPadY)
     def SystemSettingsGoBack(self):
         self.Systemlabel_1.destroy()
@@ -499,7 +499,7 @@ class App(CTk):
             try:
                 startfile("NetworkDriveReset.bat")
             except:
-                alert(self, text=f"The file 'NetworkDriveReset.bat' was not found. This file resets all network drives that are on the users system. The Creator/Developer {Developer} uses this file but doesn't include it with version control.", title='FILE NOT FOUND!', button='OK')
+                alert(text=f"The file 'NetworkDriveReset.bat' was not found. This file resets all network drives that are on the users system. The Creator/Developer {Developer} uses this file but doesn't include it with version control.", title='FILE NOT FOUND!', button='OK')
 
 
     def github(self):
