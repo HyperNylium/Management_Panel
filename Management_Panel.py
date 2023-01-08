@@ -247,7 +247,7 @@ class App(CTk):
         self.Aboutbutton_1.grid(column=0, row=0, padx=10, pady=10)
 
         self.Aboutlabel_1 = CTkLabel(text="About", text_font=("sans-serif", 50))
-        self.Aboutlabel_1.grid(column=2, row=1, padx=130, pady=20)
+        self.Aboutlabel_1.grid(column=2, row=1, padx=160, pady=20)
 
         self.Aboutlabel_2 = CTkLabel(text=f"Version: {App_Version} {ShowUserInfo}", text_font=("sans-serif", 20))
         self.Aboutlabel_2.grid(column=2, row=2, padx=0, pady=10)
