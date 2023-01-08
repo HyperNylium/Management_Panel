@@ -89,7 +89,7 @@ CLR_BLACK = Fore.BLACK
 CLR_MAGENTA = Fore.MAGENTA
 RESET_ALL = Fore.RESET
 
-CurrentAppVersion = "3.7.6"
+CurrentAppVersion = "3.7.0"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
 
@@ -135,8 +135,8 @@ try:
             output = confirm(title='New Version!', text=f'New Version is v{App_Version}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "OK" to update and "Cancel" to cancel')
             if (output == "OK"):
                 print(CLR_YELLOW + "  Launching Github repository in default browser")
-                sleep(0.5)
                 WBopen(UpdateLink)
+                sleep(0.5)
                 exit()
             else:
                 ShowUserInfo = f"- Update available (v{App_Version})"
@@ -146,7 +146,7 @@ try:
         print(CLR_GREEN + f"\n  {App_Version} is the latest version. Continuing on with launch protocol" + RESET_ALL)
         ShowUserInfo = "- Latest version"
         pass
-except:
+except Exception as e:
     print(CLR_RED + f"\n  Receiving app information was unable to execute successfully!\n  Passing 'N/A' in all variables" + RESET_ALL)
     App_Version = "N/A"
     Developer = "N/A"
@@ -156,6 +156,7 @@ except:
     LatestVersionPythonFileName = "N/A"
     LatestVersionProjectLink = "N/A"
     ShowUserInfo = ""
+    sleep(3)
     pass
 
 Website = "http://hypernylium.com/"
