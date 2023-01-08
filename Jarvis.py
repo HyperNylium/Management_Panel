@@ -290,9 +290,8 @@ def JARVIS():
                 exit()
 
             elif "jarvis open management panel" in query:
-                speak(f"Attempting to open management panel project version {App_Version}")
                 print(CLR_YELLOW, f"Attempting to open Management Panel project version {App_Version}", RESET_ALL)
-                sleep(1)
+                speak(f"Attempting to open management panel project version {App_Version}")
                 os.startfile("Management_Panel.py")
                 exit()
 
