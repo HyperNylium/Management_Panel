@@ -2,7 +2,7 @@
 import platform
 from os import system, startfile
 from time import sleep
-import webbrowser
+from webbrowser import open as WBopen
 from sys import exit
 
 try:
@@ -90,66 +90,73 @@ CLR_MAGENTA = Fore.MAGENTA
 RESET_ALL = Fore.RESET
 
 CurrentAppVersion = "3.7.0"
+UpdateLink = "https://github.com/HyperNylium/Management_Panel"
+DataTXTFileUrl = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
 
-print(CLR_YELLOW + "\n  Downloading Version information" + RESET_ALL)
-Data = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
-with get(Data) as rq:
-        with open("Data.txt", "wb") as file:
-            file.write(rq.content)
-print(CLR_GREEN + "  Download Complete" + RESET_ALL)
-print(CLR_YELLOW + "  Checking for updates" + RESET_ALL)
-delimeter = "="
+try:
+    print(CLR_YELLOW + "\n  Checking for updates" + RESET_ALL)
+    response = get(DataTXTFileUrl)
+    lines = response.text.split('\n')
+    delimeter = "="
 
-file = open("Data.txt", "r")
+    def findValue(fullString):
+        fullString = fullString.rstrip("\n")
+        value = fullString[fullString.index(delimeter)+1:]
+        value = value.replace(" ","")
+        return value
 
-def findValue(fullString):
-    fullString = fullString.rstrip("\n")
-    value = fullString[fullString.index(delimeter)+1:]
-    value = value.replace(" ","")
-    return value
+    for line in lines:
+        if line.startswith("Version"):
+            App_Version = findValue(line).strip()
+        if line.startswith("DevName"):
+            Developer = findValue(line).strip()
+        if line.startswith("Developer_Lowercase"):
+            Developer_Lowercase = findValue(line)
+        if line.startswith("LastEditDate"):
+            LastEditDate = findValue(line).strip()
+        if line.startswith("LatestVersionPythonLink"):
+            LatestVersionPythonLink = findValue(line).strip()
+        if line.startswith("LatestVersionPythonFileName"):
+            LatestVersionPythonFileName = findValue(line).strip()
+        if line.startswith("LatestVersionProjectLink"):
+            LatestVersionProjectLink = findValue(line).strip()
 
-for line in file:
-    if line.startswith("Version"):
-        App_Version = findValue(line)
-    if line.startswith("DevName"):
-        Developer = findValue(line)
-    if line.startswith("Developer_Lowercase"):
-        Developer_Lowercase = findValue(line)
-    if line.startswith("LastEditDate"):
-        LastEditDate = findValue(line)
-    if line.startswith("LatestVersionPythonLink"):
-        LatestVersionPythonLink = findValue(line)
-    if line.startswith("LatestVersionPythonFileName"):
-        LatestVersionPythonFileName = findValue(line)
-    if line.startswith("LatestVersionProjectLink"):
-        LatestVersionProjectLink = findValue(line)
-
-if App_Version < CurrentAppVersion:
-    print(CLR_RED + f"\n  You have an invalid copy/version of this software. Use at your own risk!\n\n  Live/Public version: {App_Version}\n  Current version: {CurrentAppVersion}\n\n  Please run the Updater.exe file to get the latest/authentic version of Managemet_Panel")
-    Developer = "Unknown"
-    Developer_Lowercase = "Unknown"
-    LastEditDate = "Unknown"
-    App_Version = CurrentAppVersion
-    ShowUserInfo = "- Unauthentic"
-    sleep(7)
-    pass
-else:
-    if App_Version != CurrentAppVersion or App_Version > CurrentAppVersion:
-        print(CLR_RED + f"  New version found!" + RESET_ALL)
-        output = confirm(text=f'New Version is v{App_Version}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nDo you want to update?', title='New Version!', buttons=['Yes', 'No'])
-        if output == 'Yes':
-            print(CLR_YELLOW + "  Launching 'Updater.exe'")
-            sleep(0.5)
-            startfile("Updater.exe")
-            exit()
-        if output == 'No':
-            ShowUserInfo = f"- Update available (v{App_Version})"
+    if App_Version < CurrentAppVersion:
+            print(CLR_RED + f"\n  You have an invalid copy/version of this software. Use at your own risk!\n\n  Live/Public version: {App_Version}\n  Current version: {CurrentAppVersion}\n\n  Please go to http://search.hypernylium.com/results/ServerFileManager/ to get the latest/authentic version of this software")
+            Developer = "Unknown"
+            Developer_Lowercase = "Unknown"
+            LastEditDate = "Unknown"
             App_Version = CurrentAppVersion
+            ShowUserInfo = "- Unauthentic"
+            sleep(7)
             pass
+    elif App_Version != CurrentAppVersion or App_Version > CurrentAppVersion:
+            print(CLR_RED + f"\n  New version found!" + RESET_ALL)
+            output = confirm(title='New Version!', text=f'New Version is v{App_Version}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "OK" to update and "Cancel" to cancel')
+            if (output == "OK"):
+                print(CLR_YELLOW + "  Launching Github repository in default browser")
+                sleep(0.5)
+                WBopen(UpdateLink)
+                exit()
+            else:
+                ShowUserInfo = f"- Update available (v{App_Version})"
+                App_Version = CurrentAppVersion
+                pass
     else:
-        print(CLR_GREEN + f"  {App_Version} is the latest version. Continuing on with launch protocol" + RESET_ALL)
+        print(CLR_GREEN + f"\n  {App_Version} is the latest version. Continuing on with launch protocol" + RESET_ALL)
         ShowUserInfo = "- Latest version"
         pass
+except:
+    print(CLR_RED + f"\n  Receiving app information was unable to execute successfully!\n  Passing 'N/A' in all variables" + RESET_ALL)
+    App_Version = "N/A"
+    Developer = "N/A"
+    Developer_Lowercase = "N/A"
+    LastEditDate = "N/A"
+    LatestVersionPythonLink = "N/A"
+    LatestVersionPythonFileName = "N/A"
+    LatestVersionProjectLink = "N/A"
+    ShowUserInfo = ""
+    pass
 
 Website = "http://hypernylium.com/"
 GithubURL = "https://github.com/HyperNylium"
@@ -173,14 +180,14 @@ Game_7 = GTA5
 Game_8 = War Thunder
 """
 
-Game_1 = "com.epicgames.launcher://apps/9773aa1aa54f4f7b80e44bef04986cea%3A530145df28a24424923f5828cc9031a1%3ASugar?action=launch&silent=true"
-Game_2 = "steam://rungameid/346110"
-Game_3 = "com.epicgames.launcher://apps/428115def4ca4deea9d69c99c5a5a99e%3A06bd477f9fbe4259a1421fb3f559aa46%3A592c359fb0e0413fb46dee2d24448eb4?action=launch&silent=true"
-Game_4 = "com.epicgames.launcher://apps/50118b7f954e450f8823df1614b24e80%3A38ec4849ea4f4de6aa7b6fb0f2d278e1%3A0a2d9f6403244d12969e11da6713137b?action=launch&silent=true"
-Game_5 = "com.epicgames.launcher://apps/84c76746bce94effb8e1047fabfd7eb7%3Ab9e23e5fa8e84064b356677022beb37a%3Aa79746038c6948558274065d24f3faa3?action=launch&silent=true"
-Game_6 = "com.epicgames.launcher://apps/calluna%3A9afb582e90b74bdd9e2146fb79c78589%3ACalluna?action=launch&silent=true"
-Game_7 = "steam://rungameid/271590"
-Game_8 = "steam://rungameid/236390"
+Game_1 = ""
+Game_2 = ""
+Game_3 = ""
+Game_4 = ""
+Game_5 = ""
+Game_6 = ""
+Game_7 = ""
+Game_8 = ""
 
 spacers = 20
 
@@ -285,22 +292,22 @@ class App(CTk):
         self.SosialMediabutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.SosialMediaGoBack)
         self.SosialMediabutton_1.grid(column=0, row=0, padx=10, pady=10)
 
-        self.SosialMediabutton_2 = CTkButton(text="Discord", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.discord)
+        self.SosialMediabutton_2 = CTkButton(text="Discord", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.SocialMediaLoader(DiscordURL))
         self.SosialMediabutton_2.grid(column=1, row=1, padx=20, pady=30)
 
-        self.SosialMediabutton_3 = CTkButton(text="Github", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.github)
+        self.SosialMediabutton_3 = CTkButton(text="Github", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.SocialMediaLoader(GithubURL))
         self.SosialMediabutton_3.grid(column=2, row=1, padx=0, pady=10)
 
-        self.SosialMediabutton_4 = CTkButton(text="Instagram", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.instagram)
+        self.SosialMediabutton_4 = CTkButton(text="Instagram", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.SocialMediaLoader(instagramURL))
         self.SosialMediabutton_4.grid(column=1, row=2, padx=20, pady=10)
 
-        self.SosialMediabutton_5 = CTkButton(text="YouTube", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.youtube)
+        self.SosialMediabutton_5 = CTkButton(text="YouTube", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.SocialMediaLoader(YoutubeURL))
         self.SosialMediabutton_5.grid(column=2, row=2, padx=0, pady=10)
 
-        self.SosialMediabutton_6 = CTkButton(text="Website", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.OpenSite)
+        self.SosialMediabutton_6 = CTkButton(text="Website", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.SocialMediaLoader(Website))
         self.SosialMediabutton_6.grid(column=1, row=3, padx=0, pady=30)
 
-        self.SosialMediabutton_7 = CTkButton(text="TikTok", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.TikTok)
+        self.SosialMediabutton_7 = CTkButton(text="TikTok", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.SocialMediaLoader(TikTokURL))
         self.SosialMediabutton_7.grid(column=2, row=3, padx=0, pady=30)
     def SosialMediaGoBack(self):
         self.SosialMedialabel_1.destroy()
@@ -369,28 +376,28 @@ class App(CTk):
         self.GameMediabutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.GameGoBack)
         self.GameMediabutton_1.grid(column=0, row=0, padx=10, pady=10)
 
-        self.GameMediabutton_2 = CTkButton(text="Rocket League", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_1)
+        self.GameMediabutton_2 = CTkButton(text="Rocket League", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_1))
         self.GameMediabutton_2.grid(column=1, row=1, padx=20, pady=20)
 
-        self.GameMediabutton_3 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_2)
+        self.GameMediabutton_3 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_2))
         self.GameMediabutton_3.grid(column=2, row=1, padx=0, pady=5)
 
-        self.GameMediabutton_4 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_3)
+        self.GameMediabutton_4 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_3))
         self.GameMediabutton_4.grid(column=1, row=2, padx=0, pady=5)
 
-        self.GameMediabutton_5 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_4)
+        self.GameMediabutton_5 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_4))
         self.GameMediabutton_5.grid(column=2, row=2, padx=0, pady=20)
 
-        self.GameMediabutton_6 = CTkButton(text="Warships", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_5)
+        self.GameMediabutton_6 = CTkButton(text="Warships", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_5))
         self.GameMediabutton_6.grid(column=1, row=3, padx=0, pady=20)
 
-        self.GameMediabutton_7 = CTkButton(text="Control", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_6)
+        self.GameMediabutton_7 = CTkButton(text="Control", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_6))
         self.GameMediabutton_7.grid(column=2, row=3, padx=0, pady=5)
 
-        self.GameMediabutton_8 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_7)
+        self.GameMediabutton_8 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_7))
         self.GameMediabutton_8.grid(column=1, row=4, padx=0, pady=20)
 
-        self.GameMediabutton_9 = CTkButton(text="War Thunder", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=self.LaunchGame_8)
+        self.GameMediabutton_9 = CTkButton(text="War Thunder", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_8))
         self.GameMediabutton_9.grid(column=2, row=4, padx=0, pady=20)
     def GameGoBack(self):
         self.GameMedialabel_1.destroy()
@@ -502,68 +509,31 @@ class App(CTk):
                 alert(text=f"The file 'NetworkDriveReset.bat' was not found. This file resets all network drives that are on the users system. The Creator/Developer {Developer} uses this file but doesn't include it with version control.", title='FILE NOT FOUND!', button='OK')
 
 
-    def github(self):
-        webbrowser.open(GithubURL)
-    def youtube(self):
-        webbrowser.open(YoutubeURL)
-    def discord(self):
-        webbrowser.open(DiscordURL)
-    def instagram(self):
-        webbrowser.open(instagramURL)
-    def TikTok(self):
-        webbrowser.open(TikTokURL)
-    def OpenSite(self):
-        webbrowser.open(Website)
+    def LaunchGame(self, GameVar):
+        WBopen(GameVar)
+        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
+    def SocialMediaLoader(self, MediaVar):
+        WBopen(MediaVar)
     def OpenUpdater(self):
-        startfile("Updater.exe")
+        WBopen(GithubURL + "/Management_Panel")
         sleep(0.3)
-        file.close()
         self.destroy()
     def Jarvis(self):
         startfile("Jarvis.py")
         sleep(0.3)
-        file.close()
         self.destroy()
     def YTDownloader(self):
         startfile("YT_Downloader.py")
         sleep(0.3)
-        file.close()
         self.destroy()
     def MP_MINI(self):
         startfile("MP_MINI.py")
         sleep(0.3)
-        file.close()
         self.destroy()
-    def LaunchGame_1(self):
-        webbrowser.open(Game_1)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_2(self):
-        webbrowser.open(Game_2)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_3(self):
-        webbrowser.open(Game_3)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_4(self):
-        webbrowser.open(Game_4)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_5(self):
-        webbrowser.open(Game_5)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_6(self):
-        webbrowser.open(Game_6)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_7(self):
-        webbrowser.open(Game_7)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_8(self):
-        webbrowser.open(Game_8)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
     def on_closing(self, event=0):
         print(CLR_RED + "\n  GUI is being terminated" + RESET_ALL)
-        file.close()
         self.destroy()
         exit()
-
 
     def __init__(self):
         super().__init__()
