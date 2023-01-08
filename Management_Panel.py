@@ -89,7 +89,7 @@ CLR_BLACK = Fore.BLACK
 CLR_MAGENTA = Fore.MAGENTA
 RESET_ALL = Fore.RESET
 
-CurrentAppVersion = "3.7.0"
+CurrentAppVersion = "3.7.6"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
 
