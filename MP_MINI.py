@@ -1,12 +1,12 @@
 
-from Management_Panel import App_Version, CurrentAppVersion, clear_command, GetUserDesktopLocation, Developer, Developer_Lowercase, file, LastEditDate, LatestVersionPythonLink, LatestVersionPythonFileName, LatestVersionProjectLink, ShowUserInfo
+from Management_Panel import App_Version, CurrentAppVersion, clear_command, GetUserDesktopLocation, Developer, Developer_Lowercase, LastEditDate, LatestVersionPythonLink, LatestVersionPythonFileName, LatestVersionProjectLink, ShowUserInfo
 from Management_Panel import Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL, Game_1, Game_2, Game_3, Game_4, Game_5, Game_6, Game_7, Game_8
 from Management_Panel import CLR_RED, CLR_GREEN, CLR_YELLOW, CLR_BLUE, CLR_CYAN, CLR_WHITE, CLR_BLACK, CLR_MAGENTA, RESET_ALL
 
 import platform
 from os import system, startfile
 from time import sleep
-import webbrowser
+from webbrowser import open as WBopen
 from sys import exit
 
 try:
@@ -165,22 +165,22 @@ class App(CTk):
         self.SosialMediabutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.SosialMediaGoBack)
         self.SosialMediabutton_1.grid(column=1, row=0, padx=0, pady=PADY_SETTINGS)
 
-        self.SosialMediabutton_2 = CTkButton(text="Discord", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.discord)
+        self.SosialMediabutton_2 = CTkButton(text="Discord", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.SocialMediaLoader(DiscordURL))
         self.SosialMediabutton_2.grid(column=1, row=1, padx=0, pady=PADY_SETTINGS)
 
-        self.SosialMediabutton_3 = CTkButton(text="Github", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.github)
+        self.SosialMediabutton_3 = CTkButton(text="Github", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40,command=lambda: self.SocialMediaLoader(GithubURL))
         self.SosialMediabutton_3.grid(column=1, row=2, padx=0, pady=PADY_SETTINGS)
 
-        self.SosialMediabutton_4 = CTkButton(text="Instagram", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.instagram)
+        self.SosialMediabutton_4 = CTkButton(text="Instagram", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.SocialMediaLoader(instagramURL))
         self.SosialMediabutton_4.grid(column=1, row=3, padx=0, pady=PADY_SETTINGS)
 
-        self.SosialMediabutton_5 = CTkButton(text="YouTube", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.youtube)
+        self.SosialMediabutton_5 = CTkButton(text="YouTube", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.SocialMediaLoader(YoutubeURL))
         self.SosialMediabutton_5.grid(column=1, row=4, padx=0, pady=PADY_SETTINGS)
 
-        self.SosialMediabutton_6 = CTkButton(text="Website", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.OpenSite)
+        self.SosialMediabutton_6 = CTkButton(text="Website", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.SocialMediaLoader(Website))
         self.SosialMediabutton_6.grid(column=1, row=5, padx=0, pady=PADY_SETTINGS)
 
-        self.SosialMediabutton_7 = CTkButton(text="TikTok", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.TikTok)
+        self.SosialMediabutton_7 = CTkButton(text="TikTok", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.SocialMediaLoader(TikTokURL))
         self.SosialMediabutton_7.grid(column=1, row=6, padx=0, pady=PADY_SETTINGS)
     def SosialMediaGoBack(self):
         self.SosialMediabutton_1.destroy()
@@ -232,28 +232,28 @@ class App(CTk):
         self.GameMediabutton_1 = CTkButton(text="Go Back", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.GameGoBack)
         self.GameMediabutton_1.grid(column=1, row=0, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_2 = CTkButton(text="Rocket League", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.LaunchGame_1)
+        self.GameMediabutton_2 = CTkButton(text="Rocket League", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_1))
         self.GameMediabutton_2.grid(column=1, row=1, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_3 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.LaunchGame_2)
+        self.GameMediabutton_3 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_2))
         self.GameMediabutton_3.grid(column=1, row=2, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_4 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.LaunchGame_3)
+        self.GameMediabutton_4 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_3))
         self.GameMediabutton_4.grid(column=1, row=3, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_5 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.LaunchGame_4)
+        self.GameMediabutton_5 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_4))
         self.GameMediabutton_5.grid(column=1, row=4, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_6 = CTkButton(text="Warships", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.LaunchGame_5)
+        self.GameMediabutton_6 = CTkButton(text="Warships", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_5))
         self.GameMediabutton_6.grid(column=1, row=5, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_7 = CTkButton(text="Control", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.LaunchGame_6)
+        self.GameMediabutton_7 = CTkButton(text="Control", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_6))
         self.GameMediabutton_7.grid(column=1, row=6, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_8 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.LaunchGame_7)
+        self.GameMediabutton_8 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_7))
         self.GameMediabutton_8.grid(column=1, row=7, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_9 = CTkButton(text="War Thunder", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=self.LaunchGame_8)
+        self.GameMediabutton_9 = CTkButton(text="War Thunder", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_8))
         self.GameMediabutton_9.grid(column=1, row=8, padx=0, pady=PADY_SETTINGS)
     def GameGoBack(self):
         self.GameMediabutton_1.destroy()
@@ -353,65 +353,29 @@ class App(CTk):
                 alert(text=f"The file 'NetworkDriveReset.bat' was not found. This file resets all network drives that are on the users system. The Creator/Developer {Developer} uses this file but doesn't include it with version control.", title='FILE NOT FOUND!', button='OK')
 
 
-    def github(self):
-        webbrowser.open(GithubURL)
-    def youtube(self):
-        webbrowser.open(YoutubeURL)
-    def discord(self):
-        webbrowser.open(DiscordURL)
-    def instagram(self):
-        webbrowser.open(instagramURL)
-    def TikTok(self):
-        webbrowser.open(TikTokURL)
-    def OpenSite(self):
-        webbrowser.open(Website)
+    def LaunchGame(self, GameVar):
+        WBopen(GameVar)
+        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
+    def SocialMediaLoader(self, MediaVar):
+        WBopen(MediaVar)
     def OpenUpdater(self):
         startfile("Updater.exe")
         sleep(0.3)
-        file.close()
         self.destroy()
     def YTDownloader(self):
         startfile("YT_Downloader.py")
         sleep(0.3)
-        file.close()
         self.destroy()
     def Jarvis(self):
         startfile("Jarvis.py")
         sleep(0.3)
-        file.close()
         self.destroy()
     def NormalGUI(self):
         startfile("Management_Panel.py")
         sleep(0.3)
-        file.close()
         self.destroy()
-    def LaunchGame_1(self):
-        webbrowser.open(Game_1)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_2(self):
-        webbrowser.open(Game_2)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_3(self):
-        webbrowser.open(Game_3)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_4(self):
-        webbrowser.open(Game_4)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_5(self):
-        webbrowser.open(Game_5)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_6(self):
-        webbrowser.open(Game_6)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_7(self):
-        webbrowser.open(Game_7)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
-    def LaunchGame_8(self):
-        webbrowser.open(Game_8)
-        notification.notify("Management Panel", "Your game is launching.\nPlease wait while your game launches", timeout=6)
     def on_closing(self, event=0):
         print(CLR_RED + "\n  GUI is being terminated" + RESET_ALL)
-        file.close()
         self.destroy()
         exit()
 
