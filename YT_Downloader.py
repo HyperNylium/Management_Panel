@@ -1,25 +1,16 @@
 
-from Management_Panel import App_Version, CurrentAppVersion, clear_command, GetUserDesktopLocation, Developer, Developer_Lowercase, file, LastEditDate, LatestVersionPythonLink, LatestVersionPythonFileName, LatestVersionProjectLink, ShowUserInfo
-from Management_Panel import Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL, Game_1, Game_2, Game_3, Game_4, Game_5, Game_6, Game_7, Game_8, exit
+from Management_Panel import App_Version, CurrentAppVersion, clear_command, GetUserDesktopLocation, exit
 from Management_Panel import CLR_RED, CLR_GREEN, CLR_YELLOW, CLR_BLUE, CLR_CYAN, CLR_WHITE, CLR_BLACK, CLR_MAGENTA, RESET_ALL
 from io import BytesIO
+from time import sleep
 import threading
 import platform
-import base64
-from time import sleep
 import os
 
 try:
 	from urllib.request import urlopen
 except:
   print("\033[31m" + "\nIt looks like you don't have a critical the python library: urllib3\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install urllib3 ' + "\033[31m" + "to install correctly")
-  sleep(8)
-  exit()
-
-try:
-	from customtkinter import set_appearance_mode, CTk, CTkLabel, CTkButton, CTkInputDialog
-except:
-  print("\033[31m" + "\nIt looks like you don't have a critical the python library: customtkinter\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install customtkinter ' + "\033[31m" + "to install correctly")
   sleep(8)
   exit()
 

@@ -21,9 +21,9 @@ except:
     exit()
 
 try:
-	from customtkinter import set_appearance_mode, CTk, CTkLabel, CTkButton, CTkInputDialog
+	from customtkinter import set_appearance_mode, CTk, CTkLabel, CTkButton
 except:
-    print("\033[31m" + "\nIt looks like you don't have a critical the python library: customtkinter\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install customtkinter ' + "\033[31m" + "to install correctly")
+    print("\033[31m" + "\nIt looks like you don't have a critical the python library: customtkinter\nPlease open the"  +  "\033[36m" + " 'Updater.exe' " + "\033[31m" + "to install all the libraries correctly or open your terminal in administrator mode and type" +  "\033[36m" + ' python -m pip install customtkinter==4.6.2 ' + "\033[31m" + "to install correctly")
     sleep(8)
     exit()
 

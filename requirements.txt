@@ -1,6 +1,6 @@
 
 1. tkinter (pip install tk)
-2. customtkinter (pip install customtkinter)
+2. customtkinter (pip install customtkinter==4.6.2)
 3. tqdm (pip install tqdm)
 4. pyjokes (pip install pyjokes)
 5. wikipedia (pip install wikipedia)
