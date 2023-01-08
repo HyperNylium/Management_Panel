@@ -89,7 +89,7 @@ CLR_BLACK = Fore.BLACK
 CLR_MAGENTA = Fore.MAGENTA
 RESET_ALL = Fore.RESET
 
-CurrentAppVersion = "3.7.0"
+CurrentAppVersion = "3.7.6"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/Python-Projects/Management_Panel/Data.txt"
 
@@ -172,23 +172,23 @@ SystemSettingsPadY = 15
 
 """
 Game_1 = Rocket League
-Game_2 = ARK
-Game_3 = Destiny 2
-Game_4 = Fall Guys
-Game_5 = Warships
-Game_6 = Control
-Game_7 = GTA5
-Game_8 = War Thunder
+Game_2 = GTA5
+Game_3 = Subnautica
+Game_4 = ARK
+Game_5 = LOL
+Game_6 = Destiny 2
+Game_7 = Among Us
+Game_8 = Fall Guys
 """
 
-Game_1 = ""
-Game_2 = ""
-Game_3 = ""
-Game_4 = ""
-Game_5 = ""
-Game_6 = ""
-Game_7 = ""
-Game_8 = ""
+Game_1 = "com.epicgames.launcher://apps/9773aa1aa54f4f7b80e44bef04986cea%3A530145df28a24424923f5828cc9031a1%3ASugar?action=launch&silent=true"
+Game_2 = "com.epicgames.launcher://apps/0584d2013f0149a791e7b9bad0eec102%3A6e563a2c0f5f46e3b4e88b5f4ed50cca%3A9d2d0eb64d5c44529cece33fe2a46482?action=launch&silent=true"
+Game_3 = "com.epicgames.launcher://apps/jaguar%3A3257e06c28764231acd93049f3774ed6%3AJaguar?action=launch&silent=true"
+Game_4 = "com.epicgames.launcher://apps/ark%3A743e47ee84ac49a1a49f4781da70e0d0%3Aaafc587fbf654758802c8e41e4fb3255?action=launch&silent=true"
+Game_5 = "com.epicgames.launcher://apps/24b9b5e323bc40eea252a10cdd3b2f10%3Ad398f3033c5e4b90b09dcbb4b962be80%3A64b0c77d07f644e6a2326a1fd7ab9926?action=launch&silent=true"
+Game_6 = "com.epicgames.launcher://apps/428115def4ca4deea9d69c99c5a5a99e%3A06bd477f9fbe4259a1421fb3f559aa46%3A592c359fb0e0413fb46dee2d24448eb4?action=launch&silent=true"
+Game_7 = "com.epicgames.launcher://apps/33956bcb55d4452d8c47e16b94e294bd%3A729a86a5146640a2ace9e8c595414c56%3A963137e4c29d4c79a81323b8fab03a40?action=launch&silent=true"
+Game_8 = "com.epicgames.launcher://apps/50118b7f954e450f8823df1614b24e80%3A38ec4849ea4f4de6aa7b6fb0f2d278e1%3A0a2d9f6403244d12969e11da6713137b?action=launch&silent=true"
 
 spacers = 20
 
@@ -380,25 +380,25 @@ class App(CTk):
         self.GameMediabutton_2 = CTkButton(text="Rocket League", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_1))
         self.GameMediabutton_2.grid(column=1, row=1, padx=20, pady=20)
 
-        self.GameMediabutton_3 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_2))
+        self.GameMediabutton_3 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_2))
         self.GameMediabutton_3.grid(column=2, row=1, padx=0, pady=5)
 
-        self.GameMediabutton_4 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_3))
+        self.GameMediabutton_4 = CTkButton(text="Subnautica", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_3))
         self.GameMediabutton_4.grid(column=1, row=2, padx=0, pady=5)
 
-        self.GameMediabutton_5 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_4))
+        self.GameMediabutton_5 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_4))
         self.GameMediabutton_5.grid(column=2, row=2, padx=0, pady=20)
 
-        self.GameMediabutton_6 = CTkButton(text="Warships", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_5))
+        self.GameMediabutton_6 = CTkButton(text="LOL", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_5))
         self.GameMediabutton_6.grid(column=1, row=3, padx=0, pady=20)
 
-        self.GameMediabutton_7 = CTkButton(text="Control", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_6))
+        self.GameMediabutton_7 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_6))
         self.GameMediabutton_7.grid(column=2, row=3, padx=0, pady=5)
 
-        self.GameMediabutton_8 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_7))
+        self.GameMediabutton_8 = CTkButton(text="Among Us", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_7))
         self.GameMediabutton_8.grid(column=1, row=4, padx=0, pady=20)
 
-        self.GameMediabutton_9 = CTkButton(text="War Thunder", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_8))
+        self.GameMediabutton_9 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=10, command=lambda: self.LaunchGame(Game_8))
         self.GameMediabutton_9.grid(column=2, row=4, padx=0, pady=20)
     def GameGoBack(self):
         self.GameMedialabel_1.destroy()

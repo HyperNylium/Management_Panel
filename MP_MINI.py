@@ -235,25 +235,25 @@ class App(CTk):
         self.GameMediabutton_2 = CTkButton(text="Rocket League", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_1))
         self.GameMediabutton_2.grid(column=1, row=1, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_3 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_2))
+        self.GameMediabutton_3 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_2))
         self.GameMediabutton_3.grid(column=1, row=2, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_4 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_3))
+        self.GameMediabutton_4 = CTkButton(text="Subnautica", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_3))
         self.GameMediabutton_4.grid(column=1, row=3, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_5 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_4))
+        self.GameMediabutton_5 = CTkButton(text="ARK", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_4))
         self.GameMediabutton_5.grid(column=1, row=4, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_6 = CTkButton(text="Warships", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_5))
+        self.GameMediabutton_6 = CTkButton(text="LOL", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_5))
         self.GameMediabutton_6.grid(column=1, row=5, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_7 = CTkButton(text="Control", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_6))
+        self.GameMediabutton_7 = CTkButton(text="Destiny 2", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_6))
         self.GameMediabutton_7.grid(column=1, row=6, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_8 = CTkButton(text="GTA5", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_7))
+        self.GameMediabutton_8 = CTkButton(text="Among Us", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_7))
         self.GameMediabutton_8.grid(column=1, row=7, padx=0, pady=PADY_SETTINGS)
 
-        self.GameMediabutton_9 = CTkButton(text="War Thunder", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_8))
+        self.GameMediabutton_9 = CTkButton(text="Fall Guys", fg_color=("gray75", "gray30"), text_font=("sans-serif", 17), corner_radius=0, width=240, height=40, command=lambda: self.LaunchGame(Game_8))
         self.GameMediabutton_9.grid(column=1, row=8, padx=0, pady=PADY_SETTINGS)
     def GameGoBack(self):
         self.GameMediabutton_1.destroy()
