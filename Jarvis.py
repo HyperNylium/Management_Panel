@@ -1,12 +1,12 @@
 
-from Management_Panel import App_Version, CurrentAppVersion, clear_command, GetUserDesktopLocation, Developer, Developer_Lowercase, file, LastEditDate, LatestVersionPythonLink, LatestVersionPythonFileName, LatestVersionProjectLink, ShowUserInfo
-from Management_Panel import Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL, Game_1, Game_2, Game_3, Game_4, Game_5, Game_6, Game_7, Game_8, exit
+from Management_Panel import App_Version, CurrentAppVersion, clear_command, GetUserDesktopLocation, Developer, Developer_Lowercase
+from Management_Panel import Website, GithubURL, DiscordURL, instagramURL, YoutubeURL, TikTokURL, FacebookURL, TwitterURL, exit
 from Management_Panel import CLR_RED, CLR_GREEN, CLR_YELLOW, CLR_BLUE, CLR_CYAN, CLR_WHITE, CLR_BLACK, CLR_MAGENTA, RESET_ALL
+from time import sleep
+import webbrowser
 import platform
 import datetime
-import webbrowser
 import os
-from time import sleep
 
 try:
 	import speech_recognition as sr
@@ -109,7 +109,7 @@ def takeCommand():
     with sr.Microphone() as source:
         os.system(clear_command)
         print(CLR_GREEN + "\n  Listening..." + RESET_ALL)
-        r.pause_threshold = 1
+        r.pause_threshold = 0.8
         audio = r.listen(source)
 
     try:
@@ -254,7 +254,7 @@ def JARVIS():
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    shutdown                                  " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Closes J.A.R.V.I.S" + RESET_ALL + CLR_GREEN + "                       | " + RESET_ALL)
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Update software                           " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Opens Updater.exe" + RESET_ALL + CLR_GREEN + "                        | " + RESET_ALL)
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Say hi                                    " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Says Hi" + RESET_ALL + CLR_GREEN + "                                  | " + RESET_ALL)
-                print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Lock workstation                          " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Locks your pc" + RESET_ALL + CLR_GREEN + "                            | " + RESET_ALL)
+                print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Lock my computer                          " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Locks your pc" + RESET_ALL + CLR_GREEN + "                            | " + RESET_ALL)
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    open management panel                     " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Closes Jarvis and opens management panel" + RESET_ALL + CLR_GREEN + " | " + RESET_ALL)
                 print(CLR_GREEN + "     +------------------------------------------------+--------------------------------------------+" + RESET_ALL)
                 speak("these are my commands. when you say either of these, i will respond to you with an answer")
@@ -276,7 +276,7 @@ def JARVIS():
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    shutdown                                  " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Closes J.A.R.V.I.S" + RESET_ALL + CLR_GREEN + "                       | " + RESET_ALL)
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Update software                           " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Opens Updater.exe" + RESET_ALL + CLR_GREEN + "                        | " + RESET_ALL)
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Say hi                                    " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Says Hi" + RESET_ALL + CLR_GREEN + "                                  | " + RESET_ALL)
-                print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Lock workstation                          " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Locks your pc" + RESET_ALL + CLR_GREEN + "                            | " + RESET_ALL)
+                print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    Lock my computer                          " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Locks your pc" + RESET_ALL + CLR_GREEN + "                            | " + RESET_ALL)
                 print(CLR_GREEN + "     | " + RESET_ALL + CLR_CYAN + "    open management panel                     " + RESET_ALL + CLR_GREEN + " |   " + RESET_ALL + CLR_YELLOW + "Closes Jarvis and opens management panel" + RESET_ALL + CLR_GREEN + " | " + RESET_ALL)
                 print(CLR_GREEN + "     +------------------------------------------------+--------------------------------------------+" + RESET_ALL)
                 speak("these are my commands. when you say either of these, i will respond to you with an answer")
