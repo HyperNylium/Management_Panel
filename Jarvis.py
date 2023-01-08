@@ -315,7 +315,7 @@ def JARVIS():
                     sleep(1)
                     exit()
 
-            elif "jarvis lock workstation" in query:
+            elif "jarvis Lock my computer" in query:
                 print(CLR_YELLOW + "\n  Locking your workstation sir. Have a wonderful day" + RESET_ALL)
                 speak("Locking your workstation sir. Have a wonderful day")
                 sleep(1)

@@ -20,13 +20,16 @@ The beta program (closed): https://github.com/HyperNylium/Management_Panel_BETA
 
 3. Un-zip the `Management_Panel-main.zip` file wherever you want
 
-4. Launch the `Updater.exe` file and go with the flow ;)
+4. Launch the `Updater.exe` file and wait for it to install all of the libraries for you (Assuming you have python installed. If you don't this step will not work)
+5. Launch `Management_Panel.py` and have fun ;)
 
 
 ## New with this update
 - Minor bugs and mistakes fixed<br><br>
 
-- New command for `Jarvis`. Saying "Lock workstation" will lock your computer (just like clicking `windows + L` keys but now included with jarvis)<br><br>
+- Customtkinter update issue fixed<br><br>
+
+- New command for `Jarvis`. Saying "jarvis lock my computer" will lock your computer (just like clicking `windows + L` keys but now included with jarvis)<br><br>
 
 - New error catching method on importing critical libraries<br><br>
 
@@ -36,11 +39,9 @@ The beta program (closed): https://github.com/HyperNylium/Management_Panel_BETA
 
 - Full re-design of `MP_MINI` (Some text was to small and sometimes hard to read. So, i made things a bit bigger and easier to navigate)<br><br>
 
-- Added "help" command to `Jarvis` (Whenever you say "help", jarvis will show you all of his commands for 5 seconds then go back to take commands)<br><br>
+- Added "help" command to `Jarvis` (Whenever you say "jarvis help", jarvis will show you all of his commands for 5 seconds then go back to taking commands)<br><br>
 
-- All updates coming from `Updater.exe` will download much more faster now (instead of 300-500KB/s it will be more like 20-35MB/s)<br><br>
-
-- Added user error detection to `Updater.exe`. When you enter the Incorrect answer in the input, It will return with an error
+- Modified `Updater.exe` to only install required libraries when launched<br><br>
 
 - The `Updater.exe` now launches it self in [administrator mode](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) so it can install the Libraries on your systems [PATH](https://www.maketecheasier.com/what-is-the-windows-path#incontent-ad1)<br><br>
 
@@ -51,18 +52,10 @@ The beta program (closed): https://github.com/HyperNylium/Management_Panel_BETA
     [3] Musicfile3.mp3<br><br>
     All you need to do is type the number infront of the file name in the given input and wait for your song to launch. If `Jarvis` has any problems, he will let you know and return to taking commands shortly after that.<br><br>
 
-
-## Upcoming update ideas
-- `Updater.exe` will overwrite all files while updating instead of downloading a `.zip` file
-- Thinking of re-designing `YT_Downloader` into a more terminal style. What do you think? 
-
-
 ## Things to keep in mind
 - The program will automatically detect your computers desktop location (used for `YT_Downloader.py`)<br> For example: `C:\Users\[user]\Desktop)`
 
-
-
-- Please keep in mind that the `Updater.exe` is only for installing the required libraries and small updates. The updater gets updates to lol. So, i added a "Creators notes" section in the updater. If there is a update to the `Updater.exe` it self, no matter what it will tell you.
+- The `Updater.exe` is only for installing the required libraries.
 
 - The `Updater.exe` file requests [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) privileges to run. If you click "No" when prompted, the updater will terminate itself and not run. The reason for that is, if you are going to download/install the required python libraries they need to be installed onto your computers PATH. Or else the program will have errors such as, crashing, not even launching, not able to find required files and more.<br><br>
 
