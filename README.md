@@ -9,7 +9,7 @@
 Version: v3.7.6<br>
 Project status: Ready for update/download<br>
 Last updated Github Repo: 1/8/2023<br>
-The beta program (closed): https://github.com/HyperNylium/Management_Panel_BETA
+The beta program (open): https://github.com/HyperNylium/Management_Panel_BETA
 </h4>
 
 ## Usage/Setup
