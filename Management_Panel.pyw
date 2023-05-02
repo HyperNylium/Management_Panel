@@ -529,8 +529,8 @@ def AllDeviceDetails():
             deviceFrame.grid(row=row, column=column, pady=10, padx=10, sticky="nesw")
             DeviceFrames.append(deviceFrame)  # Add the frame to the list
 
-            if len(device_name) > 22:
-                    device_name = device_name[:22] + "..."
+            if len(device_name) > 17:
+                    device_name = device_name[:17] + "..."
 
             if device_data is not None:
                 percentage, device_type = device_data
