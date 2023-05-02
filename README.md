@@ -16,7 +16,7 @@
 
 3. Unzip the `Management_Panel-main.zip` file wherever you want.
 
-4. Either run the `setup.bat` file which will install everything for you in a admin terminal or install the required libraries manually in a admin terminal `requirements.txt`.
+4. Either run the `setup.bat` file which will install everything for you in a admin terminal or install the required libraries from `requirements.txt` manually in a admin terminal. The libraries have to be installed in a admin terminal in order for them to install correctly
 
 5. Launch `Management_Panel.pyw` and have fun! 😄
 
