@@ -86,6 +86,7 @@
 - After response is Received from ChatGPT/openai, if you have the **Speak response from AI** toggled, it will start to speak the responce to you
 
 - You can directly change your power mode from the **System** tab. The dropdown will show you all available power modes, and the title of the dropdown will show you the active one (the mode that shows even when you didn't click the dropdown).
+![powermode image](assets/Help/PowerMode.png)
 
 - Even if you are either downloading a file from YouTube or waiting for a response from ChatGPT, you can still switch through different tabs in the app. I wouldn't suggest this, but you can even change some settings from **settings.json**, and the thing would occasionally run (As I said, not recommended, but possible).
 
