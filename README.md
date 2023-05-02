@@ -24,9 +24,10 @@
 
 - Before, the app was only working with customtkinter version `4.1.2`, but now it works with `5.1.2` and above.
 
-- Implemented settings file called `settings.json`. When the app first launches, it creates the settings file using the default settings in the current working directory. Then, once created, it gets all settings by reading that file. You can open the file by going to `settings > Open settings.json`.\
-Default values for **settings.json**:
+- Implemented settings file called `settings.json`. When the app first launches, it creates the settings file using the default settings in the current working directory. Then, once created, it gets all settings by reading that file. You can open the file by going to\
+`Settings > Open settings.json`.
 ```json
+// Default values for settings.json
 {
   "URLs": {
     "WEBSITE": "http://hypernylium.com/",
@@ -82,7 +83,9 @@ Default values for **settings.json**:
 ] 
 ```
 
-- You can directly change your power mode from the **System tab**. The dropdown will show you all available power modes, and the title of the dropdown will show you the active one (the mode that shows even when you didn't click the dropdown).
+- After response is Received from ChatGPT/openai, if you have the **Speak response from AI** toggled, it will start to speak the responce to you
+
+- You can directly change your power mode from the **System** tab. The dropdown will show you all available power modes, and the title of the dropdown will show you the active one (the mode that shows even when you didn't click the dropdown).
 
 - Even if you are either downloading a file from YouTube or waiting for a response from ChatGPT, you can still switch through different tabs in the app. I wouldn't suggest this, but you can even change some settings from **settings.json**, and the thing would occasionally run (As I said, not recommended, but possible).
 
@@ -93,5 +96,9 @@ Default values for **settings.json**:
 
 ## Things to keep in mind
 - The program will automatically detect your computers desktop location (used for `YT_Downloader.py`)<br> For example: `C:\Users\[user]\Desktop)`
+
+- All settings that you enable/disable/change will be stored in **settings.json**. If you delete that file, you will be reseting all your settings to default
+
+- When opening your setting file from `Settings > Open settings.json`, it will launch in your default app meaning if you setup vs code to open .json files, then it will launch in vs code
 
 feel free to reach out if you have any questions or need further clarification 😉
