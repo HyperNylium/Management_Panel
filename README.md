@@ -94,6 +94,4 @@ Default values for **settings.json**:
 ## Things to keep in mind
 - The program will automatically detect your computers desktop location (used for `YT_Downloader.py`)<br> For example: `C:\Users\[user]\Desktop)`
 
-- The `Updater.exe` is only for installing the required libraries.
-
-> if you have any problems or questions please [send me a message](http://www.hypernylium.com/en-en/customer-support/)
+feel free to reach out if you have any questions or need further clarification 😉
