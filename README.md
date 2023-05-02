@@ -92,8 +92,11 @@
 
 ## Tested devices for "Devices" tab
 
-- Razor Basilisk V3 Pro
-
+|         Device          | Battery Data |
+|:-----------------------:|:------------:|
+| Razor Basilisk V3 Pro   |     Yes      |
+| Airpods pro gen 2       |      No      |
+> These are all the bluetooth devices I have, sorry...
 
 ## Things to keep in mind
 - The program will automatically detect your computers desktop location (used for `YT_Downloader.py`)<br> For example: `C:\Users\[user]\Desktop)`

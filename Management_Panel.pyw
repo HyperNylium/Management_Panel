@@ -527,15 +527,18 @@ def AllDeviceDetails():
             deviceFrame.grid(row=row, column=column, pady=10, padx=10, sticky="nesw")
             DeviceFrames.append(deviceFrame)  # Add the frame to the list
 
+            if len(device_name) > 22:
+                    device_name = device_name[:22] + "..."
+
             if device_data is not None:
                 percentage, device_type = device_data
 
                 # Set the header image based on the device type
                 if device_type == 'Input.Mouse':
                     header_image = CTkImage(PILopen("assets/ExtraIcons/mouse.png"), size=(50, 50))
-                elif device_type == 'Input.Keyboard':
+                elif device_type == 'Input.Keyboard': # Experimental value
                     header_image = CTkImage(PILopen("assets/ExtraIcons/keyboard.png"), size=(50, 50))
-                elif device_type == 'headphones':
+                elif device_type == 'Audio.Headphone':
                     header_image = CTkImage(PILopen("assets/ExtraIcons/headphones.png"), size=(50, 50))
                 else:
                     header_image = CTkImage(PILopen("assets/ExtraIcons/unknown_device.png"), size=(50, 50))
