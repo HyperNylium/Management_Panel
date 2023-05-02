@@ -1,64 +1,58 @@
 
 
-
-<h1 align="center">Management_Panel</h1>
+# Management_Panel
 
 ## App Information
 
-<h4>
-Version: v3.7.6<br>
-Project status: Ready for update/download<br>
-Last updated Github Repo: 1/8/2023<br>
-The beta program (open): https://github.com/HyperNylium/Management_Panel_BETA
-</h4>
+**Version:** v4.1.0\
+**Project status:** Ready for update/download\
+**Last updated Github Repo:** 5/2/2023
 
-## Usage/Setup
+## Setup
 
-1. Make sure to have the latest version of [python](https://www.python.org/downloads/). Python 3.9.0 is recommended
+1. Make sure to have the latest version of [Python](https://www.python.org/downloads/). Python 3.9.0 or above is recommended.
 
-2. Download the [Management_Panel source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from Github
+2. Download the [Management_Panel source code](https://github.com/HyperNylium/Management_Panel/archive/refs/heads/main.zip) from GitHub.
 
-3. Un-zip the `Management_Panel-main.zip` file wherever you want
+3. Unzip the `Management_Panel-main.zip` file wherever you want.
 
-4. Launch the `Updater.exe` file and wait for it to install all of the libraries for you (Assuming you have python installed. If you don't this step will not work)
-5. Launch `Management_Panel.py` and have fun ;)
+4. Install the required libraries in `requirements.txt`.
 
+5. Launch `Management_Panel.pyw` and have fun! 😄
 
 ## New with this update
-- Minor bugs and mistakes fixed<br><br>
 
-- Customtkinter update issue fixed<br><br>
+- Before, the app was only working for customtkinter version `4.1.2`, but now it works for `5.1.2` and above.
 
-- New command for `Jarvis`. Saying "jarvis lock my computer" will lock your computer (just like clicking `windows + L` keys but now included with jarvis)<br><br>
+- Implemented settings file called `settings.json`. When the app first launches, it creates the settings file using the default settings in the current working directory. Then, once created, it gets all settings by reading that file. You can open the file by going to `settings > Open settings.json`.
 
-- New error catching method on importing critical libraries<br><br>
+- UI update.
 
-- You can now run/execute the app in whatever directory you want.<br><br>
+- Integrated YouTube downloader.
 
-- Optimized `Management_Panel` and `MP_MINI` (some of you were saying that the program was launching in 3 seconds. Well, now it should launch anywere between 400ms - 1.5s)<br><br>
+- Integrated ChatGPT/OpenAI (you can change all of its settings in the `settings.json` file).
 
-- Full re-design of `MP_MINI` (Some text was to small and sometimes hard to read. So, i made things a bit bigger and easier to navigate)<br><br>
+- New devices tab. When you have a Bluetooth mouse, keyboard, or headset, simply go to the `settings.json` file (you don't even need to close the app) and from the device manager in Windows under Bluetooth, find your device's name and put it in the `Devices` section like this:
 
-- Added "help" command to `Jarvis` (Whenever you say "jarvis help", jarvis will show you all of his commands for 5 seconds then go back to taking commands)<br><br>
+```json
+"Devices": [
+  "YOUR DEVICE NAME",
+  "BSK V# PRO" // putting my own mouse name as an example.
+] 
+```
 
-- Modified `Updater.exe` to only install required libraries when launched<br><br>
+- You can directly change your power mode from the **System tab**. The dropdown will show you all available power modes, and the title of the dropdown will show you the active one (the mode that shows even when you didn't click the dropdown).
 
-- The `Updater.exe` now launches it self in [administrator mode](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) so it can install the Libraries on your systems [PATH](https://www.maketecheasier.com/what-is-the-windows-path#incontent-ad1)<br><br>
+- Even if you are either downloading a file from YouTube or waiting for a response from ChatGPT, you can still switch through different tabs in the app. I wouldn't suggest this, but you can even change some settings from **settings.json**, and the thing would occasionally run (As I said, not recommended, but possible).
 
-- Updated the "Jarvis play music" function. Should now scan for .mp3 (more format support coming soon) files in your music dir (C:\Users\[user]\Music) and list them one by one.<br><br>
-  For example:<br>
-    [1] Musicfile1.mp3<br>
-    [2] Musicfile2.mp3<br>
-    [3] Musicfile3.mp3<br><br>
-    All you need to do is type the number infront of the file name in the given input and wait for your song to launch. If `Jarvis` has any problems, he will let you know and return to taking commands shortly after that.<br><br>
+## Tested devices for "Devices" tab
+
+- Razor Basilisk V3 Pro
+
 
 ## Things to keep in mind
 - The program will automatically detect your computers desktop location (used for `YT_Downloader.py`)<br> For example: `C:\Users\[user]\Desktop)`
 
 - The `Updater.exe` is only for installing the required libraries.
-
-- The `Updater.exe` file requests [administrator](https://www.digitalcitizen.life/run-as-admin-windows-11/#ftoc-heading-5) privileges to run. If you click "No" when prompted, the updater will terminate itself and not run. The reason for that is, if you are going to download/install the required python libraries they need to be installed onto your computers PATH. Or else the program will have errors such as, crashing, not even launching, not able to find required files and more.<br><br>
-
-> You can change whatever you want but this is the most stable i have been able to make it.<br>But, if you do make a more better looking/stable version please send me a link to your work [Here](http://www.hypernylium.com/en-en/customer-support/) ;)
 
 > if you have any problems or questions please [send me a message](http://www.hypernylium.com/en-en/customer-support/)
