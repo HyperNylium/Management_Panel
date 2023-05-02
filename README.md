@@ -22,7 +22,7 @@
 
 ## New with this update
 
-- Before, the app was only working with customtkinter version `4.1.2`, but now it works with `5.1.2` and above.
+- Before, the app was only working with customtkinter version `4.1.2`. But now it works with version `5.1.2` and above.
 
 - Implemented settings file called `settings.json`. When the app first launches, it creates the settings file using the default settings in the current working directory. Then, once created, it gets all settings by reading that file. You can open the file by going to\
 `Settings > Open settings.json`.
