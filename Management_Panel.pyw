@@ -256,26 +256,28 @@ def on_closing():
 def systemsettings(setting: str):
     """Launches different settings within windows 10 and 11 (only tested on windows 11)"""
     if setting == "power":
-        system("cmd /c control powercfg.cpl")
+        Popen('cmd.exe /c control powercfg.cpl', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "display":
-        system("cmd /c control desk.cpl")
+        Popen('cmd.exe /c control desk.cpl', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "network":
-        system("cmd /c %systemroot%\system32\control.exe /name Microsoft.NetworkAndSharingCenter")
+        Popen('cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.NetworkAndSharingCenter', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "sound":
-        system("cmd /c control mmsys.cpl sounds")
+        Popen('cmd.exe /c control mmsys.cpl sounds', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "apps":
-        system("cmd /c start ms-settings:appsfeatures")# Put "appwiz.cpl" after /c for control center version
+        Popen('cmd.exe /c start ms-settings:appsfeatures', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW) # Put "appwiz.cpl" for control center version
     elif setting == "storage":
-        system("cmd /c start ms-settings:storagesense")
+        Popen(' cmd.exe /c start ms-settings:storagesense', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "windowsupdate":
-        system("cmd /c %systemroot%\system32\control.exe /name Microsoft.WindowsUpdate")
+        Popen('cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.WindowsUpdate', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "taskmanager":
-        system("cmd /c taskmgr")
+        Popen('cmd.exe /c taskmgr', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "vpn":
-        system("cmd /c start ms-settings:network-vpn")
+        Popen('cmd.exe /c start ms-settings:network-vpn', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "netdrive":
-        Popen(['cmd', '/c', 'netdrive --reset'], stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        system('cmd.exe /c netdrive --reset')
         showinfo(title="Network drives reset", message="All network drives have been reset")
+    else:
+        pass
 def LaunchGame(GameVar: str):
     """Launches selected game"""
     if (GameVar == None) or (GameVar == ""):
@@ -804,13 +806,13 @@ system_frame_button_3 = CTkButton(system_frame, text="Installed apps", compound=
 system_frame_button_3.grid(row=1, column=3, padx=10, pady=10)
 system_frame_button_4 = CTkButton(system_frame, text="Sound settings", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("sound"))
 system_frame_button_4.grid(row=2, column=1, padx=10, pady=10)
-system_frame_button_5 = CTkButton(system_frame, text="Taskmanager", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("taskmanager"))
+system_frame_button_5 = CTkButton(system_frame, text="Display settings", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("display"))
 system_frame_button_5.grid(row=2, column=2, padx=10, pady=10)
 system_frame_button_6 = CTkButton(system_frame, text="Power settings", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("power"))
 system_frame_button_6.grid(row=2, column=3, padx=10, pady=10)
 system_frame_button_7 = CTkButton(system_frame, text="Storage settings", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("storage"))
 system_frame_button_7.grid(row=3, column=1, padx=10, pady=10)
-system_frame_button_8 = CTkButton(system_frame, text="Display settings", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("display"))
+system_frame_button_8 = CTkButton(system_frame, text="Network setings", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("network"))
 system_frame_button_8.grid(row=3, column=2, padx=10, pady=10)
 system_frame_button_9 = CTkButton(system_frame, text="Windows update", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("windowsupdate"))
 system_frame_button_9.grid(row=3, column=3, padx=10, pady=10)
@@ -828,6 +830,9 @@ settings_frame_button_1 = CTkButton(settings_frame, text="Reset window position"
 settings_frame_button_1.grid(row=3, column=1, padx=20, pady=10)
 settings_frame_button_2 = CTkButton(settings_frame, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
 settings_frame_button_2.grid(row=4, column=1, padx=20, pady=10)
+
+if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
+    system_frame_button_2.configure(state="disabled")
 
 # select default frame
 select_frame_by_name(settings["AppSettings"]["DefaultFrame"])
