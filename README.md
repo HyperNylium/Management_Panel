@@ -24,7 +24,48 @@
 
 - Before, the app was only working with customtkinter version `4.1.2`, but now it works with `5.1.2` and above.
 
-- Implemented settings file called `settings.json`. When the app first launches, it creates the settings file using the default settings in the current working directory. Then, once created, it gets all settings by reading that file. You can open the file by going to `settings > Open settings.json`.
+- Implemented settings file called `settings.json`. When the app first launches, it creates the settings file using the default settings in the current working directory. Then, once created, it gets all settings by reading that file. You can open the file by going to `settings > Open settings.json`.\
+Default values for **settings.json**:
+```json
+{
+  "URLs": {
+    "WEBSITE": "http://hypernylium.com/",
+    "GITHUBURL": "https://github.com/HyperNylium",
+    "DISCORDURL": "https://discord.gg/4FHTjAgw95",
+    "INSTAGRAMURL": "https://www.instagram.com/hypernylium/",
+    "YOUTUBEURL": "https://www.youtube.com/channel/UCpJ4F4dMn_DIhtrCJwDUK2A",
+    "TIKTOKURL": "https://www.tiktok.com/foryou?lang=en",
+    "FACEBOOK": "https://www.facebook.com/HyperNylium/",
+    "TWITTERURL": "https://twitter.com/HyperNylium"
+  },
+  "GameShortcutURLs": {
+    "GAME_1": "",
+    "GAME_2": "",
+    "GAME_3": "",
+    "GAME_4": "",
+    "GAME_5": "",
+    "GAME_6": "",
+    "GAME_7": "",
+    "GAME_8": ""
+  },
+  "OpenAISettings": {
+    "VoiceType": 0,
+    "OpenAI_API_Key": "",
+    "OpenAI_model_engine": "text-davinci-003",
+    "OpenAI_Max_Tokens": 128,
+    "OpenAI_Temperature": 0.5
+  },
+  "AppSettings": {
+    "AlwaysOnTop": "False",
+    "SpeakResponce": "False",
+    "Window_X": 318,
+    "Window_Y": 232,
+    "DownloadsFolderName": "YT_Downloads",
+    "DefaultFrame": "About"
+  },
+  "Devices": []
+}
+```
 
 - UI update.
 
@@ -37,7 +78,7 @@
 ```json
 "Devices": [
   "YOUR DEVICE NAME",
-  "BSK V# PRO" // putting my own mouse name as an example.
+  "BSK V3 PRO" // putting my own mouse name as an example.
 ] 
 ```
 
