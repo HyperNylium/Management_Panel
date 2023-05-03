@@ -14,7 +14,7 @@ if %errorLevel% == 0 (
 )
 
 :: Install customtkinter and pytube using pip
-echo Installing customtkinter and pytube...
+echo Installing required libraries...
 pip install customtkinter plyer requests winshell Pillow openai pytube pyttsx3 watchdog
 
 echo Installation complete.
