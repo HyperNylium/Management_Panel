@@ -99,7 +99,7 @@
 > These are all the bluetooth devices I have, sorry...
 
 ## Things to keep in mind
-- The program will automatically detect your computers desktop location (used for `YT_Downloader.py`)<br> For example: `C:\Users\[user]\Desktop)`
+- The program will automatically detect your computers desktop location (used for youtube downloader so all video/audio downloaded will be stored on your desktop directory instead of the current working directory that the file launched in)<br> For example: `C:\Users\[user]\Desktop)`
 
 - All settings that you enable/disable/change will be stored in **settings.json**. If you delete that file, you will be reseting all your settings to default
 
