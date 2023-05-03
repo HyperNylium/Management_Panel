@@ -540,7 +540,7 @@ def AllDeviceDetails():
                     header_image = CTkImage(PILopen("assets/ExtraIcons/mouse.png"), size=(50, 50))
                 elif device_type == 'Input.Keyboard': # Experimental value
                     header_image = CTkImage(PILopen("assets/ExtraIcons/keyboard.png"), size=(50, 50))
-                elif device_type == 'Audio.Headphone':
+                elif (device_type == 'Audio.Headphone') or (device_type == 'Audio.Headset') or (device_type == 'Audio.Speaker') or (device_type == 'Communication.Headset.Bluetooth'):
                     header_image = CTkImage(PILopen("assets/ExtraIcons/headphones.png"), size=(50, 50))
                 else:
                     header_image = CTkImage(PILopen("assets/ExtraIcons/unknown_device.png"), size=(50, 50))
