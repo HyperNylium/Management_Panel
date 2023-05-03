@@ -831,10 +831,10 @@ settings_frame_button_1.grid(row=3, column=1, padx=20, pady=10)
 settings_frame_button_2 = CTkButton(settings_frame, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
 settings_frame_button_2.grid(row=4, column=1, padx=20, pady=10)
 
-if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
-    system_frame_button_2.configure(state="disabled")
-
 # select default frame
 select_frame_by_name(settings["AppSettings"]["DefaultFrame"])
+
+if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
+    system_frame_button_2.configure(state="disabled")
 
 window.mainloop()
