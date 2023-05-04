@@ -59,8 +59,8 @@
   "AppSettings": {
     "AlwaysOnTop": "False",
     "SpeakResponce": "False",
-    "Window_X": 318,
-    "Window_Y": 232,
+    "Window_X": "",
+    "Window_Y": "",
     "DownloadsFolderName": "YT_Downloads",
     "DefaultFrame": "About"
   },
