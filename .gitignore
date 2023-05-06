@@ -10,15 +10,15 @@
 
 !requirements.txt
 
-!/Assets
+!/assets
 
-!/Assets/ExtraIcons
-!/Assets/Help
-!/Assets/MenuIcons
-!/Assets/SVGs
+!/assets/ExtraIcons
+!/assets/Help
+!/assets/MenuIcons
+!/assets/SVGs
 
-!/Assets/*
-!/Assets/ExtraIcons/*
-!/Assets/Help/*
-!/Assets/MenuIcons/*
-!/Assets/SVGs/*
+!/assets/*
+!/assets/ExtraIcons/*
+!/assets/Help/*
+!/assets/MenuIcons/*
+!/assets/SVGs/*
