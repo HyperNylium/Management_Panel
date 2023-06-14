@@ -4,9 +4,9 @@
 
 ## App Information
 
-**Version:** v4.1.0\
+**Version:** v4.1.1\
 **Project status:** Ready for update/download\
-**Last updated Github Repo:** 5/2/2023
+**Last updated Github Repo:** 6/14/2023
 
 ## Setup
 
@@ -16,7 +16,7 @@
 
 3. Unzip the `Management_Panel-main.zip` file wherever you want.
 
-4. Either run the `setup.bat` file which will install everything for you in a admin terminal or install the required libraries from `requirements.txt` manually in a admin terminal. The libraries have to be installed in a admin terminal in order for them to install correctly
+4. Either run the `setup.bat` file which will install everything for you or install the required libraries from `requirements.txt` manually in your terminal.
 
 5. Launch `Management_Panel.pyw` and have fun! 😄
 
@@ -24,8 +24,10 @@
 
 - Before, the app was only working with customtkinter version `4.1.2`. But now it works with version `5.1.2` and above.
 
+- starting to make the app responsive (not fully responsive yet. Only **Home**, **Games** and **Social Media** tabs are responsive)
+
 - Implemented settings file called `settings.json`. When the app first launches, it creates the settings file using the default settings in the current working directory. Then, once created, it gets all settings by reading that file. You can open the file by going to\
-`Settings > Open settings.json`.
+`Settings > Open settings.json` in the app.
 ```json
 // Default values for settings.json
 {
@@ -74,7 +76,7 @@
 
 - Integrated ChatGPT/OpenAI (you can change all of its settings in the `settings.json` file).
 
-- New devices tab. When you have a Bluetooth mouse, keyboard, or headset, simply go to the `settings.json` file (you don't even need to close the app) and from the device manager in Windows under Bluetooth, find your device's name and put it in the `Devices` section like this:
+- New devices tab. When you have a Bluetooth mouse, keyboard, or headset, simply go to the `settings.json` file and from the device manager in Windows under Bluetooth, find your device's name and put it in the `Devices` section like this:
 
 ```json
 "Devices": [
@@ -99,10 +101,10 @@
 > These are all the bluetooth devices I have, sorry...
 
 ## Things to keep in mind
-- The program will automatically detect your computers desktop location (used for youtube downloader so all video/audio downloaded will be stored on your desktop directory instead of the current working directory that the file launched in)<br> For example: `C:\Users\[user]\Desktop)`
+- The program will automatically detect your computers desktop location (used for youtube downloader so all video/audio downloaded will be stored on your desktop directory instead of the current working directory that the file launched in)<br> For example: `C:\Users\[user]\Desktop\[DownloadsFolderName from settings.json]`
 
 - All settings that you enable/disable/change will be stored in **settings.json**. If you delete that file, you will be reseting all your settings to default
 
-- When opening your setting file from `Settings > Open settings.json`, it will launch in your default app meaning if you setup vs code to open .json files, then it will launch in vs code
+- When opening your setting file from `Settings > Open settings.json` in the app, it will launch in your default text editor meaning if you setup **vs code** to open .json files, then it will launch in **vs code**
 
 feel free to reach out if you have any questions or need further clarification 😉
