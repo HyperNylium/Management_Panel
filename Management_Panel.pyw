@@ -1,12 +1,15 @@
 
-from tkinter.messagebox import showerror, askyesno, showinfo
+# pyinstaller --noconfirm --onedir --windowed --add-data "C:/Users/david/AppData/Local/Programs/Python/Python311/Lib/site-packages/customtkinter;customtkinter/"  "C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Management_Panel.pyw"
+
 from sys import exit, executable as SYSexecutable, argv as SYSargv
+from tkinter.messagebox import showerror, askyesno, showinfo
 from os import system, startfile, execl, mkdir, rename
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from json import load as JSload, dump as JSdump
 from threading import Thread, Timer as TD_Timer
 from os.path import exists, join, splitext
 from webbrowser import open as WBopen
+from datetime import datetime, date
 from tkinter import BooleanVar
 
 try:
@@ -21,6 +24,7 @@ except:
     exit()
 try:
     from requests import get
+    from requests.exceptions import Timeout
 except:
     showerror(title="Import error", message="There was an error while importing 'requests'.\nTry running 'pip install requests'\nin a elevated/admin terminal")
     exit()
@@ -74,30 +78,28 @@ except:
 
 set_appearance_mode("dark")
 
-CurrentAppVersion = "4.1.0"
+CurrentAppVersion = "4.1.1"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 
 try:
-    response = get(DataTXTFileUrl)
+    response = get(DataTXTFileUrl, timeout=3)
     lines = response.text.split('\n')
-    delimeter = "="
-
-    def findValue(fullString):
-        fullString = fullString.rstrip("\n")
-        value = fullString[fullString.index(delimeter)+1:]
-        value = value.replace(" ","")
-        return value
+    delimiter = "="
 
     for line in lines:
-        if line.startswith("Version"):
-            LiveAppVersion = findValue(line).strip()
-        if line.startswith("DevName"):
-            Developer = findValue(line).strip()
-        if line.startswith("Developer_Lowercase"):
-            Developer_Lowercase = findValue(line)
-        if line.startswith("LastEditDate"):
-            LastEditDate = findValue(line).strip()
+        key_value = line.split(delimiter, 1)
+        if len(key_value) == 2:
+            key = key_value[0].strip()
+            value = key_value[1].strip().replace(" ", "")
+            if key == "Version":
+                LiveAppVersion = value
+            elif key == "DevName":
+                Developer = value
+            elif key == "Developer_Lowercase":
+                Developer_Lowercase = value
+            elif key == "LastEditDate":
+                LastEditDate = value
 
     if LiveAppVersion < CurrentAppVersion:
             output = showerror(title='Invalid version!', message=f'You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to [website upcomming]\nto get the latest/authentic version of this software')
@@ -119,15 +121,19 @@ try:
     else:
         ShowUserInfo = "- Latest version"
         pass
+except Timeout:
+    showerror(title='Request timed out', message=f"Main data file request timed out\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n> Your internet connection is slow\n\nThe app will now start in offline mode.")
+    LiveAppVersion = "N/A"
+    Developer = "N/A"
+    Developer_Lowercase = "N/A"
+    LastEditDate = "N/A"
+    ShowUserInfo = ""
 except Exception as e:
     showerror(title='Launching in offline mode', message=f"There was an error while retrieving the main data file\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n\nThe app will now start in offline mode.")
     LiveAppVersion = "N/A"
     Developer = "N/A"
     Developer_Lowercase = "N/A"
     LastEditDate = "N/A"
-    LatestVersionPythonLink = "N/A"
-    LatestVersionPythonFileName = "N/A"
-    LatestVersionProjectLink = "N/A"
     ShowUserInfo = ""
 
 model_prompt = "Hello, how can I help you today?"
@@ -152,8 +158,6 @@ class SettingsFileEventHandler(FileSystemEventHandler):
             try:
                 with open(SETTINGSFILE, 'r') as settings_file:
                     settings = JSload(settings_file)
-                GetPowerPlans()
-                AllDeviceDetails()
             except:
                 pass
         self.modified_event_pending = False
@@ -165,7 +169,7 @@ def StartUp():
     settings['AppSettings']['AlwaysOnTop'] => True | False"""
 
     def load_everything():
-        global observer, settings, engine
+        global observer, settings
         default_settings = {
             "URLs": {
                 "WEBSITE": "http://hypernylium.com/",
@@ -185,7 +189,8 @@ def StartUp():
                 "GAME_5": "",
                 "GAME_6": "",
                 "GAME_7": "",
-                "GAME_8": ""
+                "GAME_8": "",
+                "GAME_9": ""
             },
             "OpenAISettings": {
                 "VoiceType": 0,
@@ -200,7 +205,7 @@ def StartUp():
                 "Window_X": "",
                 "Window_Y": "",
                 "DownloadsFolderName": "YT_Downloads",
-                "DefaultFrame": "About"
+                "DefaultFrame": "Home"
             },
             "Devices": []
         }
@@ -266,7 +271,7 @@ def systemsettings(setting: str):
     elif setting == "apps":
         Popen('cmd.exe /c start ms-settings:appsfeatures', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW) # Put "appwiz.cpl" for control center version
     elif setting == "storage":
-        Popen(' cmd.exe /c start ms-settings:storagesense', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen('cmd.exe /c start ms-settings:storagesense', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "windowsupdate":
         Popen('cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.WindowsUpdate', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
     elif setting == "taskmanager":
@@ -307,8 +312,17 @@ def ResetWindowPos(x: bool = False, y: bool = False):
 def AlwaysOnTopTrueFalse(value: bool):
     window.attributes('-topmost', value)
     SaveSettingsToJson("AlwaysOnTop", str(value))
-def SpeakResponceTrueFalse(value: bool):
-    SaveSettingsToJson("SpeakResponce", str(value))
+
+def Clock():
+    home_time_label.after_cancel(Clock)
+    current_time = datetime.now().strftime('%I:%M:%S %p')
+    home_time_label.configure(text=current_time)
+    home_time_label.after(1000, Clock)  # Update every 1 second (1000 milliseconds)
+def Date():
+    home_date_label.after_cancel(Date)
+    current_date = date.today().strftime('%A, %B %d, %Y')
+    home_date_label.configure(text=current_date)
+    home_date_label.after(15000, Date)  # Update every 15 second (15000 milliseconds)
 
 def YTVideoDownloaderContentType(vidtype: str):
     """Updates the video content type to either .mp4 or .mp3 according to whatever was selected in the dropdown"""
@@ -422,7 +436,6 @@ def speak(audio):
 def ChatGPT():
     """Sends requests to ChatGPT and puts Response in text box"""
     UserText = assistant_responce_box_1.get("0.0", "end").strip("\n")
-    print(UserText)
     if (UserText != "") and (UserText != None):
         def generate_response(prompt):
             try:
@@ -580,13 +593,12 @@ def AllDeviceDetails():
         refreshinglabel.place(relx=0.5, rely=0.4, anchor="center")
         window.after(4000, defaultstates)
     else:
-        DeviceUpdateThread = Thread(name="DeviceUpdateThread", daemon=True, target=lambda: UpdateDevices())
-        DeviceUpdateThread.start()
+        Thread(name="DeviceUpdateThread", daemon=True, target=lambda: UpdateDevices()).start()
 
 def select_frame_by_name(name: str):
     """Changes selected frame"""
     # set button color for selected button
-    about_button.configure(fg_color=("gray75", "gray25") if name == "About" else "transparent")
+    home_button.configure(fg_color=("gray75", "gray25") if name == "Home" else "transparent")
     games_button.configure(fg_color=("gray75", "gray25") if name == "Games" else "transparent")
     ytdownloader_button.configure(fg_color=("gray75", "gray25") if name == "YT Downloader" else "transparent")
     assistant_button.configure(fg_color=("gray75", "gray25") if name == "Assistant" else "transparent")
@@ -596,44 +608,44 @@ def select_frame_by_name(name: str):
     settings_button.configure(fg_color=("gray75", "gray25") if name == "Settings" else "transparent")
 
     # show selected frame
-    if name == "About":
-        about_frame.grid(row=0, column=1, sticky="nsew")
+    if name == "Home":
+        home_frame.pack(fill="both", expand=True)
     else:
-        about_frame.grid_forget()
+        home_frame.pack_forget()
     if name == "Games":
-        games_frame.grid(row=0, column=1, sticky="nsew")
+        games_frame.pack(anchor="center", pady=(0, 20), fill="x", expand=True)
     else:
-        games_frame.grid_forget()
+        games_frame.pack_forget()
     if name == "Social Media":
-        socialmedia_frame.grid(row=0, column=1, sticky="nsew")
+        socialmedia_frame.pack(anchor="center", pady=(0, 20), fill="x", expand=True)
     else:
-        socialmedia_frame.grid_forget()
+        socialmedia_frame.pack_forget()
     if name == "YT Downloader":
-        ytdownloader_frame.grid(row=0, column=1, sticky="nsew")
+        ytdownloader_frame.pack(fill="both", expand=True)
         ytdownloader_entry.bind("<Return>", lambda event: YTVideoDownloader(YTVideoContentType))
     else:
-        ytdownloader_frame.grid_forget()
+        ytdownloader_frame.pack_forget()
         ytdownloader_entry.unbind("<Return>")
     if name == "Assistant":
-        assistant_frame.grid(row=0, column=1, sticky="nsew")
+        assistant_frame.pack(fill="both", expand=True)
         assistant_responce_box_1.bind("<Shift-Return>", lambda event: ChatGPT())
     else:
-        assistant_frame.grid_forget()
+        assistant_frame.pack_forget()
         assistant_responce_box_1.unbind("<Shift-Return>")
     if name == "Devices":
-        devices_frame.grid(row=0, column=1, sticky="nsew")
+        devices_frame.pack(fill="both", expand=True)
         window.bind('<Control-r>', lambda event: AllDeviceDetails())
     else:
-        devices_frame.grid_forget()
+        devices_frame.pack_forget()
         window.unbind('<Control-r>')
     if name == "System":
-        system_frame.grid(row=0, column=1, sticky="nsew")
+        system_frame.pack(fill="both", expand=True)
     else:
-        system_frame.grid_forget()
+        system_frame.pack_forget()
     if name == "Settings":
-        settings_frame.grid(row=0, column=1, sticky="nsew")
+        settings_frame.pack(fill="both", expand=True)
     else:
-        settings_frame.grid_forget()
+        settings_frame.pack_forget()
 def SaveSettingsToJson(ValueToChange: str, Value: str):
     """Saves data to settings.json file"""
     for Property in ['URLs', 'GameShortcutURLs', 'AppSettings', 'OpenAISettings']:
@@ -645,13 +657,17 @@ def SaveSettingsToJson(ValueToChange: str, Value: str):
 
     with open(SETTINGSFILE, 'w') as SettingsToWrite:
         JSdump(settings, SettingsToWrite, indent=2)
-
+def responsive_grid(frame: CTkFrame, rows: int, columns: int):
+    """Makes the grid widgets responsive"""
+    for row in range(rows+1):
+        frame.grid_rowconfigure(row, weight=1)
+    for column in range(columns+1):
+        frame.grid_columnconfigure(column, weight=1)
 
 window = CTk()
 window.title(" Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
 StartUp()
-window.resizable(False, False)
 if (settings["AppSettings"]["Window_X"] != "") and (settings["AppSettings"]["Window_Y"] != ""):
     window.geometry(CenterWindowToDisplay(window, 900, 400, settings["AppSettings"]["Window_X"], settings["AppSettings"]["Window_Y"]))
 else:
@@ -660,11 +676,10 @@ else:
 # Bind keys Ctrl + Shift + Del to reset the windows positional values in the json file then restart the app
 window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos(True, True))
 
-
 # Importing all icons and assigning them to there own variables to use later
 try:
-    aboutimage = CTkImage(PILopen("assets/MenuIcons/about.png"), size=(25, 25))
-    appsimage = CTkImage(PILopen("assets/MenuIcons/apps.png"), size=(25, 25))
+    homeimage = CTkImage(PILopen("assets/MenuIcons/about.png"), size=(25, 25))
+    devicesimage = CTkImage(PILopen("assets/MenuIcons/devices.png"), size=(25, 25))
     gamesimage = CTkImage(PILopen("assets/MenuIcons/games.png"), size=(25, 25))
     ytdownloaderimage = CTkImage(PILopen("assets/MenuIcons/ytdownloader.png"), size=(25, 25))
     socialmediaimage = CTkImage(PILopen("assets/MenuIcons/socialmedia.png"), size=(25, 25))
@@ -675,100 +690,92 @@ except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
     exit()
 
-# set grid layout 1x2
-window.grid_rowconfigure(0, weight=1)
-window.grid_columnconfigure(2, weight=1)
-
 # create navigation frame
 navigation_frame = CTkFrame(window, corner_radius=0)
-navigation_frame.grid(row=0, column=0, sticky="nsew")
-navigation_frame.grid_rowconfigure(8, weight=1)
+navigation_frame.pack(side="left", fill="y")
 
 # menu buttons
 navigation_frame_label = CTkLabel(navigation_frame, text="Management Panel", compound="left", font=("sans-serif", 20, "bold"))
-navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
-about_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="About", fg_color="transparent", image=aboutimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("About"))
-about_button.grid(row=1, column=0, sticky="ew")
+navigation_frame_label.pack(side="top", padx=20, pady=20, anchor="w")
+home_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Home", fg_color="transparent", image=homeimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Home"))
+home_button.pack(side="top", fill="x", padx=0, pady=0)
 games_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Games", fg_color="transparent", image=gamesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Games"))
-games_button.grid(row=2, column=0, sticky="ew")
+games_button.pack(side="top", fill="x", padx=0, pady=0)
 socialmedia_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Social Media", fg_color="transparent", image=socialmediaimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Social Media"))
-socialmedia_button.grid(row=3, column=0, sticky="ew")
+socialmedia_button.pack(side="top", fill="x", padx=0, pady=0)
 ytdownloader_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="YT Downloader", fg_color="transparent", image=ytdownloaderimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("YT Downloader"))
-ytdownloader_button.grid(row=4, column=0, sticky="ew")
+ytdownloader_button.pack(side="top", fill="x", padx=0, pady=0)
 assistant_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Assistant", fg_color="transparent", image=assistantimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Assistant"))
-assistant_button.grid(row=5, column=0, sticky="ew")
-devices_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Devices", fg_color="transparent", image=appsimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Devices"))
-devices_button.grid(row=6, column=0, sticky="ew")
+assistant_button.pack(side="top", fill="x", padx=0, pady=0)
+devices_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Devices", fg_color="transparent", image=devicesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Devices"))
+devices_button.pack(side="top", fill="x", padx=0, pady=0)
 system_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="System", fg_color="transparent", image=systemimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("System"))
-system_button.grid(row=7, column=0, sticky="ew")
+system_button.pack(side="top", fill="x", padx=0, pady=0)
 settings_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Settings", fg_color="transparent", image=settingsimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Settings"))
-settings_button.grid(row=8, column=0, sticky="ew")
+settings_button.pack(side="top", fill="x", padx=0, pady=0)
 
 # main frames
-about_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-about_frame.grid_columnconfigure(0, weight=1)
-games_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-games_frame.grid_columnconfigure(0, weight=1)
-socialmedia_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-socialmedia_frame.grid_columnconfigure(0, weight=1)
+# starting to work on responsive design for all frames/widgets. Only home, games and socialmedia frames are done so far...
+home_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
+games_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
+socialmedia_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
 ytdownloader_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-ytdownloader_frame.grid_columnconfigure(0, weight=1)
 assistant_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-assistant_frame.grid_columnconfigure(0, weight=1)
 devices_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-devices_frame.grid_columnconfigure(0, weight=1)
 system_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-system_frame.grid_columnconfigure(0, weight=1)
 settings_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-settings_frame.grid_columnconfigure(0, weight=1)
 
 # Create elements for frames
-about_frame_button_1 = CTkLabel(about_frame, text="About", font=("sans-serif", 50, "bold"))
-about_frame_button_1.grid(row=1, column=1, padx=260, pady=50)
-about_frame_button_2 = CTkLabel(about_frame, text=f"Version: {LiveAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
-about_frame_button_2.grid(row=2, column=1, padx=0, pady=0)
-about_frame_button_3 = CTkLabel(about_frame, text=f"Last updated: {LastEditDate}", font=("sans-serif", 28))
-about_frame_button_3.grid(row=3, column=1, padx=0, pady=10)
-about_frame_button_4 = CTkLabel(about_frame, text=f"Creator/developer: {Developer}", font=("sans-serif", 28))
-about_frame_button_4.grid(row=4, column=1, padx=0, pady=0)
+home_frame_button_1 = CTkLabel(home_frame, text=f"Version: {LiveAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
+home_frame_button_1.pack(anchor="center", pady=(100, 0))
+home_frame_button_2 = CTkLabel(home_frame, text=f"Creator/developer: {Developer}", font=("sans-serif", 28))
+home_frame_button_2.pack(anchor="center", pady=10)
+home_frame_button_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", font=("sans-serif", 28))
+home_frame_button_3.pack(anchor="center")
+time_frame = CTkFrame(home_frame, fg_color="transparent")
+time_frame.pack(side="bottom", anchor="center", pady=(0, 20), fill="x")
+home_date_label = CTkLabel(time_frame, text="Fetching date...", font=("sans-serif", 24))
+home_date_label.pack(side="right", padx=(0, 20))
+infolabelsspacer = CTkLabel(time_frame, text="•", font=("sans-serif", 24))
+infolabelsspacer.pack(side="right", padx=10)
+home_time_label = CTkLabel(time_frame, text="Fetching time...", font=("sans-serif", 24))
+home_time_label.pack(side="right", padx=0)
 
-gamesspacer = CTkLabel(games_frame, text="")
-gamesspacer.grid(row=0, column=0, padx=35, pady=10)
-games_frame_button_1 = CTkButton(games_frame, text="Game 1", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_1"]))
-games_frame_button_1.grid(row=1, column=1, padx=20, pady=10)
-games_frame_button_2 = CTkButton(games_frame, text="Game 2", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_2"]))
-games_frame_button_2.grid(row=1, column=2, padx=20, pady=10)
-games_frame_button_3 = CTkButton(games_frame, text="Game 3", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_3"]))
-games_frame_button_3.grid(row=1, column=3, padx=20, pady=10)
-games_frame_button_4 = CTkButton(games_frame, text="Game 4", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_4"]))
-games_frame_button_4.grid(row=2, column=1, padx=20, pady=10)
-games_frame_button_5 = CTkButton(games_frame, text="Game 5", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_5"]))
-games_frame_button_5.grid(row=2, column=2, padx=20, pady=10)
-games_frame_button_6 = CTkButton(games_frame, text="Game 6", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_6"]))
-games_frame_button_6.grid(row=2, column=3, padx=20, pady=10)
-games_frame_button_7 = CTkButton(games_frame, text="Game 7", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_7"]))
-games_frame_button_7.grid(row=2, column=2, padx=20, pady=10)
-games_frame_button_8 = CTkButton(games_frame, text="Game 8", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_8"]))
-games_frame_button_8.grid(row=2, column=3, padx=20, pady=10)
+games_frame_button_1 = CTkButton(games_frame, width=200, text="Game 1", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_1"]))
+games_frame_button_1.grid(row=0, column=1, padx=5, pady=20)
+games_frame_button_2 = CTkButton(games_frame, width=200, text="Game 2", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_2"]))
+games_frame_button_2.grid(row=0, column=2, padx=5, pady=20)
+games_frame_button_3 = CTkButton(games_frame, width=200, text="Game 3", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_3"]))
+games_frame_button_3.grid(row=0, column=3, padx=5, pady=20)
+games_frame_button_4 = CTkButton(games_frame, width=200, text="Game 4", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_4"]))
+games_frame_button_4.grid(row=1, column=1, padx=5, pady=20)
+games_frame_button_5 = CTkButton(games_frame, width=200, text="Game 5", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_5"]))
+games_frame_button_5.grid(row=1, column=2, padx=5, pady=20)
+games_frame_button_6 = CTkButton(games_frame, width=200, text="Game 6", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_6"]))
+games_frame_button_6.grid(row=1, column=3, padx=5, pady=20)
+games_frame_button_7 = CTkButton(games_frame, width=200, text="Game 7", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_7"]))
+games_frame_button_7.grid(row=2, column=1, padx=5, pady=20)
+games_frame_button_8 = CTkButton(games_frame, width=200, text="Game 8", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_8"]))
+games_frame_button_8.grid(row=2, column=2, padx=5, pady=20)
+games_frame_button_9 = CTkButton(games_frame, width=200, text="Game 8", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_8"]))
+games_frame_button_9.grid(row=2, column=3, padx=5, pady=20)
 
-socialmediaspacer = CTkLabel(socialmedia_frame, text="")
-socialmediaspacer.grid(row=0, column=0, padx=20, pady=10)
-socialmedia_frame_button_1 = CTkButton(socialmedia_frame, text="Github", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["GITHUBURL"]))
-socialmedia_frame_button_1.grid(row=1, column=1, padx=20, pady=10)
-socialmedia_frame_button_2 = CTkButton(socialmedia_frame, text="Discord", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["DISCORDURL"]))
-socialmedia_frame_button_2.grid(row=1, column=2, padx=20, pady=10)
-socialmedia_frame_button_3 = CTkButton(socialmedia_frame, text="Youtube", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["YOUTUBEURL"]))
-socialmedia_frame_button_3.grid(row=1, column=3, padx=20, pady=10)
-socialmedia_frame_button_4 = CTkButton(socialmedia_frame, text="Instagram", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["INSTAGRAMURL"]))
-socialmedia_frame_button_4.grid(row=2, column=1, padx=20, pady=10)
-socialmedia_frame_button_5 = CTkButton(socialmedia_frame, text="TikTok", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["TIKTOKURL"]))
-socialmedia_frame_button_5.grid(row=2, column=2, padx=20, pady=10)
-socialmedia_frame_button_6 = CTkButton(socialmedia_frame, text="Twitter", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["TWITTERURL"]))
-socialmedia_frame_button_6.grid(row=2, column=3, padx=20, pady=10)
-socialmedia_frame_button_7 = CTkButton(socialmedia_frame, text="HyperNylium.com", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["WEBSITE"]))
-socialmedia_frame_button_7.grid(row=2, column=2, padx=20, pady=10)
-socialmedia_frame_button_8 = CTkButton(socialmedia_frame, text="Facebook", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["FACEBOOK"]))
-socialmedia_frame_button_8.grid(row=2, column=3, padx=20, pady=10)
+socialmedia_frame_button_1 = CTkButton(socialmedia_frame, width=200, text="Github", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["GITHUBURL"]))
+socialmedia_frame_button_1.grid(row=0, column=1, padx=5, pady=20)
+socialmedia_frame_button_2 = CTkButton(socialmedia_frame, width=200, text="Discord", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["DISCORDURL"]))
+socialmedia_frame_button_2.grid(row=0, column=2, padx=5, pady=20)
+socialmedia_frame_button_3 = CTkButton(socialmedia_frame, width=200, text="Youtube", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["YOUTUBEURL"]))
+socialmedia_frame_button_3.grid(row=0, column=3, padx=5, pady=20)
+socialmedia_frame_button_4 = CTkButton(socialmedia_frame, width=200, text="Instagram", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["INSTAGRAMURL"]))
+socialmedia_frame_button_4.grid(row=1, column=1, padx=5, pady=20)
+socialmedia_frame_button_5 = CTkButton(socialmedia_frame, width=200, text="TikTok", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["TIKTOKURL"]))
+socialmedia_frame_button_5.grid(row=1, column=2, padx=5, pady=20)
+socialmedia_frame_button_6 = CTkButton(socialmedia_frame, width=200, text="Twitter", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["TWITTERURL"]))
+socialmedia_frame_button_6.grid(row=1, column=3, padx=5, pady=20)
+socialmedia_frame_button_7 = CTkButton(socialmedia_frame, width=200, text="HyperNylium.com", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["WEBSITE"]))
+socialmedia_frame_button_7.grid(row=2, column=1, padx=5, pady=20)
+socialmedia_frame_button_8 = CTkButton(socialmedia_frame, width=200, text="Facebook", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["FACEBOOK"]))
+socialmedia_frame_button_8.grid(row=2, column=2, padx=5, pady=20)
 
 YTVideoContentType = "Video (.mp4)"
 ytdownloaderspacer = CTkLabel(ytdownloader_frame, text="")
@@ -824,7 +831,7 @@ settingsspacer = CTkLabel(settings_frame, text="")
 settingsspacer.grid(row=0, column=0, padx=100, pady=30)
 settingsAlwayOnTopswitch = CTkSwitch(settings_frame, text="Always on top", variable=settingsAlwayOnTopVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: AlwaysOnTopTrueFalse(settingsAlwayOnTopVar.get()))
 settingsAlwayOnTopswitch.grid(row=1, column=1, padx=20, pady=10)
-settingsSpeakResponceswitch = CTkSwitch(settings_frame, text="Speak response from AI", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SpeakResponceTrueFalse(settingsSpeakResponceVar.get()))
+settingsSpeakResponceswitch = CTkSwitch(settings_frame, text="Speak response from AI", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("SpeakResponce", str(settingsSpeakResponceVar.get())))
 settingsSpeakResponceswitch.grid(row=2, column=1, padx=20, pady=10)
 settings_frame_button_1 = CTkButton(settings_frame, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: ResetWindowPos(True, True))
 settings_frame_button_1.grid(row=3, column=1, padx=20, pady=10)
@@ -833,6 +840,11 @@ settings_frame_button_2.grid(row=4, column=1, padx=20, pady=10)
 
 # select default frame
 select_frame_by_name(settings["AppSettings"]["DefaultFrame"])
+
+Clock()
+Date()
+responsive_grid(games_frame, 3, 3)
+responsive_grid(socialmedia_frame, 3, 3)
 
 if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
     system_frame_button_2.configure(state="disabled")
