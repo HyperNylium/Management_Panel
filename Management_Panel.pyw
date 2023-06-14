@@ -81,9 +81,12 @@ set_appearance_mode("dark")
 CurrentAppVersion = "4.1.1"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
-
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9"
+}
 try:
-    response = get(DataTXTFileUrl, timeout=3)
+    response = get(DataTXTFileUrl, timeout=3, headers=headers)
     lines = response.text.split('\n')
     delimiter = "="
 
@@ -337,23 +340,23 @@ def YTVideoDownloader(ContentType: str):
             ytdownloader_progressbar.set(0)
             ytdownloader_progressbarpercentage.grid_forget()
             ytdownloader_progressbar.grid_forget()
+            ytdownloader_OptionMenu.grid_configure(row=2, column=0, columnspan=2, padx=0, pady=0)
+            ytdownloader_frame_button_1.grid_configure(row=3, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
         elif option == "ErrorReset":
             ytdownloader_error_label.grid_forget()
-            ytdownloader_OptionMenu.grid(row=3, column=1, padx=0, pady=10)
-            ytdownloader_frame_button_1.grid(row=4, column=1, padx=0, pady=10)
+            ytdownloader_OptionMenu.grid_configure(row=2, column=0, columnspan=2, padx=0, pady=0)
+            ytdownloader_frame_button_1.grid_configure(row=3, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
             window.update()
     def on_download_progress(stream, chunk, bytes_remaining):
-        TotalSize= stream.filesize
+        TotalSize = stream.filesize
         BytesDownloaded = TotalSize - bytes_remaining
         RawPersentage = BytesDownloaded / TotalSize * 100
-        ytdownloader_progressbar.grid(row=5, column=1, padx=20, pady=10, sticky="ew")
-        ytdownloader_progressbarpercentage.grid(row=5, column=2, padx=0, pady=10, sticky="w")
         ConvertedPersentage = str(int(RawPersentage))
         ytdownloader_progressbarpercentage.configure(text=f"{ConvertedPersentage}%")
         ytdownloader_progressbar.set(float(ConvertedPersentage) / 100)
         ytdownloader_progressbarpercentage.update()
         ytdownloader_progressbar.update()
-        window.update()
+        ytdownloader_frame.update()
         if ConvertedPersentage == "100":
             ytdownloader_progressbar.configure(progress_color="green")
             ytdownloader_progressbar.update()
@@ -373,20 +376,22 @@ def YTVideoDownloader(ContentType: str):
                         showerror(title="An error occurred", message=f"An error occurred while creating the downloads folder\nMore detailed error: {error}")
                         return
                 if ContentType == "Video (.mp4)":
-                    VideoResolution = YTObject.streams.get_by_resolution("720p")
-                    VideoFilename = f"{CreatePath}\\Video\\{VideoResolution.default_filename}"
+                    Video = YTObject.streams.get_by_resolution("720p")
+                    VideoFilename = f"{CreatePath}\\Video\\{Video.default_filename}"
+                    ytdownloader_OptionMenu.grid_configure(row=3, column=0, columnspan=2, padx=0, pady=0)
+                    ytdownloader_frame_button_1.grid_configure(row=4, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
                     if exists(VideoFilename):
-                        ytdownloader_error_label.grid(row=3, column=1, padx=0, pady=10)
                         ytdownloader_error_label.configure(text=f"The video that you are trying to download already exists", text_color="red")
-                        ytdownloader_OptionMenu.grid(row=4, column=1, padx=0, pady=10)
-                        ytdownloader_frame_button_1.grid(row=5, column=1, padx=0, pady=10)
-                        window.update()
+                        ytdownloader_error_label.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
                         window.after(4000, lambda: DefaultStates(option="ErrorReset"))
                     else:
-                        DownloadThread = Thread(name="VidDownloadThread", daemon=True, target=lambda: VideoResolution.download(output_path=f"{CreatePath}\\Video"))
+                        ytdownloader_progressbar.grid(row=2, column=0, columnspan=2, padx=20, pady=0, sticky="ew")
+                        ytdownloader_progressbarpercentage.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
+                        DownloadThread = Thread(name="VidDownloadThread", daemon=True, target=lambda: Video.download(output_path=f"{CreatePath}\\Video"))
                         DownloadThread.start()
                         CallbackThread = Thread(name="VidCallbackThread", daemon=True, target=lambda: YTObject.register_on_progress_callback(on_download_progress))
                         CallbackThread.start()
+                    ytdownloader_frame.update()
                 elif ContentType == "Audio (.mp3)":
                     Audio = YTObject.streams.filter(only_audio=True).first()
                     BaseFilename, BaseFileext = splitext(Audio.default_filename)
@@ -410,6 +415,7 @@ def YTVideoDownloader(ContentType: str):
                         CompleteCallbackThread.start()
                 else:
                     showerror(title="Unknown format", message=f"Format invalid. Only\nVideo: Video (.mp4)\nAudio = Audio (.mp3)")
+                    return
         except Exception as viderror:
             viderror = str(viderror)
             if (viderror == "'streamingData'"):
@@ -621,7 +627,7 @@ def select_frame_by_name(name: str):
     else:
         socialmedia_frame.pack_forget()
     if name == "YT Downloader":
-        ytdownloader_frame.pack(fill="both", expand=True)
+        ytdownloader_frame.pack(fill="both", expand=True, anchor="center")
         ytdownloader_entry.bind("<Return>", lambda event: YTVideoDownloader(YTVideoContentType))
     else:
         ytdownloader_frame.pack_forget()
@@ -715,11 +721,11 @@ settings_button = CTkButton(navigation_frame, corner_radius=10, height=40, text=
 settings_button.pack(side="top", fill="x", padx=0, pady=0)
 
 # main frames
-# starting to work on responsive design for all frames/widgets. Only home, games and socialmedia frames are done so far...
+# starting to work on responsive design for all frames/widgets.
 home_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
 games_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
 socialmedia_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
-ytdownloader_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
+ytdownloader_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
 assistant_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 devices_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 system_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
@@ -778,18 +784,17 @@ socialmedia_frame_button_8 = CTkButton(socialmedia_frame, width=200, text="Faceb
 socialmedia_frame_button_8.grid(row=2, column=2, padx=5, pady=20)
 
 YTVideoContentType = "Video (.mp4)"
-ytdownloaderspacer = CTkLabel(ytdownloader_frame, text="")
-ytdownloaderspacer.grid(row=0, column=0, padx=70, pady=20)
-ytdownloader_entry = CTkEntry(ytdownloader_frame, placeholder_text="Enter your videos URL here", width=400, height=40, border_width=0, corner_radius=10, font=("sans-serif", 22), justify="center")
-ytdownloader_entry.grid(row=2, column=1, padx=20, pady=10)
+ytdownloader_entry = CTkEntry(ytdownloader_frame, placeholder_text="Enter your video URL here", width=600, height=40, border_width=0, corner_radius=10, font=("sans-serif", 22), justify="center")
+ytdownloader_entry.grid(row=1, column=0, columnspan=2, padx=0, pady=0)
 ytdownloader_error_label = CTkLabel(ytdownloader_frame, text="", font=("sans-serif", 18))
 ytdownloader_OptionMenu = CTkOptionMenu(ytdownloader_frame, values=["Video (.mp4)", "Audio (.mp3)"], command=lambda vidtype: YTVideoDownloaderContentType(vidtype), fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 17), dropdown_font=("sans-serif", 15), width=200, height=30, anchor="center")
-ytdownloader_OptionMenu.grid(row=3, column=1, padx=0, pady=10)
+ytdownloader_OptionMenu.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
 ytdownloader_OptionMenu.set("Video (.mp4)")
-ytdownloader_frame_button_1 = CTkButton(ytdownloader_frame, text="Download", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: YTVideoDownloader(YTVideoContentType), width=200)
-ytdownloader_frame_button_1.grid(row=4, column=1, padx=0, pady=10)
-ytdownloader_progressbar= CTkProgressBar(ytdownloader_frame, mode="determinate")
-ytdownloader_progressbarpercentage= CTkLabel(ytdownloader_frame, text="0%", font=("sans-serif Bold", 15), bg_color="#242424")
+ytdownloader_frame_button_1 = CTkButton(ytdownloader_frame, text="Download", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: YTVideoDownloader(YTVideoContentType))
+ytdownloader_frame_button_1.grid(row=3, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
+ytdownloader_progressbar= CTkProgressBar(ytdownloader_frame, mode="determinate", height=15)
+ytdownloader_progressbar.set(0)
+ytdownloader_progressbarpercentage= CTkLabel(ytdownloader_frame, text="0%", font=("sans-serif Bold", 18))
 
 assistant_responce_box_1 = CTkTextbox(assistant_frame, width=680, height=150, border_width=5, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
 assistant_responce_box_1.grid(row=1, column=1, padx=0, pady=10)
@@ -843,8 +848,10 @@ select_frame_by_name(settings["AppSettings"]["DefaultFrame"])
 
 Clock()
 Date()
+
 responsive_grid(games_frame, 3, 3)
 responsive_grid(socialmedia_frame, 3, 3)
+responsive_grid(ytdownloader_frame, 4, 1)
 
 if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
     system_frame_button_2.configure(state="disabled")

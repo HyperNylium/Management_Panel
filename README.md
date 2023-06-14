@@ -24,7 +24,7 @@
 
 - Before, the app was only working with customtkinter version `4.1.2`. But now it works with version `5.1.2` and above.
 
-- starting to make the app responsive (not fully responsive yet. Only **Home**, **Games** and **Social Media** tabs are responsive)
+- starting to make the app responsive (not fully responsive yet but it's a start).
 
 - Implemented settings file called `settings.json`. When the app first launches, it creates the settings file using the default settings in the current working directory. Then, once created, it gets all settings by reading that file. You can open the file by going to\
 `Settings > Open settings.json` in the app.
