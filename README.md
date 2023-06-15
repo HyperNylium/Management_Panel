@@ -4,9 +4,9 @@
 
 ## App Information
 
-**Version:** v4.1.1\
+**Version:** v4.1.2\
 **Project status:** Ready for update/download\
-**Last updated Github Repo:** 6/14/2023
+**Last updated Github Repo:** 6/15/2023
 
 ## Setup
 
@@ -21,6 +21,24 @@
 5. Launch `Management_Panel.pyw` and have fun! 😄
 
 ## New with this update
+
+- Made the navagation bar able to collapse and expand.
+
+- Instead of the navagation bar title being "Management panel" now it displays the current date and time. The format changes accoreding to the navagation bar state to better fit the UI and elements.
+
+- Added a "responsive mode" toggle in the `Settings` tab. When toggled, the app will be resizable.
+
+- Added a new event scheduling system. Instead of using the normal `.after_cancel` method like this:\
+`[widget].after_cancel([after id])`\
+I created the `schedule_cancel` function like this:\
+`schedule_cancel([widget], [function name])`\
+`schedule_cancel(navigation_frame_label, UpdateTitleInfo)`\
+This method only needs the function name to cancel the after event. And to schedule a new event I made a `schedule_create` function like this:\
+`schedule_create([widget], [function name], [after time], [if any, args])`\
+`schedule_create(navigation_frame_label, 1000, UpdateTitleInfo)`\
+This will create an after event that will run the function `UpdateTitleInfo` every 1000 milliseconds (1 second) and save the after event id as the value and the function name as the key in a dictionary like this:\
+`{'UpdateTitleInfo': 'after#6'} | {'function name': 'after event id'}`
+
 
 - Before, the app was only working with customtkinter version `4.1.2`. But now it works with version `5.1.2` and above.
 
@@ -49,7 +67,8 @@
     "GAME_5": "",
     "GAME_6": "",
     "GAME_7": "",
-    "GAME_8": ""
+    "GAME_8": "",
+    "GAME_9": ""
   },
   "OpenAISettings": {
     "VoiceType": 0,
@@ -61,10 +80,12 @@
   "AppSettings": {
     "AlwaysOnTop": "False",
     "SpeakResponce": "False",
-    "Window_X": "",
-    "Window_Y": "",
+    "ResponsiveMode": "False",
+    "NavigationState": "close",
     "DownloadsFolderName": "YT_Downloads",
-    "DefaultFrame": "About"
+    "DefaultFrame": "Home",
+    "Window_X": 404,
+    "Window_Y": 240
   },
   "Devices": []
 }

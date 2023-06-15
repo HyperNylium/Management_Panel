@@ -1,6 +1,10 @@
 
 # pyinstaller --noconfirm --onedir --windowed --add-data "C:/Users/david/AppData/Local/Programs/Python/Python311/Lib/site-packages/customtkinter;customtkinter/"  "C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Management_Panel.pyw"
 
+# TODO: make a check for updates function that checks for updates once clicked by a button instead of on launch
+# TODO: make a dropdown menu in the settings tab for changing the default open tab on launch
+# TODO: finish making the app responsive. 4/8 done so far
+
 from sys import exit, executable as SYSexecutable, argv as SYSargv
 from tkinter.messagebox import showerror, askyesno, showinfo
 from os import system, startfile, execl, mkdir, rename
@@ -68,23 +72,24 @@ except:
 ###
 ### GitHub: https://github.com/HyperNylium/
 ###
-### CustomTkinter Version: 4.6.2 => 5.1.2 update
+### CustomTkinter Version: 4.6.2 => 5.1.3 update
 ###
 ### License: Mozilla Public License Version 2.0
 ###
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-# ctypes.windll.user32.ShowWindow( ctypes.windll.kernel32.GetConsoleWindow(), 6 ) # Minimizes console window that launches with .py files
+# ctypes.windll.user32.ShowWindow( ctypes.windll.kernel32.GetConsoleWindow(), 6) # Minimizes console window that launches with .py files
 
 set_appearance_mode("dark")
 
-CurrentAppVersion = "4.1.1"
+CurrentAppVersion = "4.1.2"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     "Accept-Language": "en-US,en;q=0.9"
 }
+
 try:
     response = get(DataTXTFileUrl, timeout=3, headers=headers)
     lines = response.text.split('\n')
@@ -105,7 +110,11 @@ try:
                 LastEditDate = value
 
     if LiveAppVersion < CurrentAppVersion:
-            output = showerror(title='Invalid version!', message=f'You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to [website upcomming]\nto get the latest/authentic version of this software')
+            output = askyesno(title='Invalid version!', message=f'You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.\n\nDo you want to contine anyways?')
+            if (output):
+                pass
+            else:
+                exit()
             Developer = "Unknown"
             Developer_Lowercase = "Unknown"
             LastEditDate = "Unknown"
@@ -145,6 +154,9 @@ SETTINGSFILE = "settings.json"
 devices_per_row = 2  # Maximum number of devices per row
 DeviceFrames = []  # List to store references to deviceFrame frames
 devices = {} # dict to store device info (battey persetage, type)
+after_events = {} # dict to store after events
+all_buttons: list[CTkButton] = [] # list to store all buttons in the navigation bar
+all_buttons_text: list[str] = [] # list to store all buttons text in the navigation bar
 
 class SettingsFileEventHandler(FileSystemEventHandler):
     def __init__(self):
@@ -171,7 +183,7 @@ def StartUp():
     settings[Property][Key] => value\n
     settings['AppSettings']['AlwaysOnTop'] => True | False"""
 
-    def load_everything():
+    def load_settings():
         global observer, settings
         default_settings = {
             "URLs": {
@@ -205,10 +217,12 @@ def StartUp():
             "AppSettings": {
                 "AlwaysOnTop": "False",
                 "SpeakResponce": "False",
-                "Window_X": "",
-                "Window_Y": "",
+                "ResponsiveMode": "False",
+                "NavigationState": "open",
                 "DownloadsFolderName": "YT_Downloads",
-                "DefaultFrame": "Home"
+                "DefaultFrame": "Home",
+                "Window_X": "",
+                "Window_Y": ""
             },
             "Devices": []
         }
@@ -225,12 +239,13 @@ def StartUp():
             settings = default_settings
         observer.join()
 
-    settings_thread = Thread(target=load_everything, name="settings_thread", daemon=True)
+    settings_thread = Thread(target=load_settings, name="settings_thread", daemon=True)
     settings_thread.start()
 
-    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar
+    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsResponsiveModeVar
     settingsSpeakResponceVar = BooleanVar()
     settingsAlwayOnTopVar = BooleanVar()
+    settingsResponsiveModeVar = BooleanVar()
 
     UserPowerPlans = GetPowerPlans()
 
@@ -245,6 +260,13 @@ def StartUp():
         settingsSpeakResponceVar.set(True)
     else:
         settingsSpeakResponceVar.set(False)
+
+    if settings["AppSettings"]["ResponsiveMode"] == "True": # responsive mode is still in beta so it's disabled by default in settings.json
+        window.resizable(True, True)
+        settingsResponsiveModeVar.set(True)
+    else:
+        window.resizable(False, False)
+        settingsResponsiveModeVar.set(False)
 def restart():
     """Restarts app"""
     python = SYSexecutable
@@ -260,6 +282,46 @@ def on_closing():
     except: pass
     window.destroy()
     exit()
+def schedule_create(widget, ms, func, *args):
+    """Schedules a function to run after a given time in milliseconds and saves the event id in a dictionary with the function name as the key"""
+    event_id = widget.after(ms, func, *args)
+    after_events[func.__name__] = event_id
+def schedule_cancel(widget, func):
+    """Cancels a scheduled function and deletes the event id from the dictionary using the function name as the parameter instead of the event id"""
+    try:
+        event_id = after_events.get(func.__name__)
+        if event_id is not None:
+            widget.after_cancel(event_id)
+            del after_events[func.__name__]
+    except: 
+        pass
+def UpdateTitleInfo():
+    """Updates the title bar with the current time and date every second. If the navigation bar is closed, it shows the data in a different format"""
+    schedule_cancel(navigation_frame_label, UpdateTitleInfo)
+    if settings["AppSettings"]["NavigationState"] == "close":
+        current_time = datetime.now().strftime('%I:%M %p')
+        current_date = date.today().strftime('%d/%m/%Y')
+    else:
+        current_time = datetime.now().strftime('%I:%M:%S %p')
+        current_date = date.today().strftime('%A, %B %d, %Y')
+    navigation_frame_label.configure(text=f"{current_date}\n{current_time}")
+    schedule_create(navigation_frame_label, 1000, UpdateTitleInfo)
+def NavbarAction(option: str):
+    """Opens or closes the navigation bar and saves the state to settings.json"""
+    SaveSettingsToJson("NavigationState", str(option))
+    if option == "close":
+        for button in all_buttons:
+            button.configure(text="", anchor="center")
+        navigation_frame_label.pack_configure(padx=7)
+        navigation_frame_label.configure(font=("sans-serif", 15, "bold"))
+        close_open_nav_button.configure(image=openimage, command=lambda: NavbarAction("open"))
+    elif option == "open":
+        for button in all_buttons:
+            button.configure(text=all_buttons_text[all_buttons.index(button)], anchor="w")
+        navigation_frame_label.pack_configure(padx=20)
+        navigation_frame_label.configure(font=("sans-serif", 18, "bold"))
+        close_open_nav_button.configure(image=closeimage, command=lambda: NavbarAction("close"))
+    UpdateTitleInfo()
 
 def systemsettings(setting: str):
     """Launches different settings within windows 10 and 11 (only tested on windows 11)"""
@@ -313,19 +375,14 @@ def ResetWindowPos(x: bool = False, y: bool = False):
         SaveSettingsToJson("Window_Y", "")
     restart()
 def AlwaysOnTopTrueFalse(value: bool):
+    """Sets the window to always be on top or not and saves the state to settings.json"""
     window.attributes('-topmost', value)
     SaveSettingsToJson("AlwaysOnTop", str(value))
-
-def Clock():
-    home_time_label.after_cancel(Clock)
-    current_time = datetime.now().strftime('%I:%M:%S %p')
-    home_time_label.configure(text=current_time)
-    home_time_label.after(1000, Clock)  # Update every 1 second (1000 milliseconds)
-def Date():
-    home_date_label.after_cancel(Date)
-    current_date = date.today().strftime('%A, %B %d, %Y')
-    home_date_label.configure(text=current_date)
-    home_date_label.after(15000, Date)  # Update every 15 second (15000 milliseconds)
+def ResponsiveModeTrueFalse(value: bool):
+    """Sets the window to be resizable or not and saves the state to settings.json. Also sets the window size to 900x400 (this will be changed in the future)"""
+    window.geometry("900x400")
+    window.resizable(value, value)
+    SaveSettingsToJson("ResponsiveMode", str(value))
 
 def YTVideoDownloaderContentType(vidtype: str):
     """Updates the video content type to either .mp4 or .mp3 according to whatever was selected in the dropdown"""
@@ -342,10 +399,16 @@ def YTVideoDownloader(ContentType: str):
             ytdownloader_progressbar.grid_forget()
             ytdownloader_OptionMenu.grid_configure(row=2, column=0, columnspan=2, padx=0, pady=0)
             ytdownloader_frame_button_1.grid_configure(row=3, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
+            ytdownloader_entry.configure(state="normal")
+            ytdownloader_OptionMenu.configure(state="normal")
+            ytdownloader_frame_button_1.configure(text="Download", state="normal")
         elif option == "ErrorReset":
             ytdownloader_error_label.grid_forget()
             ytdownloader_OptionMenu.grid_configure(row=2, column=0, columnspan=2, padx=0, pady=0)
             ytdownloader_frame_button_1.grid_configure(row=3, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
+            ytdownloader_entry.configure(state="normal")
+            ytdownloader_OptionMenu.configure(state="normal")
+            ytdownloader_frame_button_1.configure(text="Download", state="normal")
             window.update()
     def on_download_progress(stream, chunk, bytes_remaining):
         TotalSize = stream.filesize
@@ -365,6 +428,9 @@ def YTVideoDownloader(ContentType: str):
         try:
             videourl = ytdownloader_entry.get().strip()
             if (videourl != "") and (videourl != None):
+                ytdownloader_entry.configure(state="disabled")
+                ytdownloader_OptionMenu.configure(state="disabled")
+                ytdownloader_frame_button_1.configure(text="Downloading...", state="disabled")
                 YTObject = PY_Youtube(videourl)
                 CreatePath = join(UserDesktopDir, settings["AppSettings"]["DownloadsFolderName"])
                 if not exists(CreatePath):
@@ -421,7 +487,12 @@ def YTVideoDownloader(ContentType: str):
             if (viderror == "'streamingData'"):
                 YTVideoDownloader(ContentType)
             elif (viderror == "regex_search: could not find match for (?:v=|\/)([0-9A-Za-z_-]{11}).*"):
-                showerror(title="URL error", message="The URL that you have inputed does not seem to be a vaild URL.\nPlease make sure you are inputing an actual URL from youtube")
+                # showerror(title="URL error", message="The URL that you have inputed does not seem to be a vaild URL.\nPlease make sure you are inputing an actual URL from youtube")
+                ytdownloader_OptionMenu.grid_configure(row=3, column=0, columnspan=2, padx=0, pady=0)
+                ytdownloader_frame_button_1.grid_configure(row=4, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
+                ytdownloader_error_label.configure(text=f"The link that you inputed is not a valid link", text_color="red")
+                ytdownloader_error_label.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
+                window.after(4000, lambda: DefaultStates(option="ErrorReset"))
             else:
                 showerror(title="Unknown error occurred", message=f"An unknown error occurred. Heres the log: {viderror}")
     YTThread = Thread(name="YTDownloadThread", daemon=True, target=YTDownloadThread)
@@ -455,15 +526,14 @@ def ChatGPT():
                 message = response.choices[0].text.strip()
                 assistant_responce_box_2.delete("0.0", "end")
                 assistant_responce_box_2.insert("end", message)
-                if settingsSpeakResponceVar.get() == True:
+                if settingsSpeakResponceVar.get():
                     speak(message)
             except Exception as e:
                 if (settings["OpenAISettings"]["OpenAI_API_Key"] == "") or (settings["OpenAISettings"]["OpenAI_API_Key"] == None):
                     showerror(title="OpenAI API Key Error", message=f"In settings.xml make sure 'OpenAI_API_Key' has a vaild OpenAI API key. Heres the full error:\n{e}")
-                    assistant_responce_box_2.delete("0.0", "end")
                 else:
                     showerror(title="OpenAI Error", message=e)
-                    assistant_responce_box_2.delete("0.0", "end")
+                assistant_responce_box_2.delete("0.0", "end")
         assistant_responce_box_2.delete("0.0", "end")
         assistant_responce_box_2.insert("end", "Thinking...")
         prompt = f"User: {UserText}"
@@ -526,6 +596,7 @@ def GetDeviceInfo(device_name: str = None, connectivity_type: str = "Bluetooth",
     except:
         return None
 def AllDeviceDetails():
+    """Gets all device details and puts the bluetooth devices on the GUI in different frames and uses different icons for each device type (mouse, keyboard, headphones)"""
     def UpdateDevices():
         devices_refresh_btn.grid_forget()
         refreshinglabel = CTkLabel(devices_frame, text="Refreshing...", font=("Arial", 25))
@@ -664,22 +735,23 @@ def SaveSettingsToJson(ValueToChange: str, Value: str):
     with open(SETTINGSFILE, 'w') as SettingsToWrite:
         JSdump(settings, SettingsToWrite, indent=2)
 def responsive_grid(frame: CTkFrame, rows: int, columns: int):
-    """Makes the grid widgets responsive"""
+    """Makes a grid responsive for a frame"""
     for row in range(rows+1):
         frame.grid_rowconfigure(row, weight=1)
     for column in range(columns+1):
         frame.grid_columnconfigure(column, weight=1)
 
 window = CTk()
-window.title(" Management Panel")
+window.title("Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
+window.minsize(650, 400)
 StartUp()
 if (settings["AppSettings"]["Window_X"] != "") and (settings["AppSettings"]["Window_Y"] != ""):
     window.geometry(CenterWindowToDisplay(window, 900, 400, settings["AppSettings"]["Window_X"], settings["AppSettings"]["Window_Y"]))
 else:
     window.geometry(CenterWindowToDisplay(window, 900, 400))
 
-# Bind keys Ctrl + Shift + Del to reset the windows positional values in the json file then restart the app
+# Bind keys Ctrl + Shift + Del to reset the windows positional values in the setting.json file then restart the app
 window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos(True, True))
 
 # Importing all icons and assigning them to there own variables to use later
@@ -692,6 +764,8 @@ try:
     assistantimage = CTkImage(PILopen("assets/MenuIcons/assistant.png"), size=(25, 25))
     systemimage = CTkImage(PILopen("assets/MenuIcons/system.png"), size=(25, 25))
     settingsimage = CTkImage(PILopen("assets/MenuIcons/settings.png"), size=(25, 25))
+    closeimage = CTkImage(PILopen("assets/MenuIcons/close.png"), size=(30, 30))
+    openimage = CTkImage(PILopen("assets/MenuIcons/open.png"), size=(30, 30))
 except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
     exit()
@@ -701,23 +775,25 @@ navigation_frame = CTkFrame(window, corner_radius=0)
 navigation_frame.pack(side="left", fill="y")
 
 # menu buttons
-navigation_frame_label = CTkLabel(navigation_frame, text="Management Panel", compound="left", font=("sans-serif", 20, "bold"))
+close_open_nav_button = CTkButton(window, corner_radius=10, width=30, height=30, text="", fg_color="transparent", image=closeimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: NavbarAction("close"))
+close_open_nav_button.pack(side="top", anchor="nw", padx=0, pady=5)
+navigation_frame_label = CTkLabel(navigation_frame, text="", compound="left", font=("sans-serif", 18, "bold"))
 navigation_frame_label.pack(side="top", padx=20, pady=20, anchor="w")
-home_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Home", fg_color="transparent", image=homeimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Home"))
+home_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Home", fg_color="transparent", image=homeimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Home"))
 home_button.pack(side="top", fill="x", padx=0, pady=0)
-games_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Games", fg_color="transparent", image=gamesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Games"))
+games_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Games", fg_color="transparent", image=gamesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Games"))
 games_button.pack(side="top", fill="x", padx=0, pady=0)
-socialmedia_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Social Media", fg_color="transparent", image=socialmediaimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Social Media"))
+socialmedia_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Social Media", fg_color="transparent", image=socialmediaimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Social Media"))
 socialmedia_button.pack(side="top", fill="x", padx=0, pady=0)
-ytdownloader_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="YT Downloader", fg_color="transparent", image=ytdownloaderimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("YT Downloader"))
+ytdownloader_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="YT Downloader", fg_color="transparent", image=ytdownloaderimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("YT Downloader"))
 ytdownloader_button.pack(side="top", fill="x", padx=0, pady=0)
-assistant_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Assistant", fg_color="transparent", image=assistantimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Assistant"))
+assistant_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Assistant", fg_color="transparent", image=assistantimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Assistant"))
 assistant_button.pack(side="top", fill="x", padx=0, pady=0)
-devices_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Devices", fg_color="transparent", image=devicesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Devices"))
+devices_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Devices", fg_color="transparent", image=devicesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Devices"))
 devices_button.pack(side="top", fill="x", padx=0, pady=0)
-system_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="System", fg_color="transparent", image=systemimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("System"))
+system_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="System", fg_color="transparent", image=systemimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("System"))
 system_button.pack(side="top", fill="x", padx=0, pady=0)
-settings_button = CTkButton(navigation_frame, corner_radius=10, height=40, text="Settings", fg_color="transparent", image=settingsimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Settings"))
+settings_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Settings", fg_color="transparent", image=settingsimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Settings"))
 settings_button.pack(side="top", fill="x", padx=0, pady=0)
 
 # main frames
@@ -731,21 +807,13 @@ devices_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 system_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 settings_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 
-# Create elements for frames
+# Create elements/widgets for frames
 home_frame_button_1 = CTkLabel(home_frame, text=f"Version: {LiveAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
 home_frame_button_1.pack(anchor="center", pady=(100, 0))
 home_frame_button_2 = CTkLabel(home_frame, text=f"Creator/developer: {Developer}", font=("sans-serif", 28))
 home_frame_button_2.pack(anchor="center", pady=10)
 home_frame_button_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", font=("sans-serif", 28))
 home_frame_button_3.pack(anchor="center")
-time_frame = CTkFrame(home_frame, fg_color="transparent")
-time_frame.pack(side="bottom", anchor="center", pady=(0, 20), fill="x")
-home_date_label = CTkLabel(time_frame, text="Fetching date...", font=("sans-serif", 24))
-home_date_label.pack(side="right", padx=(0, 20))
-infolabelsspacer = CTkLabel(time_frame, text="•", font=("sans-serif", 24))
-infolabelsspacer.pack(side="right", padx=10)
-home_time_label = CTkLabel(time_frame, text="Fetching time...", font=("sans-serif", 24))
-home_time_label.pack(side="right", padx=0)
 
 games_frame_button_1 = CTkButton(games_frame, width=200, text="Game 1", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_1"]))
 games_frame_button_1.grid(row=0, column=1, padx=5, pady=20)
@@ -785,10 +853,10 @@ socialmedia_frame_button_8.grid(row=2, column=2, padx=5, pady=20)
 
 YTVideoContentType = "Video (.mp4)"
 ytdownloader_entry = CTkEntry(ytdownloader_frame, placeholder_text="Enter your video URL here", width=600, height=40, border_width=0, corner_radius=10, font=("sans-serif", 22), justify="center")
-ytdownloader_entry.grid(row=1, column=0, columnspan=2, padx=0, pady=0)
+ytdownloader_entry.grid(row=1, column=0, columnspan=2, padx=10, pady=0)
 ytdownloader_error_label = CTkLabel(ytdownloader_frame, text="", font=("sans-serif", 18))
 ytdownloader_OptionMenu = CTkOptionMenu(ytdownloader_frame, values=["Video (.mp4)", "Audio (.mp3)"], command=lambda vidtype: YTVideoDownloaderContentType(vidtype), fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 17), dropdown_font=("sans-serif", 15), width=200, height=30, anchor="center")
-ytdownloader_OptionMenu.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
+ytdownloader_OptionMenu.grid(row=2, column=0, columnspan=2, padx=10, pady=0)
 ytdownloader_OptionMenu.set("Video (.mp4)")
 ytdownloader_frame_button_1 = CTkButton(ytdownloader_frame, text="Download", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: YTVideoDownloader(YTVideoContentType))
 ytdownloader_frame_button_1.grid(row=3, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
@@ -836,24 +904,34 @@ settingsspacer = CTkLabel(settings_frame, text="")
 settingsspacer.grid(row=0, column=0, padx=100, pady=30)
 settingsAlwayOnTopswitch = CTkSwitch(settings_frame, text="Always on top", variable=settingsAlwayOnTopVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: AlwaysOnTopTrueFalse(settingsAlwayOnTopVar.get()))
 settingsAlwayOnTopswitch.grid(row=1, column=1, padx=20, pady=10)
+settingsResponsiveModeswitch = CTkSwitch(settings_frame, text="Responsive mode (beta)", variable=settingsResponsiveModeVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: ResponsiveModeTrueFalse(settingsResponsiveModeVar.get()))
+settingsResponsiveModeswitch.grid(row=3, column=1, padx=20, pady=10)
 settingsSpeakResponceswitch = CTkSwitch(settings_frame, text="Speak response from AI", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("SpeakResponce", str(settingsSpeakResponceVar.get())))
 settingsSpeakResponceswitch.grid(row=2, column=1, padx=20, pady=10)
 settings_frame_button_1 = CTkButton(settings_frame, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: ResetWindowPos(True, True))
-settings_frame_button_1.grid(row=3, column=1, padx=20, pady=10)
+settings_frame_button_1.grid(row=4, column=1, padx=20, pady=10)
 settings_frame_button_2 = CTkButton(settings_frame, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
-settings_frame_button_2.grid(row=4, column=1, padx=20, pady=10)
+settings_frame_button_2.grid(row=5, column=1, padx=20, pady=10)
 
-# select default frame
-select_frame_by_name(settings["AppSettings"]["DefaultFrame"])
 
-Clock()
-Date()
+for widget in navigation_frame.winfo_children(): # add all buttons and their text to a list for later use
+    if isinstance(widget, CTkButton):
+        all_buttons.append(widget)
+        all_buttons_text.append(widget.cget('text'))
 
+select_frame_by_name(settings["AppSettings"]["DefaultFrame"]) # select default frame
+
+UpdateTitleInfo() # start timer for title info that includes time and date info
+
+# Make frames .grid responsive
 responsive_grid(games_frame, 3, 3)
 responsive_grid(socialmedia_frame, 3, 3)
 responsive_grid(ytdownloader_frame, 4, 1)
 
-if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
+if settings["AppSettings"]["NavigationState"] == "close": # get navigation state from settings.json
+        NavbarAction("close")
+
+if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"): # if my personel netdrive script is not available on the system, disable the button
     system_frame_button_2.configure(state="disabled")
 
 window.mainloop()
