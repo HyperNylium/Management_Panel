@@ -81,7 +81,7 @@ This will create an after event that will run the function `UpdateTitleInfo` eve
     "AlwaysOnTop": "False",
     "SpeakResponce": "False",
     "ResponsiveMode": "False",
-    "NavigationState": "close",
+    "NavigationState": "open",
     "DownloadsFolderName": "YT_Downloads",
     "DefaultFrame": "Home",
     "Window_X": "",
