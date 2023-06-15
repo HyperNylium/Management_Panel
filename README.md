@@ -84,8 +84,8 @@ This will create an after event that will run the function `UpdateTitleInfo` eve
     "NavigationState": "close",
     "DownloadsFolderName": "YT_Downloads",
     "DefaultFrame": "Home",
-    "Window_X": 404,
-    "Window_Y": 240
+    "Window_X": "",
+    "Window_Y": ""
   },
   "Devices": []
 }
