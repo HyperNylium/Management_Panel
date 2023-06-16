@@ -5,6 +5,7 @@
 # TODO: make a dropdown menu in the settings tab for changing the default open tab on launch
 # TODO: finish making the app responsive. 4/8 done so far
 # TODO: when closing also save the width and height of the window for next launch in the settings.json
+# DONE: make all window.after() use schedule_create() instead
 
 from sys import exit, executable as SYSexecutable, argv as SYSargv
 from tkinter.messagebox import showerror, askyesno, showinfo
@@ -16,53 +17,54 @@ from os.path import exists, join, splitext
 from webbrowser import open as WBopen
 from datetime import datetime, date
 from tkinter import BooleanVar
+from time import sleep
 
 try:
     from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, set_appearance_mode
 except:
-    showerror(title="Import error", message="There was an error while importing 'customtkinter'.\nTry running 'pip install customtkinter'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'customtkinter'.\nTry running 'pip install customtkinter'\nin a elevated/admin terminal")
     exit()
 try:
     from plyer import notification
 except:
-    showerror(title="Import error", message="There was an error while importing 'plyer'.\nTry running 'pip install plyer'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'plyer'.\nTry running 'pip install plyer'\nin a elevated/admin terminal")
     exit()
 try:
     from requests import get
     from requests.exceptions import Timeout
 except:
-    showerror(title="Import error", message="There was an error while importing 'requests'.\nTry running 'pip install requests'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'requests'.\nTry running 'pip install requests'\nin a elevated/admin terminal")
     exit()
 try:
     from winshell import desktop
 except:
-    showerror(title="Import error", message="There was an error while importing 'winshell'.\nTry running 'pip install winshell'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'winshell'.\nTry running 'pip install winshell'\nin a elevated/admin terminal")
     exit()
 try:
     from PIL.Image import open as PILopen
 except:
-    showerror(title="Import error", message="There was an error while importing 'Pillow-PIL'.\nTry running 'pip install Pillow'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'Pillow-PIL'.\nTry running 'pip install Pillow'\nin a elevated/admin terminal")
     exit()
 try:
     import openai
 except:
-    showerror(title="Import error", message="There was an error while importing 'OpenAI'.\nTry running 'pip install openai'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'OpenAI'.\nTry running 'pip install openai'\nin a elevated/admin terminal")
     exit()
 try:
     from pytube import YouTube as PY_Youtube
 except:
-    showerror(title="Import error", message="There was an error while importing 'pytube'.\nTry running 'pip install pytube'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'pytube'.\nTry running 'pip install pytube'\nin a elevated/admin terminal")
     exit()
 try:
     from pyttsx3 import init as ttsinit
 except:
-    showerror(title="Import error", message="There was an error while importing 'pyttsx3'.\nTry running 'pip install pyttsx3'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'pyttsx3'.\nTry running 'pip install pyttsx3'\nin a elevated/admin terminal")
     exit()
 try:
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
 except:
-    showerror(title="Import error", message="There was an error while importing 'watchdog'.\nTry running 'pip install watchdog'\nin a elevated/admin terminal")
+    showerror(title="Import error", message="An error occurred while importing 'watchdog'.\nTry running 'pip install watchdog'\nin a elevated/admin terminal")
     exit()
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -83,7 +85,7 @@ except:
 
 set_appearance_mode("dark")
 
-CurrentAppVersion = "4.1.2"
+CurrentAppVersion = "4.1.3"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -177,6 +179,25 @@ class SettingsFileEventHandler(FileSystemEventHandler):
             except:
                 pass
         self.modified_event_pending = False
+class TitleUpdater:
+    def __init__(self, label: CTkLabel = None):
+        self.label = label
+
+    def start(self):
+        while True:
+            self.update()
+            sleep(1)
+
+    def update(self):
+        """"Updates the title of the window to the current time and date"""
+        if self.label is not None:
+            if settings["AppSettings"]["NavigationState"] == "close":
+                current_time = datetime.now().strftime('%I:%M %p')
+                current_date = date.today().strftime('%d/%m/%Y')
+            else:
+                current_time = datetime.now().strftime('%I:%M:%S %p')
+                current_date = date.today().strftime('%A, %B %d, %Y')
+            self.label.configure(text=f"{current_date}\n{current_time}")
 
 def StartUp():
     """Reads settings.json and loads all the variables into the settings variable.\n
@@ -283,10 +304,12 @@ def on_closing():
     except: pass
     window.destroy()
     exit()
-def schedule_create(widget, ms, func, *args):
+def schedule_create(widget, ms, func, cancel_after_finished=False, *args, **kwargs):
     """Schedules a function to run after a given time in milliseconds and saves the event id in a dictionary with the function name as the key"""
-    event_id = widget.after(ms, func, *args)
+    event_id = widget.after(ms, lambda: func(*args, **kwargs))
     after_events[func.__name__] = event_id
+    if cancel_after_finished:
+        widget.after(ms, lambda: schedule_cancel(widget, func))
 def schedule_cancel(widget, func):
     """Cancels a scheduled function and deletes the event id from the dictionary using the function name as the parameter instead of the event id"""
     try:
@@ -296,17 +319,6 @@ def schedule_cancel(widget, func):
             del after_events[func.__name__]
     except: 
         pass
-def UpdateTitleInfo():
-    """Updates the title bar with the current time and date every second. If the navigation bar is closed, it shows the data in a different format"""
-    schedule_cancel(navigation_frame_label, UpdateTitleInfo)
-    if settings["AppSettings"]["NavigationState"] == "close":
-        current_time = datetime.now().strftime('%I:%M %p')
-        current_date = date.today().strftime('%d/%m/%Y')
-    else:
-        current_time = datetime.now().strftime('%I:%M:%S %p')
-        current_date = date.today().strftime('%A, %B %d, %Y')
-    navigation_frame_label.configure(text=f"{current_date}\n{current_time}")
-    schedule_create(navigation_frame_label, 1000, UpdateTitleInfo)
 def NavbarAction(option: str):
     """Opens or closes the navigation bar and saves the state to settings.json"""
     SaveSettingsToJson("NavigationState", str(option))
@@ -324,7 +336,7 @@ def NavbarAction(option: str):
         navigation_frame_label.configure(font=("sans-serif", 18, "bold"))
         close_open_nav_button.configure(image=closeimage, command=lambda: NavbarAction("close"))
         window.minsize(650, 400)
-    UpdateTitleInfo()
+    title_bar.update()
 
 def systemsettings(setting: str):
     """Launches different settings within windows 10 and 11 (only tested on windows 11)"""
@@ -362,21 +374,23 @@ def SocialMediaLoader(MediaVar: str):
     """Launches a website URL (either http or https)"""
     WBopen(MediaVar)
 
-def CenterWindowToDisplay(Screen, width: int, height: int, x: int = None, y: int = None):
+def CenterWindowToDisplay(Screen: CTk, width: int, height: int, x: int = None, y: int = None):
     """Centers the window to the main display/monitor"""
-    screen_width = Screen.winfo_screenwidth()
-    screen_height = Screen.winfo_screenheight()
     if (x == None) and (y == None):
-        x = (screen_width/2) - (width/2)
-        y = (screen_height/2) - (height/2)
-    return f"{width}x{height}+{int(x)}+{int(y)}"
+        screen_width = Screen.winfo_screenwidth()
+        screen_height = Screen.winfo_screenheight()
+        x = int((screen_width/2) - (width/2))
+        y = int((screen_height/2) - (height/2))
+    return f"{width}x{height}+{x}+{y}"
 def ResetWindowPos(x: bool = False, y: bool = False):
     """Resets window positions both x and y in settings.json"""
     if x:
         SaveSettingsToJson("Window_X", "")
     if y:
         SaveSettingsToJson("Window_Y", "")
-    restart()
+    settings_frame_button_1.configure(state="disabled", text="Window position reset")
+    schedule_create(settings_frame_button_1, 3000, lambda: settings_frame_button_1.configure(state="normal", text="Reset window position"), True)
+
 def AlwaysOnTopTrueFalse(value: bool):
     """Sets the window to always be on top or not and saves the state to settings.json"""
     window.attributes('-topmost', value)
@@ -393,7 +407,8 @@ def YTVideoDownloaderContentType(vidtype: str):
     YTVideoContentType = vidtype
 def YTVideoDownloader(ContentType: str):
     """Downloads youtube videos and shows progress on GUI"""
-    def DefaultStates(option: str):
+    def DefaultStates(**kwargs):
+        option = kwargs.get("option")
         if option == "YTReset":
             ytdownloader_progressbarpercentage.configure(text="0%")
             ytdownloader_progressbar.configure(progress_color="#1f6aa5")
@@ -426,7 +441,7 @@ def YTVideoDownloader(ContentType: str):
         if ConvertedPersentage == "100":
             ytdownloader_progressbar.configure(progress_color="green")
             ytdownloader_progressbar.update()
-            window.after(3500, lambda: DefaultStates(option="YTReset"))
+            schedule_create(window, 3500, DefaultStates, True, **{"option": "YTReset"})
     def YTDownloadThread():
         try:
             videourl = ytdownloader_entry.get().strip()
@@ -452,7 +467,7 @@ def YTVideoDownloader(ContentType: str):
                     if exists(VideoFilename):
                         ytdownloader_error_label.configure(text=f"The video already exists", text_color="red")
                         ytdownloader_error_label.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
-                        window.after(4000, lambda: DefaultStates(option="ErrorReset"))
+                        schedule_create(window, 4000, DefaultStates, True, **{"option": "ErrorReset"})
                     else:
                         ytdownloader_progressbar.grid(row=2, column=0, columnspan=2, padx=20, pady=0, sticky="ew")
                         ytdownloader_progressbarpercentage.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
@@ -471,7 +486,7 @@ def YTVideoDownloader(ContentType: str):
                     if (exists(YTVideoName)) or (exists(MP3Filename)):
                         ytdownloader_error_label.configure(text=f"The audio (.mp3/.mp4) already exists", text_color="red")
                         ytdownloader_error_label.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
-                        window.after(4000, lambda: DefaultStates(option="ErrorReset"))
+                        schedule_create(window, 4000, DefaultStates, True, **{"option": "ErrorReset"})
                     else:
                         def on_complete(stream, file_handle):
                             rename(file_handle, MP3Filename)
@@ -497,9 +512,9 @@ def YTVideoDownloader(ContentType: str):
                 ytdownloader_frame_button_1.grid_configure(row=4, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
                 ytdownloader_error_label.configure(text=f"The link that you inputed is not a valid link", text_color="red")
                 ytdownloader_error_label.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
-                window.after(4000, lambda: DefaultStates(option="ErrorReset"))
             else:
-                showerror(title="Unknown error occurred", message=f"An unknown error occurred. Heres the log: {viderror}")
+                showerror(title="Unknown error occurred", message=f"An unknown error occurred. Heres the log:\n{viderror}")
+            schedule_create(window, 4000, DefaultStates, True, **{"option": "ErrorReset"})
     YTThread = Thread(name="YTDownloadThread", daemon=True, target=YTDownloadThread)
     YTThread.start()
 
@@ -673,7 +688,7 @@ def AllDeviceDetails():
         devices_refresh_btn.grid_forget()
         refreshinglabel = CTkLabel(devices_frame, text="No devices found", font=("Arial", 25))
         refreshinglabel.place(relx=0.5, rely=0.4, anchor="center")
-        window.after(4000, defaultstates)
+        schedule_create(window, 4000, defaultstates, True)
     else:
         Thread(name="DeviceUpdateThread", daemon=True, target=lambda: UpdateDevices()).start()
 
@@ -745,17 +760,29 @@ def responsive_grid(frame: CTkFrame, rows: int, columns: int):
         frame.grid_rowconfigure(row, weight=1)
     for column in range(columns+1):
         frame.grid_columnconfigure(column, weight=1)
+def check_window_properties():
+    if settings["AppSettings"]["Window_X"] != "" and settings["AppSettings"]["Window_Y"] != "":
+        return True
+    else:
+        return False
+def update_widget(widget, update=False, update_idletasks=False):
+    """Updates a widget"""
+    if update:
+        widget.update()
+    if update_idletasks:
+        widget.update_idletasks()
 
 window = CTk()
 window.title("Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
 StartUp()
-if (settings["AppSettings"]["Window_X"] != "") and (settings["AppSettings"]["Window_Y"] != ""):
+if check_window_properties():
     window.geometry(CenterWindowToDisplay(window, 900, 400, settings["AppSettings"]["Window_X"], settings["AppSettings"]["Window_Y"]))
 else:
     window.geometry(CenterWindowToDisplay(window, 900, 400))
+update_widget(window, True, True)
 
-# Bind keys Ctrl + Shift + Del to reset the windows positional values in the setting.json file then restart the app
+# Bind keys Ctrl + Shift + Del to reset the windows positional values in the settings.json file
 window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos(True, True))
 
 # Importing all icons and assigning them to there own variables to use later
@@ -781,8 +808,8 @@ navigation_frame.pack(side="left", fill="y")
 # menu buttons
 close_open_nav_button = CTkButton(window, corner_radius=10, width=30, height=30, text="", fg_color="transparent", image=closeimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: NavbarAction("close"))
 close_open_nav_button.pack(side="top", anchor="nw", padx=0, pady=5)
-navigation_frame_label = CTkLabel(navigation_frame, text="", compound="left", font=("sans-serif", 18, "bold"))
-navigation_frame_label.pack(side="top", padx=20, pady=20, anchor="w")
+navigation_frame_label = CTkLabel(navigation_frame, text="Loading...", font=("sans-serif", 18, "bold"))
+navigation_frame_label.pack(side="top", padx=20, pady=20)
 home_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Home", fg_color="transparent", image=homeimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Home"))
 home_button.pack(side="top", fill="x", padx=0, pady=0)
 games_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Games", fg_color="transparent", image=gamesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Games"))
@@ -917,27 +944,32 @@ settings_frame_button_1.grid(row=4, column=1, padx=20, pady=10)
 settings_frame_button_2 = CTkButton(settings_frame, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
 settings_frame_button_2.grid(row=5, column=1, padx=20, pady=10)
 
-
-for widget in navigation_frame.winfo_children(): # add all buttons and their text to a list for later use
-    if isinstance(widget, CTkButton):
-        all_buttons.append(widget)
-        all_buttons_text.append(widget.cget('text'))
-
-select_frame_by_name(settings["AppSettings"]["DefaultFrame"]) # select default frame
-
-UpdateTitleInfo() # start timer for title info that includes time and date info
+# select default frame in settings.json
+select_frame_by_name(settings["AppSettings"]["DefaultFrame"]) 
 
 # Make frames .grid responsive
 responsive_grid(games_frame, 3, 3)
 responsive_grid(socialmedia_frame, 3, 3)
 responsive_grid(ytdownloader_frame, 4, 1)
 
-if settings["AppSettings"]["NavigationState"] == "close": # get navigation state from settings.json
+# add all buttons and their text to a list for later use
+for widget in navigation_frame.winfo_children():
+    if isinstance(widget, CTkButton):
+        all_buttons.append(widget)
+        all_buttons_text.append(widget.cget('text'))
+
+# start the title bar updater thread
+title_bar = TitleUpdater(navigation_frame_label)
+Thread(target=title_bar.start, daemon=True, name="TitleUpdater").start()
+
+# set the navigation state to the last known state
+if settings["AppSettings"]["NavigationState"] == "close":
     NavbarAction("close")
 else:
     NavbarAction("open")
-
-if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"): # if my personel netdrive script is not available on the system, disable the button
+    
+# if my personel netdrive script does not exist on the system, disable the button to launch it
+if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
     system_frame_button_2.configure(state="disabled")
 
 window.mainloop()
