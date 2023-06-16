@@ -4,6 +4,7 @@
 # TODO: make a check for updates function that checks for updates once clicked by a button instead of on launch
 # TODO: make a dropdown menu in the settings tab for changing the default open tab on launch
 # TODO: finish making the app responsive. 4/8 done so far
+# TODO: when closing also save the width and height of the window for next launch in the settings.json
 
 from sys import exit, executable as SYSexecutable, argv as SYSargv
 from tkinter.messagebox import showerror, askyesno, showinfo
@@ -315,12 +316,14 @@ def NavbarAction(option: str):
         navigation_frame_label.pack_configure(padx=7)
         navigation_frame_label.configure(font=("sans-serif", 15, "bold"))
         close_open_nav_button.configure(image=openimage, command=lambda: NavbarAction("open"))
+        window.minsize(550, 400)
     elif option == "open":
         for button in all_buttons:
             button.configure(text=all_buttons_text[all_buttons.index(button)], anchor="w")
         navigation_frame_label.pack_configure(padx=20)
         navigation_frame_label.configure(font=("sans-serif", 18, "bold"))
         close_open_nav_button.configure(image=closeimage, command=lambda: NavbarAction("close"))
+        window.minsize(650, 400)
     UpdateTitleInfo()
 
 def systemsettings(setting: str):
@@ -447,15 +450,15 @@ def YTVideoDownloader(ContentType: str):
                     ytdownloader_OptionMenu.grid_configure(row=3, column=0, columnspan=2, padx=0, pady=0)
                     ytdownloader_frame_button_1.grid_configure(row=4, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
                     if exists(VideoFilename):
-                        ytdownloader_error_label.configure(text=f"The video that you are trying to download already exists", text_color="red")
+                        ytdownloader_error_label.configure(text=f"The video already exists", text_color="red")
                         ytdownloader_error_label.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
                         window.after(4000, lambda: DefaultStates(option="ErrorReset"))
                     else:
                         ytdownloader_progressbar.grid(row=2, column=0, columnspan=2, padx=20, pady=0, sticky="ew")
                         ytdownloader_progressbarpercentage.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
                         DownloadThread = Thread(name="VidDownloadThread", daemon=True, target=lambda: Video.download(output_path=f"{CreatePath}\\Video"))
-                        DownloadThread.start()
                         CallbackThread = Thread(name="VidCallbackThread", daemon=True, target=lambda: YTObject.register_on_progress_callback(on_download_progress))
+                        DownloadThread.start()
                         CallbackThread.start()
                     ytdownloader_frame.update()
                 elif ContentType == "Audio (.mp3)":
@@ -463,22 +466,24 @@ def YTVideoDownloader(ContentType: str):
                     BaseFilename, BaseFileext = splitext(Audio.default_filename)
                     YTVideoName = f"{CreatePath}\\Audio\\{Audio.default_filename}"
                     MP3Filename = f"{CreatePath}\\Audio\\{BaseFilename +'.mp3'}"
+                    ytdownloader_OptionMenu.grid_configure(row=3, column=0, columnspan=2, padx=0, pady=0)
+                    ytdownloader_frame_button_1.grid_configure(row=4, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
                     if (exists(YTVideoName)) or (exists(MP3Filename)):
-                        ytdownloader_error_label.grid(row=3, column=1, padx=0, pady=10)
-                        ytdownloader_error_label.configure(text=f"The audio file that you are trying to download already exists", text_color="red")
-                        ytdownloader_OptionMenu.grid(row=4, column=1, padx=0, pady=10)
-                        ytdownloader_frame_button_1.grid(row=5, column=1, padx=0, pady=10)
-                        window.update()
+                        ytdownloader_error_label.configure(text=f"The audio (.mp3/.mp4) already exists", text_color="red")
+                        ytdownloader_error_label.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
                         window.after(4000, lambda: DefaultStates(option="ErrorReset"))
                     else:
                         def on_complete(stream, file_handle):
-                            rename(f"{CreatePath}\\Audio\\{Audio.default_filename}", f"{CreatePath}\\Audio\\{BaseFilename +'.mp3'}")
+                            rename(file_handle, MP3Filename)
+                        ytdownloader_progressbar.grid(row=2, column=0, columnspan=2, padx=20, pady=0, sticky="ew")
+                        ytdownloader_progressbarpercentage.grid(row=2, column=0, columnspan=2, padx=0, pady=0)
                         CallbackThread = Thread(name="AudioCallbackThread", daemon=True, target=lambda: YTObject.register_on_progress_callback(on_download_progress))
-                        CallbackThread.start()
                         DownloadThread = Thread(name="AudioDownloadThread", daemon=True, target=lambda: Audio.download(output_path=f"{CreatePath}\\Audio"))
-                        DownloadThread.start()
                         CompleteCallbackThread = Thread(name="AudioCompleteCallbackThread", daemon=True, target=lambda: YTObject.register_on_complete_callback(on_complete))
+                        CallbackThread.start()
+                        DownloadThread.start()
                         CompleteCallbackThread.start()
+                    ytdownloader_frame.update()
                 else:
                     showerror(title="Unknown format", message=f"Format invalid. Only\nVideo: Video (.mp4)\nAudio = Audio (.mp3)")
                     return
@@ -744,7 +749,6 @@ def responsive_grid(frame: CTkFrame, rows: int, columns: int):
 window = CTk()
 window.title("Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
-window.minsize(650, 400)
 StartUp()
 if (settings["AppSettings"]["Window_X"] != "") and (settings["AppSettings"]["Window_Y"] != ""):
     window.geometry(CenterWindowToDisplay(window, 900, 400, settings["AppSettings"]["Window_X"], settings["AppSettings"]["Window_Y"]))
@@ -929,7 +933,9 @@ responsive_grid(socialmedia_frame, 3, 3)
 responsive_grid(ytdownloader_frame, 4, 1)
 
 if settings["AppSettings"]["NavigationState"] == "close": # get navigation state from settings.json
-        NavbarAction("close")
+    NavbarAction("close")
+else:
+    NavbarAction("open")
 
 if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"): # if my personel netdrive script is not available on the system, disable the button
     system_frame_button_2.configure(state="disabled")
