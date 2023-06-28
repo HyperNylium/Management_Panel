@@ -1,6 +1,4 @@
 
-# pyinstaller --noconfirm --onedir --windowed --add-data "C:/Users/david/AppData/Local/Programs/Python/Python311/Lib/site-packages/customtkinter;customtkinter/"  "C:/Users/david/Desktop/Stuff/GitHub/Repos/Management_Panel/Management_Panel.pyw"
-
 # TODO: make a check for updates function that checks for updates once clicked by a button instead of on launch (function made but button not made yet)
 # TODO: when closing also save the width and height of the window for next launch in the settings.json
 # DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
