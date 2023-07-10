@@ -12,13 +12,13 @@ from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from json import load as JSload, dump as JSdump
 from threading import Thread, Timer as TD_Timer
 from os.path import exists, join, splitext
+from tkinter import BooleanVar, DoubleVar
 from webbrowser import open as WBopen
 from datetime import datetime, date
-from tkinter import BooleanVar
 from time import sleep
 
 try:
-    from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, set_appearance_mode
+    from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, set_appearance_mode, CTkSlider
 except:
     showerror(title="Import error", message="An error occurred while importing 'customtkinter'.\nTry running 'pip install customtkinter'\nin a elevated/admin terminal")
     exit()
@@ -122,7 +122,10 @@ class SettingsFileEventHandler(FileSystemEventHandler):
         self.modified_event_pending = False
 class TitleUpdater:
     def __init__(self, label: CTkLabel = None):
-        self.label = label
+        if label is not None:
+            self.label = label
+        else:
+            raise ValueError("label cannot be None")
 
     def start(self):
         """starts the time and date thread for infinite loop"""
@@ -188,6 +191,7 @@ def StartUp():
                 "NavigationState": "open",
                 "DownloadsFolderName": "YT_Downloads",
                 "DefaultFrame": "Home",
+                "Alpha": 1.0,
                 "Window_X": "",
                 "Window_Y": ""
             },
@@ -209,10 +213,11 @@ def StartUp():
     settings_thread = Thread(target=load_settings, name="settings_thread", daemon=True)
     settings_thread.start()
 
-    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsCheckForUpdates
+    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsCheckForUpdates, settingsAlphavar
     settingsSpeakResponceVar = BooleanVar()
     settingsAlwayOnTopVar = BooleanVar()
     settingsCheckForUpdates = BooleanVar()
+    settingsAlphavar = DoubleVar()
 
     UserPowerPlans = GetPowerPlans()
 
@@ -368,13 +373,12 @@ def SocialMediaLoader(MediaVar: str):
     """Launches a website URL (either http or https)"""
     WBopen(MediaVar)
 
-def CenterWindowToDisplay(Screen: CTk, width: int, height: int, x: int = None, y: int = None):
+def CenterWindowToDisplay(Screen: CTk, width: int, height: int):
     """Centers the window to the main display/monitor"""
-    if (x == None) and (y == None):
-        screen_width = Screen.winfo_screenwidth()
-        screen_height = Screen.winfo_screenheight()
-        x = int((screen_width/2) - (width/2))
-        y = int((screen_height/2) - (height/2))
+    screen_width = Screen.winfo_screenwidth()
+    screen_height = Screen.winfo_screenheight()
+    x = int((screen_width/2) - (width/2))
+    y = int((screen_height/2) - (height/2))
     return f"{width}x{height}+{x}+{y}"
 def ResetWindowPos(x: bool = False, y: bool = False):
     """Resets window positions both x and y in settings.json"""
@@ -389,6 +393,10 @@ def AlwaysOnTopTrueFalse(value: bool):
     """Sets the window to always be on top or not and saves the state to settings.json"""
     window.attributes('-topmost', value)
     SaveSettingsToJson("AlwaysOnTop", str(value))
+def set_alpha(alpha_var: float):
+    """Sets the window transparency and saves the state to settings.json"""
+    SaveSettingsToJson("Alpha", alpha_var)
+    window.attributes('-alpha', alpha_var)
 
 def YTVideoDownloaderContentType(vidtype: str):
     """Updates the video content type to either .mp4 or .mp3 according to whatever was selected in the dropdown"""
@@ -765,14 +773,20 @@ window = CTk()
 window.title("Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
 StartUp()
+
 if check_window_properties():
-    window.geometry(CenterWindowToDisplay(window, 900, 400, settings["AppSettings"]["Window_X"], settings["AppSettings"]["Window_Y"]))
+    X = settings["AppSettings"]["Window_X"]
+    Y = settings["AppSettings"]["Window_Y"]
+    window.geometry(f"900x400+{X}+{Y}")
+    del X, Y
 else:
     window.geometry(CenterWindowToDisplay(window, 900, 400))
-update_widget(window, True, True)
 
-# Bind keys Ctrl + Shift + Del to reset the windows positional values in the settings.json file
+# Bind keys Ctrl + Shift + Del to reset the windows positional values in settings.json
 window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos(True, True))
+
+# Set alpha value of window from settings.json
+window.attributes("-alpha", settings["AppSettings"]["Alpha"])
 
 # Importing all icons and assigning them to there own variables to use later
 try:
@@ -942,6 +956,9 @@ settings_frame_button_2.grid(row=5, column=1, padx=20, pady=(10, 20))
 settings_default_frame_optionmenu = CTkOptionMenu(settings_frame, values=all_frames, command=lambda frame: SaveSettingsToJson("DefaultFrame", frame), fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 20), dropdown_font=("sans-serif", 17), width=200, height=30, anchor="center")
 settings_default_frame_optionmenu.grid(row=6, column=1, padx=20, pady=10)
 settings_default_frame_optionmenu.set(settings["AppSettings"]["DefaultFrame"])
+settingsAlphavar.set(settings["AppSettings"]["Alpha"])
+alpha_slider = CTkSlider(settings_frame, from_=0.5, to=1.0, command=set_alpha, variable=settingsAlphavar) # I set the _from param to 0.5 because anything lower than that is too transparent and you can't see the window let alone interact with it.
+alpha_slider.grid(row=7, column=1, padx=20, pady=10)
 
 
 # select default frame in settings.json (can be changed in GUI from "settings_default_frame_optionmenu")
