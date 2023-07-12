@@ -1,6 +1,7 @@
 
 # DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch (function made but button not made yet)
 # TODO: when closing also save the width and height of the window for next launch in the settings.json
+# BUG: Fix assistant text boxes not being able to move up and down when the window height is changed
 # DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
 # DONE: finish making the app responsive
 # DONE: make all window.after() use schedule_create() instead
@@ -67,9 +68,12 @@ devices_per_row = 2  # Maximum number of devices per row
 DeviceFrames = []  # List to store references to deviceFrame frames
 devices = {} # dict to store device info (battey persetage, type)
 after_events = {} # dict to store after events
+prev_after_events = {}
 all_buttons: list[CTkButton] = [] # list to store all buttons in the navigation bar
 all_buttons_text: list[str] = [] # list to store all buttons text in the navigation bar
 all_frames = ["Home", "Games", "Social Media", "YT Downloader", "Assistant", "Devices", "System", "Settings"] # list to store all frames
+prev_x = 0 # variable to store previous x coordinate of the window
+prev_y = 0 # variable to store previous y coordinate of the window
 
 class SettingsFileEventHandler(FileSystemEventHandler):
     def __init__(self):
@@ -161,6 +165,9 @@ def StartUp():
                 "DownloadsFolderName": "YT_Downloads",
                 "DefaultFrame": "Home",
                 "Alpha": 1.0,
+                "Window_State": "normal",
+                "Window_Width": "",
+                "Window_Height": "",
                 "Window_X": "",
                 "Window_Y": ""
             },
@@ -179,8 +186,7 @@ def StartUp():
             settings = default_settings
         observer.join()
 
-    settings_thread = Thread(target=load_settings, name="settings_thread", daemon=True)
-    settings_thread.start()
+    Thread(target=load_settings, name="settings_thread", daemon=True).start()
 
     global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsCheckForUpdates, settingsAlphavar
     settingsSpeakResponceVar = BooleanVar()
@@ -306,10 +312,6 @@ def restart():
     execl(python, python, *SYSargv)
 def on_closing():
     """App termination function"""
-    Current_X = window.winfo_x()
-    Current_Y = window.winfo_y()
-    SaveSettingsToJson("Window_X", Current_X)
-    SaveSettingsToJson("Window_Y", Current_Y)
     try: 
         observer.stop()
     except: pass
@@ -348,6 +350,34 @@ def NavbarAction(option: str):
         close_open_nav_button.configure(image=closeimage, command=lambda: NavbarAction("close"))
         window.minsize(650, 400)
     title_bar.update()
+
+def on_drag_end(event):
+    global prev_x, prev_y
+
+    # Check if x and y values have changed
+    if prev_x != event.x or prev_y != event.y:
+        # Update the x and y values
+        prev_x = event.x
+        prev_y = event.y
+
+        # Cancel any existing threshold check
+        schedule_cancel(window, on_drag_stopped)
+
+        # Schedule a new threshold check after 1 second
+        schedule_create(window, 1000, on_drag_stopped)
+    return
+def on_drag_stopped():
+    if window.state() == "zoomed":
+        print("Window dragging has stopped also maximized")
+        SaveSettingsToJson("Window_State", "maximized")
+    elif window.state() == "normal":
+        print("Window dragging has stopped")
+        SaveSettingsToJson("Window_Width", window.winfo_width())
+        SaveSettingsToJson("Window_Height", window.winfo_height())
+        SaveSettingsToJson("Window_X", window.winfo_x())
+        SaveSettingsToJson("Window_Y", window.winfo_y())
+        SaveSettingsToJson("Window_State", "normal")
+    return
 
 def systemsettings(setting: str):
     """Launches different settings within windows 10 and 11 (only tested on windows 11)"""
@@ -760,6 +790,7 @@ def SaveSettingsToJson(ValueToChange: str, Value: str):
             break
     else:
         showerror(title="settings error", message="There was an error when writing to the settings file")
+        return
 
     with open(SETTINGSFILE, 'w') as SettingsToWrite:
         JSdump(settings, SettingsToWrite, indent=2)
@@ -770,10 +801,14 @@ def responsive_grid(frame: CTkFrame, rows: int, columns: int):
     for column in range(columns+1):
         frame.grid_columnconfigure(column, weight=1)
 def check_window_properties():
-    if settings["AppSettings"]["Window_X"] != "" and settings["AppSettings"]["Window_Y"] != "":
+    """Checks if the window properties are set"""
+    if (
+        "AppSettings" in settings and
+        all(key in settings["AppSettings"] for key in ["Window_Width", "Window_Height", "Window_X", "Window_Y", "Window_State"]) and
+        all(settings["AppSettings"][key] != "" for key in ["Window_Width", "Window_Height", "Window_X", "Window_Y", "Window_State"])
+    ):
         return True
-    else:
-        return False
+    return False
 def update_widget(widget, update=False, update_idletasks=False):
     """Updates a widget"""
     if update:
@@ -787,15 +822,24 @@ window.protocol("WM_DELETE_WINDOW", on_closing)
 StartUp()
 
 if check_window_properties():
-    X = settings["AppSettings"]["Window_X"]
-    Y = settings["AppSettings"]["Window_Y"]
-    window.geometry(f"900x400+{X}+{Y}")
-    del X, Y
+    WINDOW_STATE = str(settings["AppSettings"]["Window_State"])
+    WIDTH = int(settings["AppSettings"]["Window_Width"])
+    HEIGHT = int(settings["AppSettings"]["Window_Height"])
+    X = int(settings["AppSettings"]["Window_X"])
+    Y = int(settings["AppSettings"]["Window_Y"])
+
+    window.geometry(f"{WIDTH}x{HEIGHT}+{X}+{Y}")
+
+    if WINDOW_STATE == "maximized":
+        window.state("zoomed")
+
+    del WIDTH, HEIGHT, X, Y, WINDOW_STATE
 else:
     window.geometry(CenterWindowToDisplay(window, 900, 400))
 
 # Bind keys Ctrl + Shift + Del to reset the windows positional values in settings.json
 window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos(True, True))
+window.bind('<Configure>', on_drag_end)
 
 # Set alpha value of window from settings.json
 window.attributes("-alpha", settings["AppSettings"]["Alpha"])
