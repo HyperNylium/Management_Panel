@@ -1,5 +1,5 @@
 
-# TODO: make a check for updates function that checks for updates once clicked by a button instead of on launch (function made but button not made yet)
+# DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch (function made but button not made yet)
 # TODO: when closing also save the width and height of the window for next launch in the settings.json
 # DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
 # DONE: finish making the app responsive
@@ -19,50 +19,19 @@ from time import sleep
 
 try:
     from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, set_appearance_mode, CTkSlider
-except:
-    showerror(title="Import error", message="An error occurred while importing 'customtkinter'.\nTry running 'pip install customtkinter'\nin a elevated/admin terminal")
-    exit()
-try:
     from plyer import notification
-except:
-    showerror(title="Import error", message="An error occurred while importing 'plyer'.\nTry running 'pip install plyer'\nin a elevated/admin terminal")
-    exit()
-try:
     from requests import get
     from requests.exceptions import Timeout
-except:
-    showerror(title="Import error", message="An error occurred while importing 'requests'.\nTry running 'pip install requests'\nin a elevated/admin terminal")
-    exit()
-try:
     from winshell import desktop
-except:
-    showerror(title="Import error", message="An error occurred while importing 'winshell'.\nTry running 'pip install winshell'\nin a elevated/admin terminal")
-    exit()
-try:
     from PIL.Image import open as PILopen
-except:
-    showerror(title="Import error", message="An error occurred while importing 'Pillow-PIL'.\nTry running 'pip install Pillow'\nin a elevated/admin terminal")
-    exit()
-try:
     import openai
-except:
-    showerror(title="Import error", message="An error occurred while importing 'OpenAI'.\nTry running 'pip install openai'\nin a elevated/admin terminal")
-    exit()
-try:
     from pytube import YouTube as PY_Youtube
-except:
-    showerror(title="Import error", message="An error occurred while importing 'pytube'.\nTry running 'pip install pytube'\nin a elevated/admin terminal")
-    exit()
-try:
     from pyttsx3 import init as ttsinit
-except:
-    showerror(title="Import error", message="An error occurred while importing 'pyttsx3'.\nTry running 'pip install pyttsx3'\nin a elevated/admin terminal")
-    exit()
-try:
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
-except:
-    showerror(title="Import error", message="An error occurred while importing 'watchdog'.\nTry running 'pip install watchdog'\nin a elevated/admin terminal")
+except ImportError as importError:
+    ModuleNotFound = str(importError).split("'")[1]
+    showerror(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'")
     exit()
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -83,7 +52,7 @@ except:
 
 set_appearance_mode("dark")
 
-CurrentAppVersion = "4.1.4"
+CurrentAppVersion = "4.1.5"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -283,6 +252,49 @@ def check_for_updates(option: str):
             Developer = "N/A"
             LastEditDate = "N/A"
             ShowUserInfo = "- offline mode"
+    elif option == "in-app":
+        check_for_updates_button.configure(text="Checking for updates...", state="disabled")
+        try:
+            response = get(DataTXTFileUrl, timeout=3, headers=headers)
+            lines = response.text.split('\n')
+            delimiter = "="
+
+            for line in lines:
+                key_value = line.split(delimiter, 1)
+                if len(key_value) == 2:
+                    key = key_value[0].strip()
+                    value = key_value[1].strip().replace(" ", "")
+                    if key == "Version":
+                        LiveAppVersion = value
+                    elif key == "DevName":
+                        Developer = value
+                    elif key == "LastEditDate":
+                        LastEditDate = value
+            if LiveAppVersion < CurrentAppVersion:
+                    Developer = "Unknown"
+                    LastEditDate = "Unknown"
+                    LiveAppVersion = CurrentAppVersion
+                    ShowUserInfo = "- Unauthentic"
+            elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
+                    ShowUserInfo = f"- Update available (v{LiveAppVersion})"
+                    LiveAppVersion = CurrentAppVersion
+            else:
+                ShowUserInfo = "- Latest version"
+        except Timeout:
+            LiveAppVersion = "N/A"
+            Developer = "N/A"
+            LastEditDate = "N/A"
+            ShowUserInfo = "- timed out"
+        except Exception as e:
+            LiveAppVersion = "N/A"
+            Developer = "N/A"
+            LastEditDate = "N/A"
+            ShowUserInfo = "- offline mode"
+        home_frame_button_1.configure(text=f"Version: {LiveAppVersion} {ShowUserInfo}")
+        home_frame_button_2.configure(text=f"Creator/developer: {Developer}")
+        home_frame_button_3.configure(text=f"Last updated: {LastEditDate}")
+        check_for_updates_button.configure(text="Check for updates complete", state="disabled")
+        schedule_create(window, 3500, lambda: check_for_updates_button.configure(text="Check for updates", state="normal"), True)
     else:
         LiveAppVersion = "N/A"
         Developer = "N/A"
@@ -834,11 +846,10 @@ del homeimage, devicesimage, gamesimage, ytdownloaderimage, socialmediaimage, as
 
 
 # main frames
-# starting to work on responsive design for all frames/widgets.
-home_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
-games_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
-socialmedia_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
-ytdownloader_frame = CTkFrame(window, corner_radius=0, fg_color="transparent") # responsive
+home_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
+games_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
+socialmedia_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
+ytdownloader_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 assistant_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 devices_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 system_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
@@ -852,6 +863,8 @@ home_frame_button_2 = CTkLabel(home_frame, text=f"Creator/developer: {Developer}
 home_frame_button_2.pack(anchor="center", pady=10)
 home_frame_button_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", font=("sans-serif", 28))
 home_frame_button_3.pack(anchor="center")
+check_for_updates_button = CTkButton(home_frame, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: check_for_updates(option="in-app"))
+check_for_updates_button.pack(anchor="s", fill="x", expand=True, padx=10, pady=(0, 10))
 
 
 games_frame_button_1 = CTkButton(games_frame, width=200, text="Game 1", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_1"]))
