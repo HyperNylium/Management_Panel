@@ -1,7 +1,9 @@
 
-# DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch (function made but button not made yet)
-# KIND OF DONE: when closing also save the width and height of the window for next launch in the settings.json (geometry manager issue/bug found and reported to dev. Theoretically, works)
 # BUG: Fix assistant text boxes not being able to move up and down when the window height is changed
+# TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
+
+# DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch
+# DONE: when closing also save the width and height of the window for next launch in the settings.json
 # DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
 # DONE: finish making the app responsive
 # DONE: make all window.after() use schedule_create() instead
@@ -19,7 +21,7 @@ from datetime import datetime, date
 from time import sleep
 
 try:
-    from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, set_appearance_mode, CTkSlider
+    from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
     from plyer import notification
     from requests import get
     from requests.exceptions import Timeout
@@ -53,7 +55,7 @@ except ImportError as importError:
 
 set_appearance_mode("dark")
 
-CurrentAppVersion = "4.1.5"
+CurrentAppVersion = "4.1.6"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -363,20 +365,18 @@ def on_drag_end(event):
         # Cancel any existing threshold check
         schedule_cancel(window, on_drag_stopped)
 
-        # Schedule a new threshold check after 1 second
-        schedule_create(window, 500, on_drag_stopped)
+        # Schedule a new threshold check after 420ms
+        schedule_create(window, 420, on_drag_stopped)
     return
 def on_drag_stopped():
     if window.state() == "zoomed":
-        print("Window dragging has stopped also maximized")
         SaveSettingsToJson("Window_State", "maximized")
     elif window.state() == "normal":
-        print("Window dragging has stopped")
+        SaveSettingsToJson("Window_State", "normal")
         SaveSettingsToJson("Window_Width", window.winfo_width())
         SaveSettingsToJson("Window_Height", window.winfo_height())
         SaveSettingsToJson("Window_X", window.winfo_x())
         SaveSettingsToJson("Window_Y", window.winfo_y())
-        SaveSettingsToJson("Window_State", "normal")
     return
 
 def systemsettings(setting: str):
@@ -415,16 +415,16 @@ def SocialMediaLoader(MediaVar: str):
     """Launches a website URL (either http or https)"""
     WBopen(MediaVar)
 
-def CenterWindowToDisplay(Screen: CTk, width: int, height: int):
+def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: float = 1.0):
     """Centers the window to the main display/monitor"""
     screen_width = Screen.winfo_screenwidth()
     screen_height = Screen.winfo_screenheight()
-    x = int((screen_width/2) - (width/2))
-    y = int((screen_height/2) - (height/2))
+    x = int(((screen_width/2) - (width/2)) * scale_factor)
+    y = int(((screen_height/2) - (height/1.5)) * scale_factor)
     return f"{width}x{height}+{x}+{y}"
 def ResetWindowPos():
     """Resets window positions in settings.json"""
-    SaveSettingsToJson("Window_State", "")
+    SaveSettingsToJson("Window_State", "normal")
     SaveSettingsToJson("Window_Width", "")
     SaveSettingsToJson("Window_Height", "")
     SaveSettingsToJson("Window_X", "")
@@ -820,31 +820,33 @@ def update_widget(widget, update=False, update_idletasks=False):
 window = CTk()
 window.title("Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
+screen_scale = window._get_window_scaling()
 StartUp()
 
-window.geometry(CenterWindowToDisplay(window, 900, 400)) # this is temporary. The real function is below this
 
+if check_window_properties():
+    WINDOW_STATE = str(settings["AppSettings"]["Window_State"])
+    WIDTH = int(settings["AppSettings"]["Window_Width"])
+    HEIGHT = int(settings["AppSettings"]["Window_Height"])
+    X = int(settings["AppSettings"]["Window_X"])
+    Y = int(settings["AppSettings"]["Window_Y"])
 
-# if check_window_properties():
-#     WINDOW_STATE = str(settings["AppSettings"]["Window_State"])
-#     WIDTH = int(settings["AppSettings"]["Window_Width"])
-#     HEIGHT = int(settings["AppSettings"]["Window_Height"])
-#     X = int(settings["AppSettings"]["Window_X"])
-#     Y = int(settings["AppSettings"]["Window_Y"])
+    WIDTH = int(WIDTH / screen_scale)
+    HEIGHT = int(HEIGHT / screen_scale)
 
-#     window.geometry(f"{WIDTH}x{HEIGHT}+{X}+{Y}")
+    window.geometry(f"{WIDTH}x{HEIGHT}+{X}+{Y}")
 
-#     if WINDOW_STATE == "maximized":
-#         window.state("zoomed") # for some reason this suddenly maximizes the window then minimizes it ㄟ( ▔, ▔ )ㄏ (on my windows 11 machine)
+    if WINDOW_STATE == "maximized":
+        window.state("zoomed") # for some reason this suddenly maximizes the window then minimizes it ㄟ( ▔, ▔ )ㄏ (on my windows 11 machine)
 
-#     del WIDTH, HEIGHT, X, Y, WINDOW_STATE
-# else:
-#     window.geometry(CenterWindowToDisplay(window, 1125, 400))
-# window.bind('<Configure>', on_drag_end)
+    del WIDTH, HEIGHT, X, Y, WINDOW_STATE
+else:
+    window.geometry(CenterWindowToDisplay(window, 900, 400, screen_scale))
 
 
 # Bind keys Ctrl + Shift + Del to reset the windows positional values in settings.json
 window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos())
+window.bind('<Configure>', on_drag_end)
 
 # Set alpha value of window from settings.json
 window.attributes("-alpha", settings["AppSettings"]["Alpha"])
