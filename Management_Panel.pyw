@@ -1,6 +1,6 @@
 
 # DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch (function made but button not made yet)
-# TODO: when closing also save the width and height of the window for next launch in the settings.json
+# KIND OF DONE: when closing also save the width and height of the window for next launch in the settings.json (geometry manager issue/bug found and reported to dev. Theoretically, works)
 # BUG: Fix assistant text boxes not being able to move up and down when the window height is changed
 # DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
 # DONE: finish making the app responsive
@@ -364,7 +364,7 @@ def on_drag_end(event):
         schedule_cancel(window, on_drag_stopped)
 
         # Schedule a new threshold check after 1 second
-        schedule_create(window, 1000, on_drag_stopped)
+        schedule_create(window, 500, on_drag_stopped)
     return
 def on_drag_stopped():
     if window.state() == "zoomed":
@@ -422,14 +422,15 @@ def CenterWindowToDisplay(Screen: CTk, width: int, height: int):
     x = int((screen_width/2) - (width/2))
     y = int((screen_height/2) - (height/2))
     return f"{width}x{height}+{x}+{y}"
-def ResetWindowPos(x: bool = False, y: bool = False):
-    """Resets window positions both x and y in settings.json"""
-    if x:
-        SaveSettingsToJson("Window_X", "")
-    if y:
-        SaveSettingsToJson("Window_Y", "")
+def ResetWindowPos():
+    """Resets window positions in settings.json"""
+    SaveSettingsToJson("Window_State", "")
+    SaveSettingsToJson("Window_Width", "")
+    SaveSettingsToJson("Window_Height", "")
+    SaveSettingsToJson("Window_X", "")
+    SaveSettingsToJson("Window_Y", "")
     settings_frame_button_1.configure(state="disabled", text="Window position reset")
-    schedule_create(settings_frame_button_1, 3000, lambda: settings_frame_button_1.configure(state="normal", text="Reset window position"), True)
+    restart()
 
 def AlwaysOnTopTrueFalse(value: bool):
     """Sets the window to always be on top or not and saves the state to settings.json"""
@@ -821,25 +822,29 @@ window.title("Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
 StartUp()
 
-if check_window_properties():
-    WINDOW_STATE = str(settings["AppSettings"]["Window_State"])
-    WIDTH = int(settings["AppSettings"]["Window_Width"])
-    HEIGHT = int(settings["AppSettings"]["Window_Height"])
-    X = int(settings["AppSettings"]["Window_X"])
-    Y = int(settings["AppSettings"]["Window_Y"])
+window.geometry(CenterWindowToDisplay(window, 900, 400)) # this is temporary. The real function is below this
 
-    window.geometry(f"{WIDTH}x{HEIGHT}+{X}+{Y}")
 
-    if WINDOW_STATE == "maximized":
-        window.state("zoomed")
+# if check_window_properties():
+#     WINDOW_STATE = str(settings["AppSettings"]["Window_State"])
+#     WIDTH = int(settings["AppSettings"]["Window_Width"])
+#     HEIGHT = int(settings["AppSettings"]["Window_Height"])
+#     X = int(settings["AppSettings"]["Window_X"])
+#     Y = int(settings["AppSettings"]["Window_Y"])
 
-    del WIDTH, HEIGHT, X, Y, WINDOW_STATE
-else:
-    window.geometry(CenterWindowToDisplay(window, 900, 400))
+#     window.geometry(f"{WIDTH}x{HEIGHT}+{X}+{Y}")
+
+#     if WINDOW_STATE == "maximized":
+#         window.state("zoomed") # for some reason this suddenly maximizes the window then minimizes it ㄟ( ▔, ▔ )ㄏ (on my windows 11 machine)
+
+#     del WIDTH, HEIGHT, X, Y, WINDOW_STATE
+# else:
+#     window.geometry(CenterWindowToDisplay(window, 1125, 400))
+# window.bind('<Configure>', on_drag_end)
+
 
 # Bind keys Ctrl + Shift + Del to reset the windows positional values in settings.json
-window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos(True, True))
-window.bind('<Configure>', on_drag_end)
+window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos())
 
 # Set alpha value of window from settings.json
 window.attributes("-alpha", settings["AppSettings"]["Alpha"])
@@ -1006,7 +1011,7 @@ settingsSpeakResponceswitch = CTkSwitch(settings_frame, text="Speak response fro
 settingsSpeakResponceswitch.grid(row=2, column=1, padx=20, pady=10)
 settingsSpeakResponceswitch = CTkSwitch(settings_frame, text="Check for updates on launch", variable=settingsCheckForUpdates, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("CheckForUpdatesOnLaunch", str(settingsCheckForUpdates.get())))
 settingsSpeakResponceswitch.grid(row=3, column=1, padx=20, pady=10)
-settings_frame_button_1 = CTkButton(settings_frame, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: ResetWindowPos(True, True))
+settings_frame_button_1 = CTkButton(settings_frame, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: ResetWindowPos())
 settings_frame_button_1.grid(row=4, column=1, padx=20, pady=(20, 10))
 settings_frame_button_2 = CTkButton(settings_frame, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
 settings_frame_button_2.grid(row=5, column=1, padx=20, pady=(10, 20))
