@@ -5,7 +5,7 @@
 ## App Information
 
 **Version:** v4.1.6\
-**Project status:** uploading new version info (data.txt) to live server\
+**Project status:** Ready for update/download\
 **Last updated Github Repo:** 7/12/2023
 (Update to documentation is coming soon. Its not that outdated but still want to keep everything up to date :)
 
