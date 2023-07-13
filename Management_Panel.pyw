@@ -51,9 +51,12 @@ except ImportError as importError:
 ###
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-# ctypes.windll.user32.ShowWindow( ctypes.windll.kernel32.GetConsoleWindow(), 6) # Minimizes console window that launches with .py files
+# ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6) # Minimizes console window that launches with .py files
 
-set_appearance_mode("dark") # Sets the appearance mode of the window to dark. Don't want to burn them eyes now do we?
+# Sets the appearance mode of the window to dark 
+# (in simpler terms, sets the window to dark mode).
+# Don't want to burn them eyes now do we?
+set_appearance_mode("dark") 
 
 CurrentAppVersion = "4.1.7"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
@@ -361,6 +364,19 @@ def on_drag_end(event):
         # Update the x and y values
         prev_x = event.x
         prev_y = event.y
+
+        # The main point about the upcoming code is that when you start to
+        # drag the window, it first cancels any existing function call to on_drag_stopped()
+        # but then creates a new one right after that. This means that instead of the on_drag_stopped()
+        # function being called every single pixel you move the window, it will
+        # be called only after the window has stopped moving for 420ms.
+        # this happens because the on_drag_end() gets called probably hundreds of times
+        # you move the window. But with this code, it will only call the on_drag_stopped()
+        # function once after you stop moving the window for 420ms because it keeps cancelling
+        # the function call before it can even start. Cool, right? This is a more modefied version
+        # so it works with this project (i am sure it would work with any project though)
+        # you can find the full version that was built with tkinter and uses the .after() method
+        # intead of my custom schedule_create() and schedule_cancel() functions here: https://github.com/HyperNylium/tkinter-window-drag-detection
 
         # Cancel any existing threshold check
         schedule_cancel(window, on_drag_stopped)
@@ -823,7 +839,6 @@ window.protocol("WM_DELETE_WINDOW", on_closing)
 screen_scale = window._get_window_scaling()
 StartUp()
 
-
 if check_window_properties():
     WINDOW_STATE = str(settings["AppSettings"]["Window_State"])
     WIDTH = int(settings["AppSettings"]["Window_Width"] / screen_scale)
@@ -841,7 +856,6 @@ else:
     window.geometry(CenterWindowToDisplay(window, 900, 420, screen_scale))
 
 del screen_scale
-
 
 # Bind keys Ctrl + Shift + Del to reset the windows positional values in settings.json
 window.bind('<Control-Shift-Delete>', lambda event: ResetWindowPos())
