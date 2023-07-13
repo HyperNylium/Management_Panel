@@ -1,13 +1,30 @@
 
-# TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
+###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+###
+### Author/Creator: HyperNylium
+###
+### Website: http://www.hypernylium.com/
+###
+### GitHub: https://github.com/HyperNylium/
+###
+### CustomTkinter Version: 4.6.2 => 5.1.3 update
+###
+### License: Mozilla Public License Version 2.0
+###
+###
+### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
+### DONE: Fix window maximize issue on launch
+### DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
+### DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch
+### DONE: when closing also save the width and height of the window for next launch in the settings.json
+### DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
+### DONE: make all window.after() use schedule_create() instead
+### DONE: finish making the app responsive
+###
+###
+###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-# DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
-# DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch
-# DONE: when closing also save the width and height of the window for next launch in the settings.json
-# DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
-# DONE: make all window.after() use schedule_create() instead
-# DONE: finish making the app responsive
-
+# Imports
 from sys import exit, executable as SYSexecutable, argv as SYSargv
 from tkinter.messagebox import showerror, askyesno, showinfo
 from os import system, startfile, execl, mkdir, rename
@@ -37,21 +54,8 @@ except ImportError as importError:
     showerror(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'")
     exit()
 
-###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-###
-### Author/Creator: HyperNylium
-###
-### Website: http://www.hypernylium.com/
-###
-### GitHub: https://github.com/HyperNylium/
-###
-### CustomTkinter Version: 4.6.2 => 5.1.3 update
-###
-### License: Mozilla Public License Version 2.0
-###
-###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-# ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6) # Minimizes console window that launches with .py files
+# Minimizes console window that launches with .py files if you want to use this app as a .py instead of a .pyw file
+# ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
 
 # Sets the appearance mode of the window to dark 
 # (in simpler terms, sets the window to dark mode).
