@@ -7,7 +7,6 @@
 **Version:** v4.1.7\
 **Project status:** Ready for update/download\
 **Last updated Github Repo:** 7/12/2023
-(Update to documentation is coming soon. Its not that outdated but still want to keep everything up to date :)
 
 ## Setup
 
@@ -37,10 +36,21 @@ and the time and date region stuff are pulled from your computer (a datetime lib
 
 - After response is Received from ChatGPT/openai, if you have the **Speak response from AI** toggled, it will start to speak the responce to you
 
+- Even if you are either downloading a file from YouTube or waiting for a response from ChatGPT, you can still switch through different tabs in the app. I wouldn't suggest this, but you can even change some settings from **settings.json**, and the thing would occasionally run (As I said, not recommended, but possible).
+
 - You can directly change your power mode from the **System** tab. The dropdown will show you all available power modes, and the title of the dropdown will show you the active one (the mode that shows even when you didn't click the dropdown).
 ![powermode image](assets/Help/new_powermode_doc.png)
 
-- Even if you are either downloading a file from YouTube or waiting for a response from ChatGPT, you can still switch through different tabs in the app. I wouldn't suggest this, but you can even change some settings from **settings.json**, and the thing would occasionally run (As I said, not recommended, but possible).
+- Can change the alpha value of the window (transparency). The default value is 1.0 (no transparency).\
+The minimum value is 0.4 (if you do put it at 0.0 then the app isn't visible anymore so limited it to 0.4).\
+The maximum value is 1.0 (no transparency).\
+You can change the value by going to the **Settings** tab and sliding the slider at the very bottom\
+of the screen to your liking
+![alpha slider image](assets/Help/alpha_slider.png)
+
+- Can change the default launch tab from the default setting **Home** to whatever you want.\
+You can change the value by going to the **Settings** tab and selecting the tab you want to be the default launch tab from the dropdown menu.\
+![alpha slider image](assets/Help/default_launch_window.png)
 
 - New devices tab. When you have a Bluetooth mouse, keyboard, or headset, simply go to the `settings.json` file and from the device manager in Windows under Bluetooth, find your device's name and put it in the `Devices` section like this:
 ```json
@@ -65,13 +75,11 @@ after_events = {}
 # The functions are saved in a dictionary with the function name as the key and the event id as the value
 # so you can cancel the function by just using the function name as the parameter instead of the event id.
 def schedule_create(widget, ms, func, cancel_after_finished=False, *args, **kwargs):
-    """Schedules a function to run after a given time in milliseconds and saves the event id in a dictionary with the function name as the key"""
     event_id = widget.after(ms, lambda: func(*args, **kwargs))
     after_events[func.__name__] = event_id
     if cancel_after_finished:
         widget.after(ms, lambda: schedule_cancel(widget, func))
 def schedule_cancel(widget, func):
-    """Cancels a scheduled function and deletes the event id from the dictionary using the function name as the parameter instead of the event id"""
     try:
         event_id = after_events.get(func.__name__)
         if event_id is not None:
