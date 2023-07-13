@@ -1,12 +1,12 @@
 
-# BUG: Fix assistant text boxes not being able to move up and down when the window height is changed
 # TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
 
+# DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
 # DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch
 # DONE: when closing also save the width and height of the window for next launch in the settings.json
 # DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
-# DONE: finish making the app responsive
 # DONE: make all window.after() use schedule_create() instead
+# DONE: finish making the app responsive
 
 from sys import exit, executable as SYSexecutable, argv as SYSargv
 from tkinter.messagebox import showerror, askyesno, showinfo
@@ -53,9 +53,9 @@ except ImportError as importError:
 
 # ctypes.windll.user32.ShowWindow( ctypes.windll.kernel32.GetConsoleWindow(), 6) # Minimizes console window that launches with .py files
 
-set_appearance_mode("dark")
+set_appearance_mode("dark") # Sets the appearance mode of the window to dark. Don't want to burn them eyes now do we?
 
-CurrentAppVersion = "4.1.6"
+CurrentAppVersion = "4.1.7"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -975,12 +975,14 @@ ytdownloader_progressbar.set(0)
 ytdownloader_progressbarpercentage= CTkLabel(ytdownloader_frame, text="0%", font=("sans-serif Bold", 18))
 
 
-assistant_responce_box_1 = CTkTextbox(assistant_frame, width=680, height=150, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
-assistant_responce_box_1.grid(row=1, column=0, padx=10, pady=0)
-assistant_responce_box_2 = CTkTextbox(assistant_frame, width=680, height=150, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
-assistant_responce_box_2.grid(row=2, column=0, padx=10, pady=10)
+assistant_responce_box_frame = CTkFrame(assistant_frame, corner_radius=0, fg_color="transparent")
+assistant_responce_box_frame.pack(fill="x", expand=True, anchor="center")
+assistant_responce_box_1 = CTkTextbox(assistant_responce_box_frame, width=680, height=150, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
+assistant_responce_box_1.grid(row=0, column=0, padx=10, pady=10)
+assistant_responce_box_2 = CTkTextbox(assistant_responce_box_frame, width=680, height=150, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
+assistant_responce_box_2.grid(row=1, column=0, padx=10, pady=10)
 assistant_frame_button_1 = CTkButton(assistant_frame, text="Submit question", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: ChatGPT())
-assistant_frame_button_1.grid(row=3, column=0, padx=0, pady=(0, 5), sticky="ews")
+assistant_frame_button_1.pack(fill="x", expand=True, anchor="center", padx=10, pady=5)
 
 
 devices_spacing_frame_1 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=0, padx=0, pady=0)
@@ -1039,6 +1041,7 @@ responsive_grid(games_frame, 2, 2) # 2 rows, 2 columns responsive
 responsive_grid(socialmedia_frame, 2, 2) # 2 rows, 2 columns responsive
 responsive_grid(ytdownloader_frame, 4, 1) # 4 rows, 1 column responsive
 responsive_grid(assistant_frame, 0, 0) # 0 rows, 0 columns responsive
+responsive_grid(assistant_responce_box_frame, 1, 0) # 1 rows, 0 columns responsive
 responsive_grid(devices_frame, 3, 1) # 3 rows, 1 column responsive
 responsive_grid(system_frame, 2, 3) # 2 rows, 3 columns responsive
 responsive_grid(settings_frame, 2, 2) # 2 rows, 2 columns responsive
