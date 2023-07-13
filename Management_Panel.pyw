@@ -826,18 +826,15 @@ StartUp()
 
 if check_window_properties():
     WINDOW_STATE = str(settings["AppSettings"]["Window_State"])
-    WIDTH = int(settings["AppSettings"]["Window_Width"])
-    HEIGHT = int(settings["AppSettings"]["Window_Height"])
+    WIDTH = int(settings["AppSettings"]["Window_Width"] / screen_scale)
+    HEIGHT = int(settings["AppSettings"]["Window_Height"] / screen_scale)
     X = int(settings["AppSettings"]["Window_X"])
     Y = int(settings["AppSettings"]["Window_Y"])
-
-    WIDTH = int(WIDTH / screen_scale)
-    HEIGHT = int(HEIGHT / screen_scale)
 
     window.geometry(f"{WIDTH}x{HEIGHT}+{X}+{Y}")
 
     if WINDOW_STATE == "maximized":
-        window.state("zoomed") # for some reason this suddenly maximizes the window then minimizes it ㄟ( ▔, ▔ )ㄏ (on my windows 11 machine)
+        window.state("zoomed") # for some reason this suddenly maximizes the window then minimizes it ㄟ( ▔, ▔ )ㄏ let me know how it works for you. (https://github.com/TomSchimansky/CustomTkinter/discussions/1819)
 
     del WIDTH, HEIGHT, X, Y, WINDOW_STATE
 else:
