@@ -849,7 +849,8 @@ if check_window_properties():
     window.geometry(f"{WIDTH}x{HEIGHT}+{X}+{Y}")
 
     if WINDOW_STATE == "maximized":
-        window.state("zoomed") # for some reason this suddenly maximizes the window then minimizes it for me ㄟ( ▔, ▔ )ㄏ let me know how it works for you. (https://github.com/TomSchimansky/CustomTkinter/discussions/1819)
+        # Thank you Akascape for helping me out (https://github.com/TomSchimansky/CustomTkinter/discussions/1819)
+        schedule_create(window, 50,  lambda: window.state('zoomed'), True)
 
     del WIDTH, HEIGHT, X, Y, WINDOW_STATE
 else:
