@@ -66,7 +66,7 @@ headers = {
 model_prompt = "Hello, how can I help you today?"
 UserDesktopDir = desktop()
 SETTINGSFILE = "settings.json"
-devices_per_row = 2  # Maximum number of devices per row
+devices_per_row = 2  # Maximum number of devices per ro
 DeviceFrames = []  # List to store references to deviceFrame frames
 devices = {} # dict to store device info (battey persetage, type)
 after_events = {} # dict to store after events
@@ -343,14 +343,14 @@ def NavbarAction(option: str):
         navigation_frame_label.pack_configure(padx=7)
         navigation_frame_label.configure(font=("sans-serif", 15, "bold"))
         close_open_nav_button.configure(image=openimage, command=lambda: NavbarAction("open"))
-        window.minsize(550, 400)
+        window.minsize(550, 420)
     elif option == "open":
         for button in all_buttons:
             button.configure(text=all_buttons_text[all_buttons.index(button)], anchor="w")
         navigation_frame_label.pack_configure(padx=20)
         navigation_frame_label.configure(font=("sans-serif", 18, "bold"))
         close_open_nav_button.configure(image=closeimage, command=lambda: NavbarAction("close"))
-        window.minsize(650, 400)
+        window.minsize(650, 420)
     title_bar.update()
 
 def on_drag_end(event):
@@ -724,7 +724,7 @@ def AllDeviceDetails():
         def defaultstates():
             refreshinglabel.destroy()
             devices_refresh_btn.configure(text="Load devices")
-            devices_refresh_btn.grid(row=3, column=0, columnspan=2, padx=10, pady=20, sticky="ew")
+            devices_refresh_btn.grid(row=0, column=0, columnspan=2, padx=10, pady=20, sticky="ew")
         devices_refresh_btn.grid_forget()
         refreshinglabel = CTkLabel(devices_frame, text="No devices found", font=("Arial", 25))
         refreshinglabel.place(relx=0.5, rely=0.4, anchor="center")
@@ -834,11 +834,13 @@ if check_window_properties():
     window.geometry(f"{WIDTH}x{HEIGHT}+{X}+{Y}")
 
     if WINDOW_STATE == "maximized":
-        window.state("zoomed") # for some reason this suddenly maximizes the window then minimizes it ㄟ( ▔, ▔ )ㄏ let me know how it works for you. (https://github.com/TomSchimansky/CustomTkinter/discussions/1819)
+        window.state("zoomed") # for some reason this suddenly maximizes the window then minimizes it for me ㄟ( ▔, ▔ )ㄏ let me know how it works for you. (https://github.com/TomSchimansky/CustomTkinter/discussions/1819)
 
     del WIDTH, HEIGHT, X, Y, WINDOW_STATE
 else:
-    window.geometry(CenterWindowToDisplay(window, 900, 400, screen_scale))
+    window.geometry(CenterWindowToDisplay(window, 900, 420, screen_scale))
+
+del screen_scale
 
 
 # Bind keys Ctrl + Shift + Del to reset the windows positional values in settings.json
@@ -866,29 +868,35 @@ except Exception as e:
 
 # create navigation frame
 navigation_frame = CTkFrame(window, corner_radius=0)
+navigation_buttons_frame = CTkFrame(navigation_frame, corner_radius=0, fg_color="transparent")
 navigation_frame.pack(side="left", fill="y")
 
-# menu buttons
+# X button and time&date label
 close_open_nav_button = CTkButton(window, width=25, height=25, text="", fg_color="transparent", image=closeimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: NavbarAction("close"))
 close_open_nav_button.pack(side="top", anchor="nw", padx=0, pady=5)
 navigation_frame_label = CTkLabel(navigation_frame, text="Loading...", font=("sans-serif", 18, "bold"))
 navigation_frame_label.pack(side="top", padx=20, pady=20)
-home_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Home", fg_color="transparent", image=homeimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Home"))
-home_button.pack(side="top", fill="x", padx=0, pady=0)
-games_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Games", fg_color="transparent", image=gamesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Games"))
-games_button.pack(side="top", fill="x", padx=0, pady=0)
-socialmedia_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Social Media", fg_color="transparent", image=socialmediaimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Social Media"))
-socialmedia_button.pack(side="top", fill="x", padx=0, pady=0)
-ytdownloader_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="YT Downloader", fg_color="transparent", image=ytdownloaderimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("YT Downloader"))
-ytdownloader_button.pack(side="top", fill="x", padx=0, pady=0)
-assistant_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Assistant", fg_color="transparent", image=assistantimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Assistant"))
-assistant_button.pack(side="top", fill="x", padx=0, pady=0)
-devices_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Devices", fg_color="transparent", image=devicesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Devices"))
-devices_button.pack(side="top", fill="x", padx=0, pady=0)
-system_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="System", fg_color="transparent", image=systemimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("System"))
-system_button.pack(side="top", fill="x", padx=0, pady=0)
-settings_button = CTkButton(navigation_frame, corner_radius=10, width=0, height=40, text="Settings", fg_color="transparent", image=settingsimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Settings"))
-settings_button.pack(side="top", fill="x", padx=0, pady=0)
+
+# navigation_buttons_frame pack. We need to pack it here so its under the navigation_frame_label (under the time and date)
+navigation_buttons_frame.pack(fill="x", expand=True, anchor="center")
+
+# menu btns
+home_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=10, height=40, text="Home", fg_color="transparent", image=homeimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Home"))
+home_button.grid(sticky="ew", pady=1)
+games_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Games", fg_color="transparent", image=gamesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Games"))
+games_button.grid(sticky="ew", pady=1)
+socialmedia_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Social Media", fg_color="transparent", image=socialmediaimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Social Media"))
+socialmedia_button.grid(sticky="ew", pady=1)
+ytdownloader_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="YT Downloader", fg_color="transparent", image=ytdownloaderimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("YT Downloader"))
+ytdownloader_button.grid(sticky="ew", pady=1)
+assistant_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Assistant", fg_color="transparent", image=assistantimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Assistant"))
+assistant_button.grid(sticky="ew", pady=1)
+devices_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Devices", fg_color="transparent", image=devicesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Devices"))
+devices_button.grid(sticky="ew", pady=1)
+system_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="System", fg_color="transparent", image=systemimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("System"))
+system_button.grid(sticky="ew", pady=1)
+settings_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Settings", fg_color="transparent", image=settingsimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Settings"))
+settings_button.grid(sticky="ew", pady=1)
 
 del homeimage, devicesimage, gamesimage, ytdownloaderimage, socialmediaimage, assistantimage, systemimage, settingsimage
 
@@ -1026,6 +1034,7 @@ alpha_slider.grid(row=7, column=1, padx=20, pady=10)
 select_frame_by_name(settings["AppSettings"]["DefaultFrame"])
 
 # Make frames .grid responsive
+responsive_grid(navigation_buttons_frame, 10, 0) # 10 rows, 0 columns responsive
 responsive_grid(games_frame, 2, 2) # 2 rows, 2 columns responsive
 responsive_grid(socialmedia_frame, 2, 2) # 2 rows, 2 columns responsive
 responsive_grid(ytdownloader_frame, 4, 1) # 4 rows, 1 column responsive
@@ -1035,7 +1044,7 @@ responsive_grid(system_frame, 2, 3) # 2 rows, 3 columns responsive
 responsive_grid(settings_frame, 2, 2) # 2 rows, 2 columns responsive
 
 # add all buttons and their text to a list for later use
-for widget in navigation_frame.winfo_children():
+for widget in navigation_buttons_frame.winfo_children():
     if isinstance(widget, CTkButton):
         all_buttons.append(widget)
         all_buttons_text.append(widget.cget('text'))
