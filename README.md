@@ -6,7 +6,7 @@
 
 **Version:** v4.1.7\
 **Project status:** Ready for update/download\
-**Last updated Github Repo:** 7/12/2023
+**Last updated Github Repo:** 7/17/2023
 
 ## Setup
 
@@ -38,7 +38,7 @@ and the time and date region stuff are pulled from your computer (a datetime lib
 
 - Even if you are either downloading a file from YouTube or waiting for a response from ChatGPT, you can still switch through different tabs in the app. I wouldn't suggest this, but you can even change some settings from **settings.json**, and the thing would occasionally run (As I said, not recommended, but possible).
 
-- You can directly change your power mode from the **System** tab. The dropdown will show you all available power modes, and the title of the dropdown will show you the active one (the mode that shows even when you didn't click the dropdown).
+- You can directly change your power mode from the **System** tab. The dropdown will show you all available power modes, and the title of the dropdown will show you the active one (the mode that shows even when the dropdown is closed). Also keep in mind, If you change the currently active power mode from control panel, the new values will **NOT** be reflected in the dropdown. You will have to restart the app for the dropdown to update.
 ![powermode image](assets/Help/new_powermode_doc.png)
 
 - Can change the alpha value of the window (transparency). The default value is 1.0 (no transparency).\
