@@ -13,6 +13,8 @@
 ###
 ###
 ### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
+### TODO: Make a Fastboot.pyw file. This file will mainly be focused on launching the app as fast as possible
+### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
 ### DONE: Fix window maximize issue on launch
 ### DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
 ### DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch
@@ -174,6 +176,7 @@ def StartUp():
                 "DownloadsFolderName": "YT_Downloads",
                 "DefaultFrame": "Home",
                 "Alpha": 1.0,
+                "Start_With_Windows": "False",
                 "Window_State": "normal",
                 "Window_Width": "",
                 "Window_Height": "",
