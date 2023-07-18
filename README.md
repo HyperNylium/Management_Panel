@@ -40,7 +40,7 @@ and the time and date region stuff are pulled from your computer (a datetime lib
 
 - You can directly change your power mode from the **System** tab. The dropdown will show you all available power modes, and the title of the dropdown will show you the active one (the mode that shows even when the dropdown is closed).
 > Keep in mind, If you change the currently active power mode from control panel or anywhere else, the new values will **NOT** be reflected in the dropdown. You will have to restart the app for the dropdown to update.
-> Also keep in mind that this dropdown is just selecting a powermode to be active. So, if you change the settings for a powermode (for example, Balanced now has a minimum CPU usage of 50% instead of 40%) the app will still work.
+> Also keep in mind that this dropdown is just selecting a powermode to be active. So, if you change the settings for a powermode (for example, Balanced now has a minimum CPU usage of 50% instead of 40%) the app, including your new settings for the powermode will still work.
 
 ![powermode image](assets/Help/new_powermode_doc.png)
 
