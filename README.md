@@ -45,7 +45,7 @@ and the time and date region stuff are pulled from your computer (a datetime lib
 ![powermode image](assets/Help/new_powermode_doc.png)
 
 - Can change the alpha value of the window (transparency). The default value is 1.0 (no transparency).\
-The minimum value is 0.4 (if you do put it at 0.0 then the app isn't visible anymore so limited it to 0.4).\
+The minimum value is 0.4 (if you do put it at 0.0 then the app isn't visible anymore so i limited it to 0.4).\
 The maximum value is 1.0 (no transparency).\
 You can change the value by going to the **Settings** tab and sliding the slider at the very bottom\
 of the screen to your liking
@@ -64,8 +64,9 @@ You can change the value by going to the **Settings** tab and selecting the tab 
 ```
 ![device manager image](assets/Help/find_BT_device_from_devicemanager.png)
 
-- Added a new event scheduling system. Instead of using the normal `.after()` or `.after_cancel()` methods, I made a new system that is more efficient and easier to use. To cancel a after even all you need is the function name that you want to cancel. Thats it.\
+- Added a new event scheduling system. Instead of using the normal `.after()` or `.after_cancel()` methods, I made a new system that is more efficient and easier to use. To cancel a after event all you need is the function name that you want to cancel. Thats it\
 Heres an example of how to use it:
+> Heres a repo that explains it in more detail: [schedule-create-cancel](https://github.com/HyperNylium/schedule-create-cancel)\
 ```python
 import customtkinter
 
