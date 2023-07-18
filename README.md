@@ -64,9 +64,9 @@ You can change the value by going to the **Settings** tab and selecting the tab 
 ```
 ![device manager image](assets/Help/find_BT_device_from_devicemanager.png)
 
-- Added a new event scheduling system. Instead of using the normal `.after()` or `.after_cancel()` methods, I made a new system that is more efficient and easier to use. To cancel a after event all you need is the function name that you want to cancel. Thats it\
+- Added a new event scheduling system. Instead of using the normal `.after()` or `.after_cancel()` methods, I made a new system that is more efficient and easier to use. To cancel a after event all you need is the function name that you want to cancel. Thats it. No ID required\
 Heres an example of how to use it:
-> Heres a repo that explains it in more detail: [schedule-create-cancel](https://github.com/HyperNylium/schedule-create-cancel)\
+> Heres a repo that explains it in more detail: [schedule-create-cancel](https://github.com/HyperNylium/schedule-create-cancel)
 ```python
 import customtkinter
 
