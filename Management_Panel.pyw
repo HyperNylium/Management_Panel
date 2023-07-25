@@ -14,7 +14,7 @@
 ###
 ### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
 ### TODO: Make a Fastboot.pyw file. This file will mainly be focused on launching the app as fast as possible
-### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
+### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup - WORKING ON
 ### DONE: Fix window maximize issue on launch
 ### DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
 ### DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch
@@ -22,6 +22,7 @@
 ### DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
 ### DONE: make all window.after() use schedule_create() instead
 ### DONE: finish making the app responsive
+### DISREGARDED: Instead of using tkinter.messagebox use CTkMessagebox (Didn't work out as i hoped it did. The library is not at fault, i just didn't like the way it worked)
 ###
 ###
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -44,7 +45,7 @@ try:
     from plyer import notification
     from requests import get
     from requests.exceptions import Timeout
-    from winshell import desktop
+    from winshell import desktop, start_menu, startup
     from PIL.Image import open as PILopen
     import openai
     from pytube import YouTube as PY_Youtube
@@ -74,6 +75,8 @@ headers = {
 
 model_prompt = "Hello, how can I help you today?"
 UserDesktopDir = desktop()
+UserStartMenuDir = start_menu()
+UserSystemStartupDir = startup()
 SETTINGSFILE = "settings.json"
 devices_per_row = 2  # Maximum number of devices per ro
 DeviceFrames = []  # List to store references to deviceFrame frames
