@@ -172,14 +172,6 @@ def StartUp():
                 "OpenAI_Max_Tokens": 128,
                 "OpenAI_Temperature": 0.5
             },
-            "MusicSettings": {
-                "MusicDir": "",
-                "LastSong": "",
-                "Duration": "",
-                "Volume": 0.5,
-                "SongNames": [],
-                "SongLocs": [],
-            },
             "AppSettings": {
                 "AlwaysOnTop": "False",
                 "SpeakResponce": "False",
@@ -639,10 +631,9 @@ def GetPowerPlans():
     """Gets all power plans that are listed at:\n
     control panel > hardware and sound > power options"""
 
-    # Run a command to list the power plans without showing a window
+    # Run a command to list the power plans without showing a window. I do nothing with the error output because this command does not return an error
     output, error = Popen(["powercfg", "/list"], stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW).communicate()
     output_text = output.decode("utf-8")
-    error_text = error.decode("utf-8")
 
     # Extract power plan information from the output
     power_plans = {}
