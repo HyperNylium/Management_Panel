@@ -52,6 +52,7 @@ try:
     from pyttsx3 import init as ttsinit
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
+    from pygame import mixer
 except ImportError as importError:
     ModuleNotFound = str(importError).split("'")[1]
     showerror(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'")
@@ -170,6 +171,14 @@ def StartUp():
                 "OpenAI_model_engine": "text-davinci-003",
                 "OpenAI_Max_Tokens": 128,
                 "OpenAI_Temperature": 0.5
+            },
+            "MusicSettings": {
+                "MusicDir": "",
+                "LastSong": "",
+                "Duration": "",
+                "Volume": 0.5,
+                "SongNames": [],
+                "SongLocs": [],
             },
             "AppSettings": {
                 "AlwaysOnTop": "False",
@@ -629,26 +638,31 @@ def ChatGPT():
 def GetPowerPlans():
     """Gets all power plans that are listed at:\n
     control panel > hardware and sound > power options"""
-    # Execute the command without creating a window
-    result = Popen(["powercfg", "/list"], stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
 
-    # Wait for the command to complete and get the output
-    output, error = result.communicate()
+    # Run a command to list the power plans without showing a window
+    output, error = Popen(["powercfg", "/list"], stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW).communicate()
+    output_text = output.decode("utf-8")
+    error_text = error.decode("utf-8")
 
-    # Decode the output
-    output = output.decode("utf-8")
-    error = error.decode("utf-8")
-
-    # Process the output to extract power plan information
-    PowerPlans = {line.split("(")[1].split(")")[0]: line.split(":")[1].split("(")[0].strip() for line in output.splitlines() if "GUID" in line}
+    # Extract power plan information from the output
+    power_plans = {}
+    for line in output_text.splitlines():
+        if "GUID" in line:
+            guid = line.split("(")[1].split(")")[0]
+            name = line.split(":")[1].split("(")[0].strip()
+            power_plans[guid] = name
 
     # Find the active power plan
-    active = next(name for line in output.splitlines() if "*" in line for name in [line.split("(")[1].split(")")[0]] if "GUID" in line)
+    active_plan = None
+    for line in output_text.splitlines():
+        if "*" in line and "GUID" in line:
+            active_plan = line.split("(")[1].split(")")[0]
+            break
 
-    # Assign the active power plan to the PowerPlans dictionary with the key "active"
-    PowerPlans["active"] = active
+    # Store the active power plan in the dictionary
+    power_plans["active"] = active_plan
 
-    return PowerPlans
+    return power_plans
 def ChangePowerPlan(PlanName: str):
     """Changes the selected power plan"""
     PowerPlanGUID = UserPowerPlans[PlanName]
@@ -1092,3 +1106,114 @@ if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat")
     system_frame_button_2.configure(state="disabled")
 
 window.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# class MusicPlayerApp:
+#     def __init__(self, root):
+#         self.root = root
+#         self.root.title("Music Player")
+
+#         self.song_list = []
+#         self.current_song_index = 0
+#         self.paused = False
+
+#         pygame.mixer.init()
+
+#         self.create_widgets()
+#         self.load_songs()
+
+#     def create_widgets(self):
+#         self.song_label = tk.Label(self.root, text="No song playing")
+#         self.song_label.pack()
+
+#         self.volume_slider = tk.Scale(self.root, from_=0, to=1, resolution=0.01, orient="horizontal", label="Volume", command=self.set_volume)
+#         self.volume_slider.pack()
+
+#         self.prev_button = tk.Button(self.root, text="Previous", command=self.play_previous)
+#         self.prev_button.pack()
+
+#         self.play_pause_button = tk.Button(self.root, text="Play", command=self.play_pause)
+#         self.play_pause_button.pack()
+
+#         self.next_button = tk.Button(self.root, text="Next", command=self.play_next)
+#         self.next_button.pack()
+
+#     def set_volume(self, volume):
+#         pygame.mixer.music.set_volume(float(volume))
+
+#     def load_songs(self):
+#         music_folder = os.path.expanduser("~/Music")
+#         self.song_list = [f for f in os.listdir(music_folder) if f.endswith(".mp3")]
+
+#     def play_song(self):
+#         if self.song_list:
+#             current_song = self.song_list[self.current_song_index]
+#             pygame.mixer.music.load(os.path.join(os.path.expanduser("~/Music"), current_song))
+#             pygame.mixer.music.play()
+#             self.song_label.config(text=f"Playing: {current_song}")
+
+#     def play_pause(self):
+#         if pygame.mixer.music.get_busy():
+#             if self.paused:
+#                 pygame.mixer.music.unpause()
+#                 self.play_pause_button.config(text="Pause")
+#             else:
+#                 pygame.mixer.music.pause()
+#                 self.play_pause_button.config(text="Resume")
+#             self.paused = not self.paused
+#         else:
+#             self.play_song()
+#             self.play_pause_button.config(text="Pause")
+#             self.paused = False
+
+#     def play_next(self):
+#         if self.song_list:
+#             pygame.mixer.music.stop()
+#             self.current_song_index = (self.current_song_index + 1) % len(self.song_list)
+#             self.play_song()
+
+#     def play_previous(self):
+#         if self.song_list:
+#             pygame.mixer.music.stop()
+#             self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
+#             self.play_song()
