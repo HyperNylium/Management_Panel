@@ -178,8 +178,6 @@ def StartUp():
                 "LastSong": "",
                 "Duration": "",
                 "Volume": 0,
-                "SongNames": [],
-                "SongLocs": [],
             },
             "AppSettings": {
                 "AlwaysOnTop": "False",
