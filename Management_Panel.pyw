@@ -322,9 +322,9 @@ def check_for_updates(option: str):
             Developer = "N/A"
             LastEditDate = "N/A"
             ShowUserInfo = "- offline mode"
-        home_frame_button_1.configure(text=f"Version: {LiveAppVersion} {ShowUserInfo}")
-        home_frame_button_2.configure(text=f"Creator/developer: {Developer}")
-        home_frame_button_3.configure(text=f"Last updated: {LastEditDate}")
+        home_frame_label_1.configure(text=f"Version: {LiveAppVersion} {ShowUserInfo}")
+        home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
+        home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
         check_for_updates_button.configure(text="Check for updates complete", state="disabled")
         schedule_create(window, 3500, lambda: check_for_updates_button.configure(text="Check for updates", state="normal"), True)
     else:
@@ -1007,12 +1007,12 @@ settings_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 
 
 # Create elements/widgets for frames
-home_frame_button_1 = CTkLabel(home_frame, text=f"Version: {LiveAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
-home_frame_button_1.pack(anchor="center", pady=(100, 0))
-home_frame_button_2 = CTkLabel(home_frame, text=f"Creator/developer: {Developer}", font=("sans-serif", 28))
-home_frame_button_2.pack(anchor="center", pady=10)
-home_frame_button_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", font=("sans-serif", 28))
-home_frame_button_3.pack(anchor="center")
+home_frame_label_1 = CTkLabel(home_frame, text=f"Version: {LiveAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
+home_frame_label_1.pack(anchor="center", pady=(100, 0))
+home_frame_label_2 = CTkLabel(home_frame, text=f"Creator/developer: {Developer}", font=("sans-serif", 28))
+home_frame_label_2.pack(anchor="center", pady=10)
+home_frame_label_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", font=("sans-serif", 28))
+home_frame_label_3.pack(anchor="center")
 check_for_updates_button = CTkButton(home_frame, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: check_for_updates(option="in-app"))
 check_for_updates_button.pack(anchor="s", fill="x", expand=True, padx=10, pady=(0, 10))
 
@@ -1081,26 +1081,35 @@ assistant_frame_button_1.pack(fill="x", expand=True, anchor="center", padx=10, p
 
 
 
+music_frame_container = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
+music_controls_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
+music_volume_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
+music_progress_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
+music_frame_container.pack(fill="x", expand=True, anchor="s", pady=10)
+music_controls_frame.pack(fill="x", expand=True, anchor="s", pady=0)
+music_volume_frame.pack(fill="x", expand=True, anchor="s", pady=0)
+music_progress_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 
-
-
-
-music_controls_frame = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
-music_controls_frame.pack(fill="x", expand=True, anchor="s", pady=10)
 pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("previous"))
 play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("play"))
 next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("next"))
-volume_slider = CTkSlider(music_controls_frame, width=200, from_=0, to=100, command=lambda volume: musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
-volume_label = CTkLabel(music_controls_frame, text=int(volume_slider.get()), font=("sans-serif", 18, "bold"), fg_color="transparent")
+pre_song_btn.grid(row=1, column=1, padx=10, pady=0, sticky="e")
+play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
+next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
 
-pre_song_btn.grid(row=1, column=1, padx=5, pady=0, columnspan=1, sticky="e")
-play_pause_song_btn.grid(row=1, column=2, padx=5, pady=0, columnspan=1, sticky="e")
-next_song_btn.grid(row=1, column=3, padx=5, pady=0, columnspan=1, sticky="e")
-volume_slider.grid(row=1, column=5, padx=25, pady=0, sticky="e")
-volume_label.grid(row=1, column=5, padx=0, pady=(1, 0), sticky="w")
+volume_slider = CTkSlider(music_volume_frame, from_=0, to=100, command=lambda volume: musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
+volume_label = CTkLabel(music_volume_frame, text=int(volume_slider.get()), font=("sans-serif", 18, "bold"), fg_color="transparent")
+volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
+volume_slider.grid(row=1, column=1, padx=25, pady=0, sticky="e")
+music_volume_frame.grid_columnconfigure([0, 2], weight=1)
 
-
-
+time_left_label = CTkLabel(music_progress_frame, text="0:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
+song_progressbar = CTkProgressBar(music_progress_frame, mode="determinate", height=15)
+total_time_label = CTkLabel(music_progress_frame, text="0:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
+time_left_label.grid(row=1, column=0, padx=10, pady=0, sticky="w")
+song_progressbar.grid(row=1, column=1, padx=10, pady=0, sticky="ew")
+total_time_label.grid(row=1, column=2, padx=10, pady=0, sticky="e")
+music_progress_frame.grid_columnconfigure(1, weight=1)
 
 
 
