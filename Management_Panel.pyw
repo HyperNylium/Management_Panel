@@ -213,11 +213,12 @@ def StartUp():
 
     Thread(target=load_settings, name="settings_thread", daemon=True).start()
 
-    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsCheckForUpdates, settingsAlphavar
+    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar
     settingsSpeakResponceVar = BooleanVar()
     settingsAlwayOnTopVar = BooleanVar()
     settingsCheckForUpdates = BooleanVar()
     settingsAlphavar = DoubleVar()
+    musicVolumeVar = DoubleVar()
 
     UserPowerPlans = GetPowerPlans()
 
@@ -593,6 +594,25 @@ def YTVideoDownloader(ContentType: str):
             schedule_create(window, 4000, DefaultStates, True, **{"option": "ErrorReset"})
     YTThread = Thread(name="YTDownloadThread", daemon=True, target=YTDownloadThread)
     YTThread.start()
+
+
+
+def musicmanager(action: str):
+    if action == "play":
+        play_pause_song_btn.configure(image=pauseimage, command=lambda: musicmanager("pause"))
+        print("play")
+    elif action == "pause":
+        play_pause_song_btn.configure(image=playimage, command=lambda: musicmanager("play"))
+        print("pause")
+    elif action == "next":
+        print("next")
+    elif action == "previous":
+        print("previous")
+    elif action == "volume":
+        volume_label.configure(text=int(musicVolumeVar.get()))
+    return
+
+
 
 def speak(audio):
     """Speaks any string that you give it. It runs on its own thread so it doesn't block the main thread by default.\n
@@ -1067,14 +1087,17 @@ assistant_frame_button_1.pack(fill="x", expand=True, anchor="center", padx=10, p
 
 music_controls_frame = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
 music_controls_frame.pack(fill="x", expand=True, anchor="s", pady=10)
+pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("previous"))
+play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("play"))
+next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("next"))
+volume_slider = CTkSlider(music_controls_frame, width=200, from_=0, to=100, command=lambda volume: musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
+volume_label = CTkLabel(music_controls_frame, text=int(volume_slider.get()), font=("sans-serif", 18, "bold"), fg_color="transparent")
 
-pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=None)
-play_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=None)
-next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=None)
-
-pre_song_btn.grid(row=1, column=1, padx=10, pady=10, columnspan=1, sticky="e")
-play_song_btn.grid(row=1, column=2, padx=10, pady=10, columnspan=1, sticky="e")
-next_song_btn.grid(row=1, column=3, padx=10, pady=10, columnspan=1, sticky="e")
+pre_song_btn.grid(row=1, column=1, padx=5, pady=0, columnspan=1, sticky="e")
+play_pause_song_btn.grid(row=1, column=2, padx=5, pady=0, columnspan=1, sticky="e")
+next_song_btn.grid(row=1, column=3, padx=5, pady=0, columnspan=1, sticky="e")
+volume_slider.grid(row=1, column=5, padx=25, pady=0, sticky="e")
+volume_label.grid(row=1, column=5, padx=0, pady=(1, 0), sticky="w")
 
 
 
