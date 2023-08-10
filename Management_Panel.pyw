@@ -14,7 +14,8 @@
 ###
 ### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
 ### TODO: Make a Fastboot.pyw file. This file will mainly be focused on launching the app as fast as possible
-### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup - WORKING ON
+### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
+### TODO: Make a Music tab that allows you to play music from a folder
 ### DONE: Fix window maximize issue on launch
 ### DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
 ### DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch
@@ -30,19 +31,21 @@
 # Imports
 from sys import exit, executable as SYSexecutable, argv as SYSargv
 from tkinter.messagebox import showerror, askyesno, showinfo
-from os import system, startfile, execl, mkdir, rename
+from tkinter.filedialog import askdirectory
+from os import system, startfile, execl, mkdir, rename, listdir
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
+from tkinter import BooleanVar, DoubleVar, IntVar
 from json import load as JSload, dump as JSdump
 from threading import Thread, Timer as TD_Timer
-from os.path import exists, join, splitext
-from tkinter import BooleanVar, DoubleVar, IntVar
+from os.path import exists, join, splitext, expanduser
 from webbrowser import open as WBopen
 from datetime import datetime, date
 from time import sleep
 import numpy as np
+from copy import deepcopy
 
 try:
-    from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
+    from customtkinter import CTk, CTkFrame, CTkScrollableFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
     from plyer import notification
     from requests import get
     from requests.exceptions import Timeout
@@ -101,13 +104,18 @@ class SettingsFileEventHandler(FileSystemEventHandler):
             TD_Timer(1, self.reload_settings).start()
 
     def reload_settings(self):
-        global settings
         if exists(SETTINGSFILE):
+            global settings
             try:
                 with open(SETTINGSFILE, 'r') as settings_file:
-                    settings = JSload(settings_file)
-            except:
-                pass
+                    new_settings = JSload(settings_file)
+                if new_settings != settings:
+                    if exists(new_settings["MusicSettings"]["MusicDir"]) or new_settings["MusicSettings"]["MusicDir"] == "":
+                        settings = deepcopy(new_settings)
+                        musicmanager("update")
+                del new_settings
+            except Exception as e:
+                print("Error reloading settings:", e)
         self.modified_event_pending = False
 class TitleUpdater:
     def __init__(self, label: CTkLabel = None):
@@ -178,8 +186,6 @@ def StartUp():
                 "LastSong": "",
                 "Duration": "",
                 "Volume": 0,
-                "SongNames": [],
-                "SongLocs": [],
             },
             "AppSettings": {
                 "AlwaysOnTop": "False",
@@ -617,6 +623,22 @@ def musicmanager(action: str):
         volume_label.configure(text=f"{musicVolumeVar.get()}%")
         schedule_cancel(window, savevolume)
         schedule_create(window, 420, savevolume)
+    elif action == "changedir":
+        tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=expanduser("~"))
+        if tmp_music_dir != "":
+            SaveSettingsToJson("MusicDir", tmp_music_dir)
+            musicmanager("update")
+    elif action == "update":
+        global song_list
+        if exists(settings["MusicSettings"]["MusicDir"]):
+            song_list = [f for f in listdir(settings["MusicSettings"]["MusicDir"]) if f.endswith((".mp3", ".m4a"))]
+        else:
+            song_list = []
+        music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
+        for widget in all_music_frame.winfo_children():
+            widget.destroy()
+        for index, song_name in enumerate(song_list):
+            CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
     return
 
 
@@ -892,7 +914,7 @@ def hextorgb(new_color_hex: str):
     new_color_hex = new_color_hex.lower().lstrip('#')
     new_color_rgb = tuple(int(new_color_hex[i:i+2], 16) for i in (0, 2, 4))
     return new_color_rgb
-def convert_image(image, hex_color: str):
+def change_image_clr(image, hex_color: str):
     target_rgb = hextorgb(hex_color)
     image = image.convert('RGBA')
     data = np.array(image)
@@ -910,6 +932,10 @@ def convert_image(image, hex_color: str):
 
     image_with_color = PILfromarray(data)
     return image_with_color
+def shorten_path(text, max_length):
+    if len(text) > max_length:
+        return text[:max_length - 3] + "..."  # Replace the last three characters with "..."
+    return text
 
 window = CTk()
 window.title("Management Panel")
@@ -956,10 +982,10 @@ try:
     settingsimage = CTkImage(PILopen("assets/MenuIcons/settings.png"), size=(25, 25))
     closeimage = CTkImage(PILopen("assets/MenuIcons/close.png"), size=(20, 20))
     openimage = CTkImage(PILopen("assets/MenuIcons/open.png"), size=(25, 25))
-    previousimage = CTkImage(convert_image(PILopen('assets/MusicPlayer/previous.png'), "#ffffff"), size=(25, 25))
-    pauseimage = CTkImage(convert_image(PILopen("assets/MusicPlayer/pause.png"), "#ffffff"), size=(25, 25))
-    playimage = CTkImage(convert_image(PILopen('assets/MusicPlayer/play.png'), "#ffffff"), size=(25, 25))
-    nextimage = CTkImage(convert_image(PILopen('assets/MusicPlayer/next.png'), "#ffffff"), size=(25, 25))
+    previousimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/previous.png'), "#ffffff"), size=(25, 25))
+    pauseimage = CTkImage(change_image_clr(PILopen("assets/MusicPlayer/pause.png"), "#ffffff"), size=(25, 25))
+    playimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/play.png'), "#ffffff"), size=(25, 25))
+    nextimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/next.png'), "#ffffff"), size=(25, 25))
 except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
     exit()
@@ -1088,15 +1114,37 @@ assistant_frame_button_1.pack(fill="x", expand=True, anchor="center", padx=10, p
 
 
 
+
+
+
+# All the frames for the music player
 music_frame_container = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
+all_music_frame = CTkScrollableFrame(music_frame, height=150, corner_radius=0, fg_color="transparent", border_width=3, border_color="#333")
+music_info_frame = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
+
 music_controls_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
 music_volume_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
 music_progress_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
-music_frame_container.pack(fill="x", expand=True, anchor="s", pady=10)
+all_music_frame.pack(fill="x", expand=True, anchor="s", pady=0)
+music_info_frame.pack(fill="x", expand=True, anchor="s", pady=0)
+music_frame_container.pack(fill="x", expand=True, anchor="s", pady=0)
 music_controls_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 music_volume_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 music_progress_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 
+# Music Info (song name, music directory)
+currently_playing_label = CTkLabel(music_info_frame, text="Currently Playing: None", font=("sans-serif", 18))
+music_dir_label = CTkLabel(music_info_frame, text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 45)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None", font=("sans-serif", 18))
+update_music_list = CTkButton(music_info_frame, width=80, text="Update", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=lambda: musicmanager("update"))
+change_music_dir = CTkButton(music_info_frame, width=80, text="Change", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=lambda: musicmanager("changedir"))
+
+currently_playing_label.grid(row=1, column=1, padx=10, pady=5, sticky="w")
+music_dir_label.grid(row=2, column=1, padx=10, pady=5, sticky="w")
+update_music_list.grid(row=2, column=2, padx=5, pady=5, sticky="e")
+change_music_dir.grid(row=2, column=3, padx=5, pady=5, sticky="w")
+music_info_frame.grid_columnconfigure([0, 3], weight=1)
+
+# Music Controls (next, play/pause, previous)
 pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("previous"))
 play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("play"))
 next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("next"))
@@ -1104,12 +1152,14 @@ pre_song_btn.grid(row=1, column=1, padx=10, pady=0, sticky="e")
 play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
 next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
 
+# The frame that holds the volume slider and the volume % label
 volume_slider = CTkSlider(music_volume_frame, from_=0, to=100, command=lambda volume: musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
 volume_label = CTkLabel(music_volume_frame, text=f"{musicVolumeVar.get()}%", font=("sans-serif", 18, "bold"), fg_color="transparent")
 volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
 volume_slider.grid(row=1, column=1, padx=40, pady=0, sticky="e")
 music_volume_frame.grid_columnconfigure([0, 2], weight=1)
 
+# The frame that holds the progress bar and the time labels
 time_left_label = CTkLabel(music_progress_frame, text="0:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
 song_progressbar = CTkProgressBar(music_progress_frame, mode="determinate", height=15)
 total_time_label = CTkLabel(music_progress_frame, text="0:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
@@ -1117,6 +1167,8 @@ time_left_label.grid(row=1, column=0, padx=10, pady=0, sticky="w")
 song_progressbar.grid(row=1, column=1, padx=10, pady=0, sticky="ew")
 total_time_label.grid(row=1, column=2, padx=10, pady=0, sticky="e")
 music_progress_frame.grid_columnconfigure(1, weight=1)
+
+
 
 
 
@@ -1192,6 +1244,8 @@ for widget in navigation_buttons_frame.winfo_children():
 # initialize and start the title updater
 title_bar = TitleUpdater(navigation_frame_label)
 title_bar.start()
+
+musicmanager("update")
 
 # set the navigation state to the last known state
 if settings["AppSettings"]["NavigationState"] == "close":
@@ -1315,3 +1369,32 @@ window.mainloop()
 #             pygame.mixer.music.stop()
 #             self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
 #             self.play_song()
+
+
+
+
+
+
+
+
+
+
+# def music2image(file_path: str):
+#     try:
+#         if file_path.lower().endswith(".mp3"):
+#             audio = MP3(file_path)
+#         elif file_path.lower().endswith(".m4a"):
+#             audio = MP4(file_path)
+#         else:
+#             raise ValueError("Unsupported file format")
+#         print("Audio tags:", audio.tags)
+#         if "covr" in audio.tags:
+#             cover = audio.tags["covr"][0]
+#             image = PILfrombytes("RGB", (1, 1), cover)
+#             return image
+#         else:
+#             print("No album artwork found")
+#             return None
+#     except Exception as e:
+#         print("Error:", e)
+#         return None
