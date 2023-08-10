@@ -30,33 +30,33 @@
 
 # Imports
 from sys import exit, executable as SYSexecutable, argv as SYSargv
-from tkinter.messagebox import showerror, askyesno, showinfo
-from tkinter.filedialog import askdirectory
 from os import system, startfile, execl, mkdir, rename, listdir
+from tkinter.messagebox import showerror, askyesno, showinfo
+from os.path import exists, join, splitext, expanduser
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from tkinter import BooleanVar, DoubleVar, IntVar
 from json import load as JSload, dump as JSdump
 from threading import Thread, Timer as TD_Timer
-from os.path import exists, join, splitext, expanduser
+from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
 from datetime import datetime, date
+from copy import deepcopy
 from time import sleep
 import numpy as np
-from copy import deepcopy
 
 try:
     from customtkinter import CTk, CTkFrame, CTkScrollableFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
-    from plyer import notification
-    from requests import get
-    from requests.exceptions import Timeout
-    from winshell import desktop
     from PIL.Image import open as PILopen, fromarray as PILfromarray
-    import openai
-    from pytube import YouTube as PY_Youtube
-    from pyttsx3 import init as ttsinit
-    from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
+    from pytube import YouTube as PY_Youtube
+    from requests.exceptions import Timeout
+    from watchdog.observers import Observer
+    from pyttsx3 import init as ttsinit
+    from plyer import notification
+    from winshell import desktop
     # from pygame import mixer
+    from requests import get
+    import openai
 except ImportError as importError:
     ModuleNotFound = str(importError).split("'")[1]
     showerror(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'")
