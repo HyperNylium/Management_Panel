@@ -39,20 +39,21 @@ from tkinter import BooleanVar, DoubleVar
 from webbrowser import open as WBopen
 from datetime import datetime, date
 from time import sleep
+import numpy as np
 
 try:
     from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
     from plyer import notification
     from requests import get
     from requests.exceptions import Timeout
-    from winshell import desktop, start_menu, startup
-    from PIL.Image import open as PILopen
+    from winshell import desktop
+    from PIL.Image import open as PILopen, fromarray as PILfromarray
     import openai
     from pytube import YouTube as PY_Youtube
     from pyttsx3 import init as ttsinit
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
-    from pygame import mixer
+    # from pygame import mixer
 except ImportError as importError:
     ModuleNotFound = str(importError).split("'")[1]
     showerror(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'")
@@ -76,8 +77,8 @@ headers = {
 
 model_prompt = "Hello, how can I help you today?"
 UserDesktopDir = desktop()
-UserStartMenuDir = start_menu()
-UserSystemStartupDir = startup()
+# UserStartMenuDir = start_menu()
+# UserSystemStartupDir = startup()
 SETTINGSFILE = "settings.json"
 devices_per_row = 2  # Maximum number of devices per ro
 DeviceFrames = []  # List to store references to deviceFrame frames
@@ -86,7 +87,7 @@ after_events = {} # dict to store after events
 prev_after_events = {}
 all_buttons: list[CTkButton] = [] # list to store all buttons in the navigation bar
 all_buttons_text: list[str] = [] # list to store all buttons text in the navigation bar
-all_frames = ["Home", "Games", "Social Media", "YT Downloader", "Assistant", "Devices", "System", "Settings"] # list to store all frames
+all_frames = ["Home", "Games", "Social Media", "YT Downloader", "Assistant", "Music", "Devices", "System", "Settings"] # list to store all frames
 prev_x = 0 # variable to store previous x coordinate of the window
 prev_y = 0 # variable to store previous y coordinate of the window
 
@@ -171,6 +172,14 @@ def StartUp():
                 "OpenAI_model_engine": "text-davinci-003",
                 "OpenAI_Max_Tokens": 128,
                 "OpenAI_Temperature": 0.5
+            },
+            "MusicSettings": {
+                "MusicDir": "",
+                "LastSong": "",
+                "Duration": "",
+                "Volume": 0.5,
+                "SongNames": [],
+                "SongLocs": [],
             },
             "AppSettings": {
                 "AlwaysOnTop": "False",
@@ -768,9 +777,10 @@ def select_frame_by_name(name: str):
     # set button color for selected button
     home_button.configure(fg_color=("gray75", "gray25") if name == "Home" else "transparent")
     games_button.configure(fg_color=("gray75", "gray25") if name == "Games" else "transparent")
+    socialmedia_button.configure(fg_color=("gray75", "gray25") if name == "Social Media" else "transparent")
     ytdownloader_button.configure(fg_color=("gray75", "gray25") if name == "YT Downloader" else "transparent")
     assistant_button.configure(fg_color=("gray75", "gray25") if name == "Assistant" else "transparent")
-    socialmedia_button.configure(fg_color=("gray75", "gray25") if name == "Social Media" else "transparent")
+    music_button.configure(fg_color=("gray75", "gray25") if name == "Music" else "transparent")
     devices_button.configure(fg_color=("gray75", "gray25") if name == "Devices" else "transparent")
     system_button.configure(fg_color=("gray75", "gray25") if name == "System" else "transparent")
     settings_button.configure(fg_color=("gray75", "gray25") if name == "Settings" else "transparent")
@@ -800,6 +810,10 @@ def select_frame_by_name(name: str):
     else:
         assistant_frame.pack_forget()
         assistant_responce_box_1.unbind("<Shift-Return>")
+    if name == "Music":
+        music_frame.pack(fill="both", expand=True)
+    else:
+        music_frame.pack_forget()
     if name == "Devices":
         devices_frame.pack(fill="both", expand=True)
         window.bind('<Control-r>', lambda event: AllDeviceDetails())
@@ -816,7 +830,7 @@ def select_frame_by_name(name: str):
         settings_frame.pack_forget()
 def SaveSettingsToJson(ValueToChange: str, Value: str):
     """Saves data to settings.json file"""
-    for Property in ['URLs', 'GameShortcutURLs', 'AppSettings', 'OpenAISettings']:
+    for Property in ['URLs', 'GameShortcutURLs', 'OpenAISettings', 'MusicSettings', 'AppSettings']:
         if Property in settings and ValueToChange in settings[Property]:
             settings[Property][ValueToChange] = Value
             break
@@ -847,6 +861,28 @@ def update_widget(widget, update=False, update_idletasks=False):
         widget.update()
     if update_idletasks:
         widget.update_idletasks()
+def hextorgb(new_color_hex: str):
+    new_color_hex = new_color_hex.lower().lstrip('#')
+    new_color_rgb = tuple(int(new_color_hex[i:i+2], 16) for i in (0, 2, 4))
+    return new_color_rgb
+def convert_image(image, hex_color: str):
+    target_rgb = hextorgb(hex_color)
+    image = image.convert('RGBA')
+    data = np.array(image)
+
+    # red, green, blue, alpha = data[..., 0], data[..., 1], data[..., 2], data[..., 3]
+    alpha = data[..., 3]
+
+    # Find areas with non-transparent pixels
+    non_transparent_areas = alpha > 0
+
+    # Replace the RGB values of non-transparent areas with the target RGB color
+    data[..., 0][non_transparent_areas] = target_rgb[0]
+    data[..., 1][non_transparent_areas] = target_rgb[1]
+    data[..., 2][non_transparent_areas] = target_rgb[2]
+
+    image_with_color = PILfromarray(data)
+    return image_with_color
 
 window = CTk()
 window.title("Management Panel")
@@ -888,10 +924,15 @@ try:
     ytdownloaderimage = CTkImage(PILopen("assets/MenuIcons/ytdownloader.png"), size=(25, 25))
     socialmediaimage = CTkImage(PILopen("assets/MenuIcons/socialmedia.png"), size=(25, 25))
     assistantimage = CTkImage(PILopen("assets/MenuIcons/assistant.png"), size=(25, 25))
+    musicimage = CTkImage(PILopen("assets/MenuIcons/music.png"), size=(25, 25))
     systemimage = CTkImage(PILopen("assets/MenuIcons/system.png"), size=(25, 25))
     settingsimage = CTkImage(PILopen("assets/MenuIcons/settings.png"), size=(25, 25))
     closeimage = CTkImage(PILopen("assets/MenuIcons/close.png"), size=(20, 20))
     openimage = CTkImage(PILopen("assets/MenuIcons/open.png"), size=(25, 25))
+    previousimage = CTkImage(convert_image(PILopen('assets/MusicPlayer/previous.png'), "#ffffff"), size=(25, 25))
+    pauseimage = CTkImage(convert_image(PILopen("assets/MusicPlayer/pause.png"), "#ffffff"), size=(25, 25))
+    playimage = CTkImage(convert_image(PILopen('assets/MusicPlayer/play.png'), "#ffffff"), size=(25, 25))
+    nextimage = CTkImage(convert_image(PILopen('assets/MusicPlayer/next.png'), "#ffffff"), size=(25, 25))
 except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
     exit()
@@ -921,6 +962,8 @@ ytdownloader_button = CTkButton(navigation_buttons_frame, corner_radius=10, widt
 ytdownloader_button.grid(sticky="ew", pady=1)
 assistant_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Assistant", fg_color="transparent", image=assistantimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Assistant"))
 assistant_button.grid(sticky="ew", pady=1)
+music_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Music", fg_color="transparent", image=musicimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Music"))
+music_button.grid(sticky="ew", pady=1)
 devices_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Devices", fg_color="transparent", image=devicesimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Devices"))
 devices_button.grid(sticky="ew", pady=1)
 system_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="System", fg_color="transparent", image=systemimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("System"))
@@ -928,7 +971,7 @@ system_button.grid(sticky="ew", pady=1)
 settings_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=0, height=40, text="Settings", fg_color="transparent", image=settingsimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Settings"))
 settings_button.grid(sticky="ew", pady=1)
 
-del homeimage, devicesimage, gamesimage, ytdownloaderimage, socialmediaimage, assistantimage, systemimage, settingsimage
+del homeimage, devicesimage, gamesimage, ytdownloaderimage, socialmediaimage, assistantimage, musicimage, systemimage, settingsimage
 
 
 # main frames
@@ -937,6 +980,7 @@ games_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 socialmedia_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 ytdownloader_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 assistant_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
+music_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 devices_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 system_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 settings_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
@@ -1015,6 +1059,29 @@ assistant_frame_button_1 = CTkButton(assistant_frame, text="Submit question", co
 assistant_frame_button_1.pack(fill="x", expand=True, anchor="center", padx=10, pady=5)
 
 
+
+
+
+
+
+
+music_controls_frame = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
+music_controls_frame.pack(fill="x", expand=True, anchor="s", pady=10)
+
+pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=None)
+play_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=None)
+next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=None)
+
+pre_song_btn.grid(row=1, column=1, padx=10, pady=10, columnspan=1, sticky="e")
+play_song_btn.grid(row=1, column=2, padx=10, pady=10, columnspan=1, sticky="e")
+next_song_btn.grid(row=1, column=3, padx=10, pady=10, columnspan=1, sticky="e")
+
+
+
+
+
+
+
 devices_spacing_frame_1 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=0, padx=0, pady=0)
 devices_spacing_frame_2 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=1, padx=0, pady=0)
 devices_refresh_btn = CTkButton(devices_frame, text="Load devices", compound="bottom", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: AllDeviceDetails())
@@ -1075,6 +1142,7 @@ responsive_grid(assistant_responce_box_frame, 1, 0) # 1 rows, 0 columns responsi
 responsive_grid(devices_frame, 3, 1) # 3 rows, 1 column responsive
 responsive_grid(system_frame, 2, 3) # 2 rows, 3 columns responsive
 responsive_grid(settings_frame, 2, 2) # 2 rows, 2 columns responsive
+music_controls_frame.grid_columnconfigure([0, 4], weight=1)
 
 # add all buttons and their text to a list for later use
 for widget in navigation_buttons_frame.winfo_children():
