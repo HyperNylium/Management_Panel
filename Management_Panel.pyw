@@ -35,7 +35,7 @@ from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from json import load as JSload, dump as JSdump
 from threading import Thread, Timer as TD_Timer
 from os.path import exists, join, splitext
-from tkinter import BooleanVar, DoubleVar
+from tkinter import BooleanVar, DoubleVar, IntVar
 from webbrowser import open as WBopen
 from datetime import datetime, date
 from time import sleep
@@ -177,7 +177,7 @@ def StartUp():
                 "MusicDir": "",
                 "LastSong": "",
                 "Duration": "",
-                "Volume": 0.5,
+                "Volume": 0,
                 "SongNames": [],
                 "SongLocs": [],
             },
@@ -218,7 +218,7 @@ def StartUp():
     settingsAlwayOnTopVar = BooleanVar()
     settingsCheckForUpdates = BooleanVar()
     settingsAlphavar = DoubleVar()
-    musicVolumeVar = DoubleVar()
+    musicVolumeVar = IntVar()
 
     UserPowerPlans = GetPowerPlans()
 
@@ -228,6 +228,9 @@ def StartUp():
 
     if settings["AppSettings"]["SpeakResponce"] == "True":
         settingsSpeakResponceVar.set(True)
+
+    if isinstance(settings["MusicSettings"]["Volume"], int):
+        musicVolumeVar.set(settings["MusicSettings"]["Volume"])
 
     CheckForUpdatesOnLaunch = str(settings["AppSettings"]["CheckForUpdatesOnLaunch"])
     check_for_updates(CheckForUpdatesOnLaunch)
@@ -609,7 +612,11 @@ def musicmanager(action: str):
     elif action == "previous":
         print("previous")
     elif action == "volume":
-        volume_label.configure(text=int(musicVolumeVar.get()))
+        def savevolume():
+            SaveSettingsToJson("Volume", musicVolumeVar.get())
+        volume_label.configure(text=f"{musicVolumeVar.get()}%")
+        schedule_cancel(window, savevolume)
+        schedule_create(window, 420, savevolume)
     return
 
 
@@ -1098,9 +1105,9 @@ play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
 next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
 
 volume_slider = CTkSlider(music_volume_frame, from_=0, to=100, command=lambda volume: musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
-volume_label = CTkLabel(music_volume_frame, text=int(volume_slider.get()), font=("sans-serif", 18, "bold"), fg_color="transparent")
+volume_label = CTkLabel(music_volume_frame, text=f"{musicVolumeVar.get()}%", font=("sans-serif", 18, "bold"), fg_color="transparent")
 volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
-volume_slider.grid(row=1, column=1, padx=25, pady=0, sticky="e")
+volume_slider.grid(row=1, column=1, padx=40, pady=0, sticky="e")
 music_volume_frame.grid_columnconfigure([0, 2], weight=1)
 
 time_left_label = CTkLabel(music_progress_frame, text="0:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
