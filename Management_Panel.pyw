@@ -46,12 +46,12 @@ import numpy as np
 
 try:
     from customtkinter import CTk, CTkFrame, CTkScrollableFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
-    from pygame import mixer as pygmixer, quit as pygquit
     from PIL.Image import open as PILopen, fromarray as PILfromarray
     from watchdog.events import FileSystemEventHandler
     from pytube import YouTube as PY_Youtube
     from requests.exceptions import Timeout
     from watchdog.observers import Observer
+    from pygame import mixer as pygmixer
     from pyttsx3 import init as ttsinit
     from plyer import notification
     from winshell import desktop
@@ -148,11 +148,14 @@ class MusicManager:
         self.song_list = []
         self.current_song_paused = False
         self.current_song_index = 0
+        self.has_started_before = False
+        pygmixer.init()
         pygmixer.music.set_volume(float(int(settings["MusicSettings"]["Volume"]) / 100))
 
     def event_loop(self):
         while True:
-            print(pygmixer.music.get_pos())
+            if pygmixer.music.get_pos() == -1 and self.current_song_paused is False and self.has_started_before is True:
+                self.musicmanager("next")
             sleep(1)
 
     def start_event_loop(self):
@@ -167,6 +170,7 @@ class MusicManager:
                 pygmixer.music.load(join(settings["MusicSettings"]["MusicDir"], self.song_list[self.current_song_index]))
                 pygmixer.music.play()
                 currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index]}")
+                self.has_started_before = True
                 self.current_song_paused = False
             play_pause_song_btn.configure(image=pauseimage, command=lambda: music_manager.musicmanager("pause"))
 
@@ -198,7 +202,6 @@ class MusicManager:
             volume_label.configure(text=f"{musicVolumeVar.get()}%")
             schedule_cancel(window, savevolume)
             schedule_create(window, 420, savevolume)
-
 
         elif action == "changedir":
             if settings["MusicSettings"]["MusicDir"] != "" and exists(settings["MusicSettings"]["MusicDir"]):
@@ -322,7 +325,6 @@ def StartUp():
     settingsCheckForUpdates.set(CheckForUpdatesOnLaunch)
     del CheckForUpdatesOnLaunch
 
-    pygmixer.init()
     music_manager = MusicManager()
 def check_for_updates(option: str):
     global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
@@ -432,7 +434,8 @@ def on_closing():
     try: 
         observer.stop()
     except: pass
-    pygquit()
+    pygmixer.stop()
+    pygmixer.quit()
     window.destroy()
     exit()
 def schedule_create(widget, ms, func, cancel_after_finished=False, *args, **kwargs):
