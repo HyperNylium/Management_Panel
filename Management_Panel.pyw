@@ -46,6 +46,7 @@ import numpy as np
 
 try:
     from customtkinter import CTk, CTkFrame, CTkScrollableFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
+    from pygame import mixer as pygmixer, quit as pygquit
     from PIL.Image import open as PILopen, fromarray as PILfromarray
     from watchdog.events import FileSystemEventHandler
     from pytube import YouTube as PY_Youtube
@@ -54,7 +55,6 @@ try:
     from pyttsx3 import init as ttsinit
     from plyer import notification
     from winshell import desktop
-    # from pygame import mixer
     from requests import get
     import openai
 except ImportError as importError:
@@ -112,7 +112,7 @@ class SettingsFileEventHandler(FileSystemEventHandler):
                 if new_settings != settings:
                     if exists(new_settings["MusicSettings"]["MusicDir"]) or new_settings["MusicSettings"]["MusicDir"] == "":
                         settings = deepcopy(new_settings)
-                        musicmanager("update")
+                        music_manager.musicmanager("update")
                 del new_settings
             except Exception as e:
                 print("Error reloading settings:", e)
@@ -143,6 +143,85 @@ class TitleUpdater:
                 current_time = datetime.now().strftime('%I:%M:%S %p')
                 current_date = date.today().strftime('%a, %b %d, %Y')
             self.label.configure(text=f"{current_date}\n{current_time}")
+class MusicManager:
+    def __init__(self):
+        self.song_list = []
+        self.current_song_paused = False
+        self.current_song_index = 0
+        pygmixer.music.set_volume(float(int(settings["MusicSettings"]["Volume"]) / 100))
+
+    def event_loop(self):
+        while True:
+            print(pygmixer.music.get_pos())
+            sleep(1)
+
+    def start_event_loop(self):
+        Thread(target=self.event_loop, daemon=True, name="MusicManager").start()
+
+    def musicmanager(self, action: str):
+        if action == "play" and len(self.song_list) > 0:
+            if self.current_song_paused is True:
+                pygmixer.music.unpause()
+                self.current_song_paused = False
+            else:
+                pygmixer.music.load(join(settings["MusicSettings"]["MusicDir"], self.song_list[self.current_song_index]))
+                pygmixer.music.play()
+                currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index]}")
+                self.current_song_paused = False
+            play_pause_song_btn.configure(image=pauseimage, command=lambda: music_manager.musicmanager("pause"))
+
+        elif action == "pause":
+            if self.current_song_paused is False:
+                pygmixer.music.pause()
+                self.current_song_paused = True
+            else:
+                self.current_song_paused = False
+                self.musicmanager("play")
+            play_pause_song_btn.configure(image=playimage, command=lambda: music_manager.musicmanager("play"))
+
+        elif action == "next":
+           if len(self.song_list) > 0:
+            pygmixer.music.stop()
+            self.current_song_index = (self.current_song_index + 1) % len(self.song_list)
+            self.musicmanager("play")
+
+        elif action == "previous":
+           if len(self.song_list) > 0:
+            pygmixer.music.stop()
+            self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
+            self.musicmanager("play")
+
+        elif action == "volume":
+            def savevolume():
+                SaveSettingsToJson("Volume", musicVolumeVar.get())
+            pygmixer.music.set_volume(float(musicVolumeVar.get() / 100))
+            volume_label.configure(text=f"{musicVolumeVar.get()}%")
+            schedule_cancel(window, savevolume)
+            schedule_create(window, 420, savevolume)
+
+
+        elif action == "changedir":
+            if settings["MusicSettings"]["MusicDir"] != "" and exists(settings["MusicSettings"]["MusicDir"]):
+                tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=settings["MusicSettings"]["MusicDir"])
+            else:
+                tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=expanduser("~"))
+            if tmp_music_dir != "":
+                SaveSettingsToJson("MusicDir", tmp_music_dir)
+                self.musicmanager("update")
+
+        elif action == "update":
+            if exists(settings["MusicSettings"]["MusicDir"]):
+                self.song_list = [f for f in listdir(settings["MusicSettings"]["MusicDir"]) if f.endswith((".mp3", ".m4a"))]
+            else:
+                self.song_list = []
+            music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
+            for widget in all_music_frame.winfo_children():
+                widget.destroy()
+            for index, song_name in enumerate(self.song_list):
+                CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=self.song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
+        else:
+            pass
+
 
 def StartUp():
     """Reads settings.json and loads all the variables into the settings variable.\n
@@ -219,7 +298,7 @@ def StartUp():
 
     Thread(target=load_settings, name="settings_thread", daemon=True).start()
 
-    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar
+    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager
     settingsSpeakResponceVar = BooleanVar()
     settingsAlwayOnTopVar = BooleanVar()
     settingsCheckForUpdates = BooleanVar()
@@ -242,6 +321,9 @@ def StartUp():
     check_for_updates(CheckForUpdatesOnLaunch)
     settingsCheckForUpdates.set(CheckForUpdatesOnLaunch)
     del CheckForUpdatesOnLaunch
+
+    pygmixer.init()
+    music_manager = MusicManager()
 def check_for_updates(option: str):
     global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
     if option == "True":
@@ -350,6 +432,7 @@ def on_closing():
     try: 
         observer.stop()
     except: pass
+    pygquit()
     window.destroy()
     exit()
 def schedule_create(widget, ms, func, cancel_after_finished=False, *args, **kwargs):
@@ -603,45 +686,6 @@ def YTVideoDownloader(ContentType: str):
             schedule_create(window, 4000, DefaultStates, True, **{"option": "ErrorReset"})
     YTThread = Thread(name="YTDownloadThread", daemon=True, target=YTDownloadThread)
     YTThread.start()
-
-
-
-def musicmanager(action: str):
-    if action == "play":
-        play_pause_song_btn.configure(image=pauseimage, command=lambda: musicmanager("pause"))
-        print("play")
-    elif action == "pause":
-        play_pause_song_btn.configure(image=playimage, command=lambda: musicmanager("play"))
-        print("pause")
-    elif action == "next":
-        print("next")
-    elif action == "previous":
-        print("previous")
-    elif action == "volume":
-        def savevolume():
-            SaveSettingsToJson("Volume", musicVolumeVar.get())
-        volume_label.configure(text=f"{musicVolumeVar.get()}%")
-        schedule_cancel(window, savevolume)
-        schedule_create(window, 420, savevolume)
-    elif action == "changedir":
-        tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=expanduser("~"))
-        if tmp_music_dir != "":
-            SaveSettingsToJson("MusicDir", tmp_music_dir)
-            musicmanager("update")
-    elif action == "update":
-        global song_list
-        if exists(settings["MusicSettings"]["MusicDir"]):
-            song_list = [f for f in listdir(settings["MusicSettings"]["MusicDir"]) if f.endswith((".mp3", ".m4a"))]
-        else:
-            song_list = []
-        music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
-        for widget in all_music_frame.winfo_children():
-            widget.destroy()
-        for index, song_name in enumerate(song_list):
-            CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
-    return
-
-
 
 def speak(audio):
     """Speaks any string that you give it. It runs on its own thread so it doesn't block the main thread by default.\n
@@ -1135,8 +1179,8 @@ music_progress_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 # Music Info (song name, music directory)
 currently_playing_label = CTkLabel(music_info_frame, text="Currently Playing: None", font=("sans-serif", 18))
 music_dir_label = CTkLabel(music_info_frame, text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 45)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None", font=("sans-serif", 18))
-update_music_list = CTkButton(music_info_frame, width=80, text="Update", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=lambda: musicmanager("update"))
-change_music_dir = CTkButton(music_info_frame, width=80, text="Change", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=lambda: musicmanager("changedir"))
+update_music_list = CTkButton(music_info_frame, width=80, text="Update", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=lambda: music_manager.musicmanager("update"))
+change_music_dir = CTkButton(music_info_frame, width=80, text="Change", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=lambda: music_manager.musicmanager("changedir"))
 
 currently_playing_label.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 music_dir_label.grid(row=2, column=1, padx=10, pady=5, sticky="w")
@@ -1145,15 +1189,15 @@ change_music_dir.grid(row=2, column=3, padx=5, pady=5, sticky="w")
 music_info_frame.grid_columnconfigure([0, 3], weight=1)
 
 # Music Controls (next, play/pause, previous)
-pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("previous"))
-play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("play"))
-next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: musicmanager("next"))
+pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("previous"))
+play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("play"))
+next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("next"))
 pre_song_btn.grid(row=1, column=1, padx=10, pady=0, sticky="e")
 play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
 next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
 
 # The frame that holds the volume slider and the volume % label
-volume_slider = CTkSlider(music_volume_frame, from_=0, to=100, command=lambda volume: musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
+volume_slider = CTkSlider(music_volume_frame, from_=0, to=100, command=lambda volume: music_manager.musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
 volume_label = CTkLabel(music_volume_frame, text=f"{musicVolumeVar.get()}%", font=("sans-serif", 18, "bold"), fg_color="transparent")
 volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
 volume_slider.grid(row=1, column=1, padx=40, pady=0, sticky="e")
@@ -1245,7 +1289,8 @@ for widget in navigation_buttons_frame.winfo_children():
 title_bar = TitleUpdater(navigation_frame_label)
 title_bar.start()
 
-musicmanager("update")
+music_manager.musicmanager("update")
+music_manager.start_event_loop()
 
 # set the navigation state to the last known state
 if settings["AppSettings"]["NavigationState"] == "close":
@@ -1295,80 +1340,73 @@ window.mainloop()
 
 
 
-
-
-
-
-
-# class MusicPlayerApp:
-#     def __init__(self, root):
-#         self.root = root
-#         self.root.title("Music Player")
-
-#         self.song_list = []
-#         self.current_song_index = 0
-#         self.paused = False
-
-#         pygame.mixer.init()
-
-#         self.create_widgets()
-#         self.load_songs()
-
-#     def create_widgets(self):
-#         self.song_label = tk.Label(self.root, text="No song playing")
-#         self.song_label.pack()
-
-#         self.volume_slider = tk.Scale(self.root, from_=0, to=1, resolution=0.01, orient="horizontal", label="Volume", command=self.set_volume)
-#         self.volume_slider.pack()
-
-#         self.prev_button = tk.Button(self.root, text="Previous", command=self.play_previous)
-#         self.prev_button.pack()
-
-#         self.play_pause_button = tk.Button(self.root, text="Play", command=self.play_pause)
-#         self.play_pause_button.pack()
-
-#         self.next_button = tk.Button(self.root, text="Next", command=self.play_next)
-#         self.next_button.pack()
-
-#     def set_volume(self, volume):
-#         pygame.mixer.music.set_volume(float(volume))
-
-#     def load_songs(self):
-#         music_folder = os.path.expanduser("~/Music")
-#         self.song_list = [f for f in os.listdir(music_folder) if f.endswith(".mp3")]
-
-#     def play_song(self):
-#         if self.song_list:
-#             current_song = self.song_list[self.current_song_index]
-#             pygame.mixer.music.load(os.path.join(os.path.expanduser("~/Music"), current_song))
-#             pygame.mixer.music.play()
-#             self.song_label.config(text=f"Playing: {current_song}")
-
-#     def play_pause(self):
-#         if pygame.mixer.music.get_busy():
-#             if self.paused:
-#                 pygame.mixer.music.unpause()
-#                 self.play_pause_button.config(text="Pause")
-#             else:
-#                 pygame.mixer.music.pause()
-#                 self.play_pause_button.config(text="Resume")
-#             self.paused = not self.paused
+# def musicmanager(action: str):
+#     global song_list, current_song_paused, current_song_index
+#     if action == "play" and len(song_list) > 0:
+#         if current_song_paused is True:
+#             pygmixer.music.unpause()
+#             current_song_paused = False
 #         else:
-#             self.play_song()
-#             self.play_pause_button.config(text="Pause")
-#             self.paused = False
+#             pygmixer.music.load(join(settings["MusicSettings"]["MusicDir"], song_list[current_song_index]))
+#             pygmixer.music.play()
+#             currently_playing_label.configure(text=f"Currently Playing: {song_list[current_song_index]}")
+#             current_song_paused = False
+#         play_pause_song_btn.configure(image=pauseimage, command=lambda: musicmanager("pause"))
 
-#     def play_next(self):
-#         if self.song_list:
-#             pygame.mixer.music.stop()
-#             self.current_song_index = (self.current_song_index + 1) % len(self.song_list)
-#             self.play_song()
+#     elif action == "pause":
+#         if current_song_paused is False:
+#             pygmixer.music.pause()
+#             current_song_paused = True
+#         else:
+#             current_song_paused = False
+#             musicmanager("play")
+#         play_pause_song_btn.configure(image=playimage, command=lambda: musicmanager("play"))
 
-#     def play_previous(self):
-#         if self.song_list:
-#             pygame.mixer.music.stop()
-#             self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
-#             self.play_song()
+#     elif action == "next":
+#         if len(song_list) > 0:
+#             pygmixer.music.stop()
+#             current_song_index = (current_song_index + 1) % len(song_list)
+#             musicmanager("play")
+
+#     elif action == "previous":
+#         if len(song_list) > 0:
+#             pygmixer.music.stop()
+#             current_song_index = (current_song_index - 1) % len(song_list)
+#             musicmanager("play")
+
+#     elif action == USEREVENT:
+#         print("song ended", USEREVENT)
+#         musicmanager("next")
+
+#     elif action == "volume":
+#         def savevolume():
+#             SaveSettingsToJson("Volume", musicVolumeVar.get())
+#         pygmixer.music.set_volume(float(musicVolumeVar.get() / 100))
+#         volume_label.configure(text=f"{musicVolumeVar.get()}%")
+#         schedule_cancel(window, savevolume)
+#         schedule_create(window, 420, savevolume)
+#     elif action == "changedir":
+#         if settings["MusicSettings"]["MusicDir"] != "" and exists(settings["MusicSettings"]["MusicDir"]):
+#             tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=settings["MusicSettings"]["MusicDir"])
+#         else:
+#             tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=expanduser("~"))
+#         if tmp_music_dir != "":
+#             SaveSettingsToJson("MusicDir", tmp_music_dir)
+#             musicmanager("update")
+#     elif action == "update":
+#         if exists(settings["MusicSettings"]["MusicDir"]):
+#             song_list = [f for f in listdir(settings["MusicSettings"]["MusicDir"]) if f.endswith((".mp3", ".m4a"))]
+#         else:
+#             song_list = []
+#         music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
+#         for widget in all_music_frame.winfo_children():
+#             widget.destroy()
+#         for index, song_name in enumerate(song_list):
+#             CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
+#     return
+
+
+
 
 
 
