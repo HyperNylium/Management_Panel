@@ -173,7 +173,8 @@ class MusicManager:
         Thread(target=self.main_event_loop, daemon=True, name="MusicManager_main_event_loop").start()
 
     def update(self):
-        if exists(settings["MusicSettings"]["MusicDir"]):
+        MusicDir_exists = exists(settings["MusicSettings"]["MusicDir"])
+        if MusicDir_exists:
             self.song_list = [f for f in listdir(settings["MusicSettings"]["MusicDir"]) if f.endswith((".mp3", ".m4a"))]
             for song_name in self.song_list:
                 self.song_info[song_name] = {"duration": pygmixer.Sound(join(settings["MusicSettings"]["MusicDir"], song_name)).get_length()}
@@ -189,8 +190,9 @@ class MusicManager:
         play_pause_song_btn.configure(state="normal")
         next_song_btn.configure(state="normal")
         volume_slider.configure(state="normal")
-        currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True > 0 else 'None'}")
+        currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir_exists is True > 0 else 'None'}")
         music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
+        del MusicDir_exists
 
     def musicmanager(self, action: str):
         if action == "play" and len(self.song_list) > 0:
@@ -249,6 +251,9 @@ class MusicManager:
             next_song_btn.configure(state="disabled")
             volume_slider.configure(state="disabled")
             currently_playing_label.configure(text="Status: Scanning files...")
+            song_progressbar.set(0.0)
+            time_left_label.configure(text="0:00")
+            total_time_label.configure(text="0:00")
             if pygmixer.music.get_busy() and not self.current_song_paused:
                 self.musicmanager("pause")
             Thread(target=self.update, daemon=True, name="MusicManager_update").start()
