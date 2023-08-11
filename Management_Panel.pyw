@@ -42,7 +42,7 @@ from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
 from copy import deepcopy
 from time import sleep
-import numpy as np
+
 
 try:
     from customtkinter import CTk, CTkFrame, CTkScrollableFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
@@ -53,6 +53,7 @@ try:
     from watchdog.observers import Observer
     from pygame import mixer as pygmixer
     from pyttsx3 import init as ttsinit
+    from numpy import array as nparray
     from plyer import notification
     from winshell import desktop
     from requests import get
@@ -996,7 +997,7 @@ def hextorgb(new_color_hex: str):
 def change_image_clr(image, hex_color: str):
     target_rgb = hextorgb(hex_color)
     image = image.convert('RGBA')
-    data = np.array(image)
+    data = nparray(image)
 
     # red, green, blue, alpha = data[..., 0], data[..., 1], data[..., 2], data[..., 3]
     alpha = data[..., 3]
