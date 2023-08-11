@@ -11,7 +11,7 @@
 ## Setup
 
 ### For release setup
-1. Download the [latest version](https://github.com/HyperNylium/Management_Panel/releases/latest)
+1. Download the [Management_Panel-4.1.8-windows.zip](https://github.com/HyperNylium/Management_Panel/releases/latest)
 
 2. Unzip the downloaded file wherever you want.
 
