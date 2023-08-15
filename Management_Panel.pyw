@@ -12,6 +12,7 @@
 ### License: Mozilla Public License Version 2.0
 ###
 ###
+### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
 ### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
 ### TODO: Make a Fastboot.pyw file. This file will mainly be focused on launching the app as fast as possible
 ### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
@@ -42,7 +43,6 @@ from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
 from copy import deepcopy
 from time import sleep
-
 
 try:
     from customtkinter import CTk, CTkFrame, CTkScrollableFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
@@ -85,7 +85,7 @@ UserDesktopDir = desktop()
 # UserSystemStartupDir = startup()
 SETTINGSFILE = "settings.json"
 devices_per_row = 2  # Maximum number of devices per ro
-DeviceFrames = []  # List to store references to deviceFrame frames
+DeviceFrames = []  # List to store references to DeviceFrame frames
 devices = {} # dict to store device info (battey persetage, type)
 after_events = {} # dict to store after events
 all_buttons: list[CTkButton] = [] # list to store all buttons in the navigation bar
@@ -152,6 +152,13 @@ class MusicManager:
         pygmixer.init()
         pygmixer.music.set_volume(float(int(settings["MusicSettings"]["Volume"]) / 100))
 
+    def cleanup(self):
+        try:
+            pygmixer.music.stop()
+            pygmixer.quit()
+        except: pass
+        return
+
     def main_event_loop(self):
         while True:
             if pygmixer.music.get_busy() and not self.current_song_paused:
@@ -166,7 +173,7 @@ class MusicManager:
                 song_progressbar.set((current_pos_secs / total_duration))
                 total_time_label.configure(text=formatted_total_duration)
             if pygmixer.music.get_pos() == -1 and self.current_song_paused is False and self.has_started_before is True:
-                self.musicmanager("next") # This is where the infinite loop around the music happens. Almost like a replaying a playlist infinitely
+                self.musicmanager("next") # This is where the infinite loop around the music happens. Almost like replaying a playlist infinitely
             sleep(1)
 
     def start_event_loops(self):
@@ -357,6 +364,8 @@ def StartUp():
 
     if isinstance(settings["MusicSettings"]["Volume"], int):
         musicVolumeVar.set(settings["MusicSettings"]["Volume"])
+    elif isinstance(settings["MusicSettings"]["Volume"], float):
+        musicVolumeVar.set(int(settings["MusicSettings"]["Volume"]))
 
     CheckForUpdatesOnLaunch = str(settings["AppSettings"]["CheckForUpdatesOnLaunch"])
     check_for_updates(CheckForUpdatesOnLaunch)
@@ -472,8 +481,7 @@ def on_closing():
     try: 
         observer.stop()
     except: pass
-    pygmixer.stop()
-    pygmixer.quit()
+    music_manager.cleanup()
     window.destroy()
     exit()
 def schedule_create(widget, ms, func, cancel_after_finished=False, *args, **kwargs):
@@ -1236,12 +1244,12 @@ total_time_label = CTkLabel(music_progress_frame, text="0:00", font=("sans-serif
 time_left_label.grid(row=1, column=0, padx=10, pady=0, sticky="w")
 song_progressbar.grid(row=1, column=1, padx=10, pady=0, sticky="ew")
 total_time_label.grid(row=1, column=2, padx=10, pady=0, sticky="e")
-music_progress_frame.grid_columnconfigure(1, weight=1) 
+music_progress_frame.grid_columnconfigure(1, weight=1)
 
 
 devices_spacing_frame_1 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=0, padx=0, pady=0)
 devices_spacing_frame_2 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=1, padx=0, pady=0)
-devices_refresh_btn = CTkButton(devices_frame, text="Load devices", compound="bottom", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: AllDeviceDetails())
+devices_refresh_btn = CTkButton(devices_frame, text="Load devices", compound="bottom", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=AllDeviceDetails)
 devices_refresh_btn.grid(row=0, column=0, columnspan=2, padx=10, pady=20, sticky="ew")
 
 
@@ -1307,15 +1315,15 @@ for widget in navigation_buttons_frame.winfo_children():
         all_buttons.append(widget)
         all_buttons_text.append(widget.cget('text'))
 
-# init the music manager (this does not hold/delay the window from opening/launching)
+# initialize and start the MusicManager
 music_manager.musicmanager("update")
 music_manager.start_event_loops()
 
-# initialize and start the title updater
+# initialize and start the TitleUpdater
 title_bar = TitleUpdater(navigation_frame_label)
 title_bar.start()
 
-# set the navigation state to the last known state
+# set the navigation state to the last known state in settings.json
 if settings["AppSettings"]["NavigationState"] == "close":
     NavbarAction("close")
 else:
