@@ -303,7 +303,7 @@ def StartUp():
                 "VoiceType": 0,
                 "OpenAI_API_Key": "",
                 "OpenAI_model_engine": "text-davinci-003",
-                "OpenAI_Max_Tokens": 128,
+                "OpenAI_Max_Tokens": 1024,
                 "OpenAI_Temperature": 0.5
             },
             "MusicSettings": {
@@ -746,12 +746,13 @@ def speak(audio):
         engine.setProperty('voice', voices[settings["OpenAISettings"]["VoiceType"]].id)
         engine.say(audio)
         engine.runAndWait()
+        del engine
     SpeechThread = Thread(name="SpeechThread", daemon=True, target=lambda: engineSpeak(audio))
     SpeechThread.start()
 def ChatGPT():
     """Sends requests to ChatGPT and puts Response in text box"""
     UserText = assistant_responce_box_1.get("0.0", "end").strip("\n")
-    if (UserText != "") and (UserText != None):
+    if UserText != "" and UserText != None:
         def generate_response(prompt):
             try:
                 openai.api_key = settings["OpenAISettings"]["OpenAI_API_Key"]
@@ -807,10 +808,10 @@ def GetPowerPlans():
     return power_plans
 def ChangePowerPlan(PlanName: str):
     """Changes the selected power plan"""
-    PowerPlanGUID = UserPowerPlans[PlanName]
     if PlanName not in UserPowerPlans:
-        showerror(title="Power plan error", message=f"The power plan that you selected\n> {PlanName}\ndoesn't seem to exist.\nHeres the GUID: {PowerPlanGUID}")
+        showerror(title="Power plan error", message=f"The power plan that you selected\n> {PlanName}\ndoesn't seem to exist.")
         return
+    PowerPlanGUID = UserPowerPlans[PlanName]
     Popen(["powercfg", "/setactive", PowerPlanGUID], stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
 
 def GetDeviceInfo(device_name: str = None, connectivity_type: str = "Bluetooth", device_battery_data: str = "{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2", device_type_data: str = "DEVPKEY_DeviceContainer_Category"):
@@ -902,7 +903,7 @@ def AllDeviceDetails():
                 pass
         devices_refresh_btn.configure(text="Refresh")
         devices_refresh_btn.grid(row=row + 1, column=0, columnspan=2, padx=10, pady=20, sticky="ew")
-    if (settings["Devices"] is None) or (len(settings["Devices"]) == 0) or (settings["Devices"] == ""):
+    if settings["Devices"] is None or len(settings["Devices"]) == 0 or settings["Devices"] == "":
         def defaultstates():
             refreshinglabel.destroy()
             devices_refresh_btn.configure(text="Load devices")

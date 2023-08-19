@@ -138,49 +138,54 @@ window.mainloop()
 ```json
 // Default values for settings.json
 {
-  "URLs": {
-      "WEBSITE": "http://hypernylium.com/",
-      "GITHUBURL": "https://github.com/HyperNylium",
-      "DISCORDURL": "https://discord.gg/4FHTjAgw95",
-      "INSTAGRAMURL": "https://www.instagram.com/hypernylium/",
-      "YOUTUBEURL": "https://www.youtube.com/channel/UCpJ4F4dMn_DIhtrCJwDUK2A",
-      "TIKTOKURL": "https://www.tiktok.com/foryou?lang=en",
-      "FACEBOOK": "https://www.facebook.com/HyperNylium/",
-      "TWITTERURL": "https://twitter.com/HyperNylium"
-  },
-  "GameShortcutURLs": {
-      "GAME_1": "",
-      "GAME_2": "",
-      "GAME_3": "",
-      "GAME_4": "",
-      "GAME_5": "",
-      "GAME_6": "",
-      "GAME_7": "",
-      "GAME_8": "",
-      "GAME_9": ""
-  },
-  "OpenAISettings": {
-      "VoiceType": 0,
-      "OpenAI_API_Key": "",
-      "OpenAI_model_engine": "text-davinci-003",
-      "OpenAI_Max_Tokens": 128,
-      "OpenAI_Temperature": 0.5
-  },
-  "AppSettings": {
-      "AlwaysOnTop": "False",
-      "SpeakResponce": "False",
-      "CheckForUpdatesOnLaunch": "True",
-      "NavigationState": "open",
-      "DownloadsFolderName": "YT_Downloads",
-      "DefaultFrame": "Home",
-      "Alpha": 1.0,
-      "Window_State": "normal",
-      "Window_Width": "",
-      "Window_Height": "",
-      "Window_X": "",
-      "Window_Y": ""
-  },
-  "Devices": []
+    "URLs": {
+        "WEBSITE": "http://hypernylium.com/",
+        "GITHUBURL": "https://github.com/HyperNylium",
+        "DISCORDURL": "https://discord.gg/4FHTjAgw95",
+        "INSTAGRAMURL": "https://www.instagram.com/hypernylium/",
+        "YOUTUBEURL": "https://www.youtube.com/channel/UCpJ4F4dMn_DIhtrCJwDUK2A",
+        "TIKTOKURL": "https://www.tiktok.com/foryou?lang=en",
+        "FACEBOOK": "https://www.facebook.com/HyperNylium/",
+        "TWITTERURL": "https://twitter.com/HyperNylium"
+    },
+    "GameShortcutURLs": {
+        "GAME_1": "",
+        "GAME_2": "",
+        "GAME_3": "",
+        "GAME_4": "",
+        "GAME_5": "",
+        "GAME_6": "",
+        "GAME_7": "",
+        "GAME_8": "",
+        "GAME_9": ""
+    },
+    "OpenAISettings": {
+        "VoiceType": 0,
+        "OpenAI_API_Key": "",
+        "OpenAI_model_engine": "text-davinci-003",
+        "OpenAI_Max_Tokens": 1024,
+        "OpenAI_Temperature": 0.5
+    },
+    "MusicSettings": {
+        "MusicDir": "",
+        "Volume": 0,
+    },
+    "AppSettings": {
+        "AlwaysOnTop": "False",
+        "SpeakResponce": "False",
+        "CheckForUpdatesOnLaunch": "True",
+        "NavigationState": "open",
+        "DownloadsFolderName": "YT_Downloads",
+        "DefaultFrame": "Home",
+        "Alpha": 1.0,
+        "Start_With_Windows": "False",
+        "Window_State": "normal",
+        "Window_Width": "",
+        "Window_Height": "",
+        "Window_X": "",
+        "Window_Y": ""
+    },
+    "Devices": []
 }
 ```
 
