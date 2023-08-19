@@ -1,4 +1,3 @@
-
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 ###
 ### Author/Creator: HyperNylium
@@ -14,9 +13,8 @@
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
 ### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
-### TODO: Make a Fastboot.pyw file. This file will mainly be focused on launching the app as fast as possible
 ### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
-### TODO: Make a Music tab that allows you to play music from a folder
+### DONE: Make a Music tab that allows you to play music from a folder
 ### DONE: Fix window maximize issue on launch
 ### DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
 ### DONE: make a check for updates function that checks for updates once clicked by a button instead of on launch
@@ -45,7 +43,21 @@ from copy import deepcopy
 from time import sleep
 
 try:
-    from customtkinter import CTk, CTkFrame, CTkScrollableFrame, CTkLabel, CTkButton, CTkImage, CTkEntry, CTkSwitch, CTkOptionMenu, CTkProgressBar, CTkTextbox, CTkSlider, set_appearance_mode
+    from customtkinter import (
+        CTk, 
+        CTkFrame, 
+        CTkScrollableFrame, 
+        CTkLabel, 
+        CTkButton, 
+        CTkImage, 
+        CTkEntry, 
+        CTkSwitch, 
+        CTkOptionMenu, 
+        CTkProgressBar, 
+        CTkTextbox, 
+        CTkSlider, 
+        set_appearance_mode
+    )
     from PIL.Image import open as PILopen, fromarray as PILfromarray
     from watchdog.events import FileSystemEventHandler
     from pytube import YouTube as PY_Youtube
@@ -557,38 +569,100 @@ def on_drag_stopped():
         SaveSettingsToJson("Window_Y", window.winfo_y())
     return
 
+
 def systemsettings(setting: str):
     """Launches different settings within windows 10 and 11 (only tested on windows 11)"""
     if setting == "power":
-        Popen('cmd.exe /c control powercfg.cpl', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen(
+            "cmd.exe /c control powercfg.cpl",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )
     elif setting == "display":
-        Popen('cmd.exe /c control desk.cpl', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen(
+            "cmd.exe /c control desk.cpl",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )
     elif setting == "network":
-        Popen('cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.NetworkAndSharingCenter', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen(
+            "cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.NetworkAndSharingCenter",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )
     elif setting == "sound":
-        Popen('cmd.exe /c control mmsys.cpl sounds', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen(
+            "cmd.exe /c control mmsys.cpl sounds",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )
     elif setting == "apps":
-        Popen('cmd.exe /c start ms-settings:appsfeatures', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW) # Put "appwiz.cpl" for control center version
+        Popen(
+            "cmd.exe /c start ms-settings:appsfeatures",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )  # Put "appwiz.cpl" for control center version
     elif setting == "storage":
-        Popen('cmd.exe /c start ms-settings:storagesense', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen(
+            "cmd.exe /c start ms-settings:storagesense",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )
     elif setting == "windowsupdate":
-        Popen('cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.WindowsUpdate', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen(
+            "cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.WindowsUpdate",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )
     elif setting == "taskmanager":
-        Popen('cmd.exe /c taskmgr', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen(
+            "cmd.exe /c taskmgr",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )
     elif setting == "vpn":
-        Popen('cmd.exe /c start ms-settings:network-vpn', stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+        Popen(
+            "cmd.exe /c start ms-settings:network-vpn",
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE,
+            creationflags=CREATE_NO_WINDOW,
+        )
     elif setting == "netdrive":
-        system('cmd.exe /c netdrive --reset')
-        showinfo(title="Network drives reset", message="All network drives have been reset")
+        system("cmd.exe /c netdrive --reset")
+        showinfo(
+            title="Network drives reset", message="All network drives have been reset"
+        )
     else:
         pass
 def LaunchGame(GameVar: str):
     """Launches selected game"""
-    if (GameVar == None) or (GameVar == ""):
-        showerror(title="No game link found", message="Make sure you have configured a game shortcut link in you're settings and try restarting the app")
+    if GameVar == None or GameVar == "":
+        showerror(
+            title="No game link found",
+            message="Make sure you have configured a game shortcut link in you're settings and try restarting the app",
+        )
     else:
         WBopen(GameVar)
-        notification.notify("Management Panel", "Your game is now launching.", timeout=6)
+        notification.notify(
+            "Management Panel", "Your game is now launching.", timeout=6
+        )
 def SocialMediaLoader(MediaVar: str):
     """Launches a website URL (either http or https)"""
     WBopen(MediaVar)
@@ -1248,8 +1322,8 @@ total_time_label.grid(row=1, column=2, padx=10, pady=0, sticky="e")
 music_progress_frame.grid_columnconfigure(1, weight=1)
 
 
-devices_spacing_frame_1 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=0, padx=0, pady=0)
-devices_spacing_frame_2 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=1, padx=0, pady=0)
+devices_spacing_label_1 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=0, padx=0, pady=0)
+devices_spacing_label_2 = CTkLabel(devices_frame, width=340, height=0, text="").grid(row=0, column=1, padx=0, pady=0)
 devices_refresh_btn = CTkButton(devices_frame, text="Load devices", compound="bottom", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=AllDeviceDetails)
 devices_refresh_btn.grid(row=0, column=0, columnspan=2, padx=10, pady=20, sticky="ew")
 
