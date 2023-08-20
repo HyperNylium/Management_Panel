@@ -83,7 +83,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.1.8"
+CurrentAppVersion = "4.1.9"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -186,11 +186,30 @@ class MusicManager:
                 song_progressbar.set((current_pos_secs / total_duration))
                 total_time_label.configure(text=formatted_total_duration)
             if pygmixer.music.get_pos() == -1 and self.current_song_paused is False and self.has_started_before is True:
-                # This is where the infinite loop around the music happens.
-                # Almost like replaying a playlist infinitely.
-                # But the playlist if your music folder.
-                # So, anything in your music folder will be played infinitely.
-                self.musicmanager("next")
+                if settings["MusicSettings"]["LoopState"] == "all":
+                    # This is where the infinite loop around all the music in your music dir happens.
+                    # Almost like replaying a playlist infinitely.
+                    # But the playlist is your music folder.
+                    # So, after the last song is done playing in your music dir, 
+                    # it will come back to the first song and play that. 
+                    # It will do this infinitely.
+                    self.musicmanager("next")
+                elif settings["MusicSettings"]["LoopState"] == "one":
+                    # This is where the infinite loop around the currently playing song happens.
+                    # After the current song is done playing, it will start playing it again after it finishes.
+                    # You can still change the song by clicking the next or previous button.
+                    # And that new song will be the new song to be played infinitely.
+                    pygmixer.music.stop()
+                    self.musicmanager("play")
+                elif settings["MusicSettings"]["LoopState"] == "off":
+                    # When the song finishes playing, it will stop playing music
+                    # until either you click the Play button or the Next button.
+                    pygmixer.music.stop()
+                    pre_song_btn.configure(state="disabled")
+                    next_song_btn.configure(state="disabled")
+                    play_pause_song_btn.configure(image=playimage, command=lambda: music_manager.musicmanager("play"))
+                    if self.updating is False:
+                        SaveSettingsToJson("CurrentlyPlaying", "False")
             sleep(1)
 
     def start_event_loops(self):
@@ -210,9 +229,7 @@ class MusicManager:
             CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=self.song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
         update_music_list.configure(state="normal")
         change_music_dir.configure(state="normal")
-        pre_song_btn.configure(state="normal")
         play_pause_song_btn.configure(state="normal")
-        next_song_btn.configure(state="normal")
         volume_slider.configure(state="normal")
         currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir_exists is True > 0 else 'None'}")
         music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
