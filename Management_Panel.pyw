@@ -161,6 +161,7 @@ class MusicManager:
         self.current_song_index = 0
         self.current_song_paused = False
         self.has_started_before = False
+        self.updating = False
         pygmixer.init()
         pygmixer.music.set_volume(float(int(settings["MusicSettings"]["Volume"]) / 100))
 
@@ -185,7 +186,11 @@ class MusicManager:
                 song_progressbar.set((current_pos_secs / total_duration))
                 total_time_label.configure(text=formatted_total_duration)
             if pygmixer.music.get_pos() == -1 and self.current_song_paused is False and self.has_started_before is True:
-                self.musicmanager("next") # This is where the infinite loop around the music happens. Almost like replaying a playlist infinitely
+                # This is where the infinite loop around the music happens.
+                # Almost like replaying a playlist infinitely.
+                # But the playlist if your music folder.
+                # So, anything in your music folder will be played infinitely.
+                self.musicmanager("next")
             sleep(1)
 
     def start_event_loops(self):
@@ -212,6 +217,9 @@ class MusicManager:
         currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir_exists is True > 0 else 'None'}")
         music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
         del MusicDir_exists
+        if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
+            self.musicmanager("play")
+        self.updating = False
 
     def musicmanager(self, action: str):
         if action == "play" and len(self.song_list) > 0:
@@ -227,6 +235,7 @@ class MusicManager:
             pre_song_btn.configure(state="normal")
             next_song_btn.configure(state="normal")
             play_pause_song_btn.configure(image=pauseimage, command=lambda: music_manager.musicmanager("pause"))
+            SaveSettingsToJson("CurrentlyPlaying", "True")
         elif action == "pause":
             if self.current_song_paused is False:
                 pygmixer.music.pause()
@@ -237,6 +246,8 @@ class MusicManager:
             pre_song_btn.configure(state="disabled")
             next_song_btn.configure(state="disabled")
             play_pause_song_btn.configure(image=playimage, command=lambda: music_manager.musicmanager("play"))
+            if self.updating is False:
+                SaveSettingsToJson("CurrentlyPlaying", "False")
         elif action == "next":
             if len(self.song_list) > 0:
                 pygmixer.music.stop()
@@ -254,6 +265,20 @@ class MusicManager:
             volume_label.configure(text=f"{musicVolumeVar.get()}%")
             schedule_cancel(window, savevolume)
             schedule_create(window, 420, savevolume)
+
+        elif action == "loop":
+            self.loopstate = settings["MusicSettings"]["LoopState"]
+            if self.loopstate == "all":
+                loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop-1.png'), "#00ff00"), size=(25, 25)))
+                SaveSettingsToJson("LoopState", "one")
+            elif self.loopstate == "one":
+                loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#ff0000"), size=(25, 25)))
+                SaveSettingsToJson("LoopState", "off")
+            elif self.loopstate == "off":
+                loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#00ff00"), size=(25, 25)))
+                SaveSettingsToJson("LoopState", "all")
+            del self.loopstate
+
         elif action == "changedir":
             if settings["MusicSettings"]["MusicDir"] != "" and exists(settings["MusicSettings"]["MusicDir"]):
                 tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=settings["MusicSettings"]["MusicDir"])
@@ -263,6 +288,7 @@ class MusicManager:
                 SaveSettingsToJson("MusicDir", tmp_music_dir)
                 self.musicmanager("update")
         elif action == "update":
+            self.updating = True
             update_music_list.configure(state="disabled")
             change_music_dir.configure(state="disabled")
             pre_song_btn.configure(state="disabled")
@@ -321,6 +347,8 @@ def StartUp():
             "MusicSettings": {
                 "MusicDir": "",
                 "Volume": 0,
+                "CurrentlyPlaying": "False",
+                "LoopState": "all"
             },
             "AppSettings": {
                 "AlwaysOnTop": "False",
@@ -490,6 +518,7 @@ def restart():
     execl(python, python, *SYSargv)
 def on_closing():
     """App termination function"""
+    SaveSettingsToJson("CurrentlyPlaying", "False")
     try: 
         observer.stop()
     except: pass
@@ -568,7 +597,6 @@ def on_drag_stopped():
         SaveSettingsToJson("Window_X", window.winfo_x())
         SaveSettingsToJson("Window_Y", window.winfo_y())
     return
-
 
 def systemsettings(setting: str):
     """Launches different settings within windows 10 and 11 (only tested on windows 11)"""
@@ -1154,6 +1182,15 @@ try:
     pauseimage = CTkImage(change_image_clr(PILopen("assets/MusicPlayer/pause.png"), "#ffffff"), size=(25, 25))
     playimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/play.png'), "#ffffff"), size=(25, 25))
     nextimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/next.png'), "#ffffff"), size=(25, 25))
+    if settings["MusicSettings"]["LoopState"] == "all":
+        loopimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#00ff00"), size=(25, 25))
+    elif settings["MusicSettings"]["LoopState"] == "one":
+        loopimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop-1.png'), "#00ff00"), size=(25, 25))
+    elif settings["MusicSettings"]["LoopState"] == "off":
+        loopimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#ff0000"), size=(25, 25))
+    else:
+        loopimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#00ff00"), size=(25, 25))
+        SaveSettingsToJson("LoopState", "all")
 except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
     exit()
@@ -1304,9 +1341,11 @@ music_info_frame.grid_columnconfigure([0, 3], weight=1)
 pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("previous"))
 play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("play"))
 next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("next"))
+loop_playlist_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=loopimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("loop"))
 pre_song_btn.grid(row=1, column=1, padx=10, pady=0, sticky="e")
 play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
 next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
+loop_playlist_btn.grid(row=1, column=4, padx=10, pady=0, sticky="w")
 volume_slider = CTkSlider(music_volume_frame, from_=0, to=100, command=lambda volume: music_manager.musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
 volume_label = CTkLabel(music_volume_frame, text=f"{musicVolumeVar.get()}%", font=("sans-serif", 18, "bold"), fg_color="transparent")
 volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
