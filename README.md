@@ -4,9 +4,9 @@
 
 ## App Information
 
-**Version:** v4.1.8\
+**Version:** v4.1.9\
 **Project status:** Ready for update/download\
-**Last updated Github Repo:** 8/11/2023
+**Last updated Github Repo:** 8/20/2023
 
 ## Setup
 
@@ -169,6 +169,8 @@ window.mainloop()
     "MusicSettings": {
         "MusicDir": "",
         "Volume": 0,
+        "CurrentlyPlaying": "False",
+        "LoopState": "all"
     },
     "AppSettings": {
         "AlwaysOnTop": "False",
