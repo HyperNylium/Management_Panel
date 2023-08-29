@@ -4,14 +4,14 @@
 
 ## App Information
 
-**Version:** v4.1.9\
+**Version:** v4.2.0\
 **Project status:** Ready for update/download\
-**Last updated Github Repo:** 8/20/2023
+**Last updated Github Repo:** 8/28/2023
 
 ## Setup
 
 ### For release setup
-1. Download the [Management_Panel-4.1.9-windows.zip](https://github.com/HyperNylium/Management_Panel/releases/latest)
+1. Download the [Management_Panel-[version]-windows.zip](https://github.com/HyperNylium/Management_Panel/releases/latest)
 
 2. Unzip the downloaded file wherever you want.
 
@@ -139,25 +139,25 @@ window.mainloop()
 // Default values for settings.json
 {
     "URLs": {
-        "WEBSITE": "http://hypernylium.com/",
-        "GITHUBURL": "https://github.com/HyperNylium",
-        "DISCORDURL": "https://discord.gg/4FHTjAgw95",
-        "INSTAGRAMURL": "https://www.instagram.com/hypernylium/",
-        "YOUTUBEURL": "https://www.youtube.com/channel/UCpJ4F4dMn_DIhtrCJwDUK2A",
-        "TIKTOKURL": "https://www.tiktok.com/foryou?lang=en",
-        "FACEBOOK": "https://www.facebook.com/HyperNylium/",
-        "TWITTERURL": "https://twitter.com/HyperNylium"
+        "HyperNylium.com": "http://hypernylium.com/",
+        "Github": "https://github.com/HyperNylium",
+        "Discord": "https://discord.gg/4FHTjAgw95",
+        "Instagram": "https://www.instagram.com/",
+        "Youtube": "https://www.youtube.com/",
+        "TikTok": "https://www.tiktok.com/",
+        "Facebook": "https://www.facebook.com/",
+        "Twitter": "https://twitter.com/"
     },
     "GameShortcutURLs": {
-        "GAME_1": "",
-        "GAME_2": "",
-        "GAME_3": "",
-        "GAME_4": "",
-        "GAME_5": "",
-        "GAME_6": "",
-        "GAME_7": "",
-        "GAME_8": "",
-        "GAME_9": ""
+        "Game 1": "",
+        "Game 2": "",
+        "Game 3": "",
+        "Game 4": "",
+        "Game 5": "",
+        "Game 6": "",
+        "Game 7": "",
+        "Game 8": "",
+        "Game 9": ""
     },
     "OpenAISettings": {
         "VoiceType": 0,

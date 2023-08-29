@@ -13,7 +13,7 @@
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
 ### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
-### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
+### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup - WORKING ON IT
 ### DONE: Make a Music tab that allows you to play music from a folder
 ### DONE: Fix window maximize issue on launch
 ### DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
@@ -83,7 +83,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.1.9"
+CurrentAppVersion = "4.2.0"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -105,6 +105,9 @@ all_buttons_text: list[str] = [] # list to store all buttons text in the navigat
 all_frames = ["Home", "Games", "Social Media", "YT Downloader", "Assistant", "Music", "Devices", "System", "Settings"] # list to store all frames
 prev_x = 0 # variable to store previous x coordinate of the window
 prev_y = 0 # variable to store previous y coordinate of the window
+AppsLaucherGUISetup_max_buttons_per_row = 3 # Maximum number of buttons per row in the "Games" and "Social Media" frames
+AppsLaucherGUISetup_row_num = 0 # Current row number in the "Games" and "Social Media" frames
+AppsLaucherGUISetup_col_num = 0 # Current column number in the "Games" and "Social Media" frames
 
 class SettingsFileEventHandler(FileSystemEventHandler):
     def __init__(self):
@@ -334,25 +337,25 @@ def StartUp():
         global observer, settings
         default_settings = {
             "URLs": {
-                "WEBSITE": "http://hypernylium.com/",
-                "GITHUBURL": "https://github.com/HyperNylium",
-                "DISCORDURL": "https://discord.gg/4FHTjAgw95",
-                "INSTAGRAMURL": "https://www.instagram.com/hypernylium/",
-                "YOUTUBEURL": "https://www.youtube.com/channel/UCpJ4F4dMn_DIhtrCJwDUK2A",
-                "TIKTOKURL": "https://www.tiktok.com/foryou?lang=en",
-                "FACEBOOK": "https://www.facebook.com/HyperNylium/",
-                "TWITTERURL": "https://twitter.com/HyperNylium"
+                "HyperNylium.com": "http://hypernylium.com/",
+                "Github": "https://github.com/HyperNylium",
+                "Discord": "https://discord.gg/4FHTjAgw95",
+                "Instagram": "https://www.instagram.com/",
+                "Youtube": "https://www.youtube.com/",
+                "TikTok": "https://www.tiktok.com/",
+                "Facebook": "https://www.facebook.com/",
+                "Twitter": "https://twitter.com/"
             },
             "GameShortcutURLs": {
-                "GAME_1": "",
-                "GAME_2": "",
-                "GAME_3": "",
-                "GAME_4": "",
-                "GAME_5": "",
-                "GAME_6": "",
-                "GAME_7": "",
-                "GAME_8": "",
-                "GAME_9": ""
+                "Game 1": "",
+                "Game 2": "",
+                "Game 3": "",
+                "Game 4": "",
+                "Game 5": "",
+                "Game 6": "",
+                "Game 7": "",
+                "Game 8": "",
+                "Game 9": ""
             },
             "OpenAISettings": {
                 "VoiceType": 0,
@@ -729,6 +732,31 @@ def ResetWindowPos():
     settings_frame_button_1.configure(state="disabled", text="Window position reset")
     restart()
 
+def AppsLaucherGUISetup(frame: str):
+    global AppsLaucherGUISetup_row_num, AppsLaucherGUISetup_col_num
+
+    if frame == "games_frame":
+        frame = games_frame
+        key = "GameShortcutURLs"
+        cmd = LaunchGame
+    elif frame == "socialmedia_frame":
+        frame = socialmedia_frame
+        key = "URLs"
+        cmd = SocialMediaLoader
+    else:
+        return
+
+    for url_name, url in settings[key].items():
+        CTkButton(frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: cmd(url)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
+        AppsLaucherGUISetup_col_num += 1
+        if AppsLaucherGUISetup_col_num >= AppsLaucherGUISetup_max_buttons_per_row:
+            AppsLaucherGUISetup_col_num = 0
+            AppsLaucherGUISetup_row_num += 1
+
+    AppsLaucherGUISetup_row_num = 0
+    AppsLaucherGUISetup_col_num = 0
+    del frame, key, cmd
+
 def AlwaysOnTopTrueFalse(value: bool):
     """Sets the window to always be on top or not and saves the state to settings.json"""
     window.attributes('-topmost', value)
@@ -1053,11 +1081,11 @@ def select_frame_by_name(name: str):
     else:
         home_frame.pack_forget()
     if name == "Games":
-        games_frame.pack(anchor="center", pady=(0, 20), fill="x", expand=True)
+        games_frame.pack(anchor="center", fill="both", expand=True)
     else:
         games_frame.pack_forget()
     if name == "Social Media":
-        socialmedia_frame.pack(anchor="center", pady=(0, 20), fill="x", expand=True)
+        socialmedia_frame.pack(anchor="center", fill="both", expand=True)
     else:
         socialmedia_frame.pack_forget()
     if name == "YT Downloader":
@@ -1145,9 +1173,9 @@ def change_image_clr(image, hex_color: str):
 
     image_with_color = PILfromarray(data)
     return image_with_color
-def shorten_path(text, max_length):
+def shorten_path(text, max_length, replacement: str = "..."):
     if len(text) > max_length:
-        return text[:max_length - 3] + "..."  # Replace the last three characters with "..."
+        return text[:max_length - 3] + replacement  # Replace the last three characters with "..."
     return text
 
 window = CTk()
@@ -1251,8 +1279,8 @@ del homeimage, devicesimage, gamesimage, ytdownloaderimage, socialmediaimage, as
 
 # main frames
 home_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-games_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-socialmedia_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
+games_frame = CTkScrollableFrame(window, corner_radius=0, fg_color="transparent", border_width=3, border_color="#242424")
+socialmedia_frame = CTkScrollableFrame(window, corner_radius=0, fg_color="transparent", border_width=3, border_color="#242424")
 ytdownloader_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 assistant_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 music_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
@@ -1270,44 +1298,6 @@ home_frame_label_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", 
 home_frame_label_3.pack(anchor="center")
 check_for_updates_button = CTkButton(home_frame, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: check_for_updates(option="in-app"))
 check_for_updates_button.pack(anchor="s", fill="x", expand=True, padx=10, pady=(0, 10))
-
-
-games_frame_button_1 = CTkButton(games_frame, width=200, text="Game 1", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_1"]))
-games_frame_button_1.grid(row=0, column=0, padx=5, pady=10)
-games_frame_button_2 = CTkButton(games_frame, width=200, text="Game 2", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_2"]))
-games_frame_button_2.grid(row=0, column=1, padx=5, pady=10)
-games_frame_button_3 = CTkButton(games_frame, width=200, text="Game 3", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_3"]))
-games_frame_button_3.grid(row=0, column=2, padx=5, pady=10)
-games_frame_button_4 = CTkButton(games_frame, width=200, text="Game 4", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_4"]))
-games_frame_button_4.grid(row=1, column=0, padx=5, pady=10)
-games_frame_button_5 = CTkButton(games_frame, width=200, text="Game 5", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_5"]))
-games_frame_button_5.grid(row=1, column=1, padx=5, pady=10)
-games_frame_button_6 = CTkButton(games_frame, width=200, text="Game 6", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_6"]))
-games_frame_button_6.grid(row=1, column=2, padx=5, pady=10)
-games_frame_button_7 = CTkButton(games_frame, width=200, text="Game 7", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_7"]))
-games_frame_button_7.grid(row=2, column=0, padx=5, pady=10)
-games_frame_button_8 = CTkButton(games_frame, width=200, text="Game 8", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_8"]))
-games_frame_button_8.grid(row=2, column=1, padx=5, pady=10)
-games_frame_button_9 = CTkButton(games_frame, width=200, text="Game 8", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: LaunchGame(settings["GameShortcutURLs"]["GAME_8"]))
-games_frame_button_9.grid(row=2, column=2, padx=5, pady=10)
-
-
-socialmedia_frame_button_1 = CTkButton(socialmedia_frame, width=200, text="Github", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["GITHUBURL"]))
-socialmedia_frame_button_1.grid(row=0, column=0, padx=5, pady=10)
-socialmedia_frame_button_2 = CTkButton(socialmedia_frame, width=200, text="Discord", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["DISCORDURL"]))
-socialmedia_frame_button_2.grid(row=0, column=1, padx=5, pady=10)
-socialmedia_frame_button_3 = CTkButton(socialmedia_frame, width=200, text="Youtube", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["YOUTUBEURL"]))
-socialmedia_frame_button_3.grid(row=0, column=2, padx=5, pady=10)
-socialmedia_frame_button_4 = CTkButton(socialmedia_frame, width=200, text="Instagram", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["INSTAGRAMURL"]))
-socialmedia_frame_button_4.grid(row=1, column=0, padx=5, pady=10)
-socialmedia_frame_button_5 = CTkButton(socialmedia_frame, width=200, text="TikTok", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["TIKTOKURL"]))
-socialmedia_frame_button_5.grid(row=1, column=1, padx=5, pady=10)
-socialmedia_frame_button_6 = CTkButton(socialmedia_frame, width=200, text="Twitter", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["TWITTERURL"]))
-socialmedia_frame_button_6.grid(row=1, column=2, padx=5, pady=10)
-socialmedia_frame_button_7 = CTkButton(socialmedia_frame, width=200, text="HyperNylium.com", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["WEBSITE"]))
-socialmedia_frame_button_7.grid(row=2, column=0, padx=5, pady=10)
-socialmedia_frame_button_8 = CTkButton(socialmedia_frame, width=200, text="Facebook", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: SocialMediaLoader(settings["URLs"]["FACEBOOK"]))
-socialmedia_frame_button_8.grid(row=2, column=1, padx=5, pady=10)
 
 
 YTVideoContentType = "Video (.mp4)"
@@ -1363,7 +1353,7 @@ pre_song_btn.grid(row=1, column=1, padx=10, pady=0, sticky="e")
 play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
 next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
 loop_playlist_btn.grid(row=1, column=4, padx=10, pady=0, sticky="w")
-volume_slider = CTkSlider(music_volume_frame, from_=0, to=100, command=lambda volume: music_manager.musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
+volume_slider = CTkSlider(music_volume_frame, width=250, from_=0, to=100, command=lambda volume: music_manager.musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
 volume_label = CTkLabel(music_volume_frame, text=f"{musicVolumeVar.get()}%", font=("sans-serif", 18, "bold"), fg_color="transparent")
 volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
 volume_slider.grid(row=1, column=1, padx=40, pady=0, sticky="e")
@@ -1459,6 +1449,9 @@ if settings["AppSettings"]["NavigationState"] == "close":
     NavbarAction("close")
 else:
     NavbarAction("open")
+
+AppsLaucherGUISetup("games_frame") # create the games_frame content
+AppsLaucherGUISetup("socialmedia_frame") # create the socialmedia_frame content
 
 # if my personel netdrive script does not exist on the system, disable the button to launch it
 if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
