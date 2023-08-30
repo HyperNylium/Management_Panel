@@ -12,6 +12,7 @@
 
 !/assets
 
+!/assets/AppIcon
 !/assets/ExtraIcons
 !/assets/Help
 !/assets/MenuIcons
@@ -19,6 +20,7 @@
 !/assets/SVGs
 
 !/assets/*
+!/assets/AppIcon/*
 !/assets/ExtraIcons/*
 !/assets/Help/*
 !/assets/MenuIcons/*
