@@ -39,7 +39,7 @@ from datetime import datetime, date, timedelta
 from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
 from copy import deepcopy
-from time import sleep
+from time import sleep, time
 import sys
 
 try:
@@ -400,6 +400,34 @@ def StartUp():
         try:
             with open(SETTINGSFILE, 'r') as settings_file:
                 settings = JSload(settings_file)
+
+            properties_to_remove = []
+
+            for Property in settings:
+                if Property not in default_settings:
+                    properties_to_remove.append(Property)
+                else:
+                    for key in settings[Property]:
+                        if key not in default_settings[Property]:
+                            properties_to_remove.append(Property)
+                            break
+
+            for property_to_remove in properties_to_remove:
+                del settings[property_to_remove]
+
+            del properties_to_remove
+
+            for Property in default_settings:
+                if Property not in settings:
+                    settings[Property] = default_settings[Property]
+                else:
+                    for key in default_settings[Property]:
+                        if key not in settings[Property]:
+                            settings[Property][key] = default_settings[Property][key]
+
+            with open(SETTINGSFILE, 'w') as settings_file:
+                JSdump(settings, settings_file, indent=2)
+
         except FileNotFoundError:
             with open(SETTINGSFILE, 'w') as settings_file:
                 JSdump(default_settings, settings_file, indent=2)
