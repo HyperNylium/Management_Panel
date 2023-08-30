@@ -12,7 +12,7 @@
 ###
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
-### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
+### DONE: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
 ### DONE: Make a LaunchAtLogin setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
 ### DONE: Make a Music tab that allows you to play music from a folder
 ### DONE: Fix window maximize issue on launch
@@ -83,7 +83,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.1"
+CurrentAppVersion = "4.2.0"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
