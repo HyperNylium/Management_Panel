@@ -13,7 +13,7 @@
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
 ### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
-### TODO: Make a Start_With_Windows setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup - WORKING ON IT
+### DONE: Make a LaunchAtLogin setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
 ### DONE: Make a Music tab that allows you to play music from a folder
 ### DONE: Fix window maximize issue on launch
 ### DONE: Fix assistant text boxes not being able to move up and down when the window height is changed
@@ -28,8 +28,7 @@
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 # Imports
-from sys import exit, executable as SYSexecutable, argv as SYSargv
-from os import system, startfile, execl, mkdir, rename, listdir
+from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd
 from tkinter.messagebox import showerror, askyesno, showinfo
 from os.path import exists, join, splitext, expanduser
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
@@ -41,6 +40,7 @@ from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
 from copy import deepcopy
 from time import sleep
+import sys
 
 try:
     from customtkinter import (
@@ -59,6 +59,7 @@ try:
         set_appearance_mode
     )
     from PIL.Image import open as PILopen, fromarray as PILfromarray
+    from winshell import desktop, CreateShortcut, startup
     from watchdog.events import FileSystemEventHandler
     from pytube import YouTube as PY_Youtube
     from requests.exceptions import Timeout
@@ -67,13 +68,12 @@ try:
     from pyttsx3 import init as ttsinit
     from numpy import array as nparray
     from plyer import notification
-    from winshell import desktop
     from requests import get
     import openai
 except ImportError as importError:
     ModuleNotFound = str(importError).split("'")[1]
     showerror(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'")
-    exit()
+    sys.exit()
 
 # Minimizes console window that launches with .py files if you want to use this app as a .py instead of a .pyw file
 # ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
@@ -91,11 +91,10 @@ headers = {
     "Accept-Language": "en-US,en;q=0.9"
 }
 
+SETTINGSFILE = "settings.json"
 model_prompt = "Hello, how can I help you today?"
 UserDesktopDir = desktop()
-# UserStartMenuDir = start_menu()
-# UserSystemStartupDir = startup()
-SETTINGSFILE = "settings.json"
+UserStartupDir = startup() # shell:startup
 devices_per_row = 2  # Maximum number of devices per ro
 DeviceFrames = []  # List to store references to DeviceFrame frames
 devices = {} # dict to store device info (battey persetage, type)
@@ -330,6 +329,13 @@ def StartUp():
     If the file isn't found, it creates one within the same directory and loads it with default values.\n
     settings[Property][Key] => value\n
     settings['AppSettings']['AlwaysOnTop'] => True | False"""
+
+    try:
+        window.iconbitmap("assets/AppIcon/Management_Panel_Icon.ico")
+    except Exception as e:
+        showerror(title="Error loading window icon", message=f"An error occurred while loading the window icon\n{e}")
+        sys.exit()
+
     settings_loaded = False
 
     def load_settings():
@@ -372,13 +378,13 @@ def StartUp():
             },
             "AppSettings": {
                 "AlwaysOnTop": "False",
+                "LaunchAtLogin": "False",
                 "SpeakResponce": "False",
                 "CheckForUpdatesOnLaunch": "True",
                 "NavigationState": "open",
                 "DownloadsFolderName": "YT_Downloads",
                 "DefaultFrame": "Home",
                 "Alpha": 1.0,
-                "Start_With_Windows": "False",
                 "Window_State": "normal",
                 "Window_Width": "",
                 "Window_Height": "",
@@ -403,9 +409,10 @@ def StartUp():
 
     Thread(target=load_settings, name="settings_thread", daemon=True).start()
 
-    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager
+    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingslaunchwithwindowsvar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager
     settingsSpeakResponceVar = BooleanVar()
     settingsAlwayOnTopVar = BooleanVar()
+    settingslaunchwithwindowsvar = BooleanVar()
     settingsCheckForUpdates = BooleanVar()
     settingsAlphavar = DoubleVar()
     musicVolumeVar = IntVar()
@@ -418,6 +425,19 @@ def StartUp():
     if settings["AppSettings"]["AlwaysOnTop"] == "True":
         window.attributes('-topmost', True)
         settingsAlwayOnTopVar.set(True)
+
+    if settings["AppSettings"]["LaunchAtLogin"] == "True":
+        settingslaunchwithwindowsvar.set(True)
+    elif exists(join(UserStartupDir, "Management_Panel.lnk")):
+        usr_res = askyesno(title="Management_Panel: Startup shortcut found", message="Even though the 'LaunchAtLogin' setting is turned off\nwe have found a shortcut that launches this app when you login in your startup folder.\nWould you like the app to still lauch on login?")
+        if usr_res is True:
+            SaveSettingsToJson("LaunchAtLogin", "True")
+            settingslaunchwithwindowsvar.set(True)
+        else:
+            try:
+                remove(join(UserStartupDir, "Management_Panel.lnk"))
+            except FileNotFoundError:
+                pass
 
     if settings["AppSettings"]["SpeakResponce"] == "True":
         settingsSpeakResponceVar.set(True)
@@ -461,12 +481,12 @@ def check_for_updates(option: str):
                         LiveAppVersion = CurrentAppVersion
                         ShowUserInfo = "- Unauthentic"
                     else:
-                        exit()
+                        sys.exit()
             elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     output = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
                     if (output):
                         WBopen(UpdateLink)
-                        exit()
+                        sys.exit()
                     else:
                         ShowUserInfo = f"- Update available (v{LiveAppVersion})"
                         LiveAppVersion = CurrentAppVersion
@@ -534,8 +554,8 @@ def check_for_updates(option: str):
         ShowUserInfo = "- Check disabled"
 def restart():
     """Restarts app"""
-    python = SYSexecutable
-    execl(python, python, *SYSargv)
+    python = sys.executable
+    execl(python, python, *sys.argv)
 def on_closing():
     """App termination function"""
     SaveSettingsToJson("CurrentlyPlaying", "False")
@@ -544,7 +564,7 @@ def on_closing():
     except: pass
     music_manager.cleanup()
     window.destroy()
-    exit()
+    sys.exit()
 def schedule_create(widget, ms, func, cancel_after_finished=False, *args, **kwargs):
     """Schedules a function to run after a given time in milliseconds and saves the event id in a dictionary with the function name as the key"""
     event_id = widget.after(ms, lambda: func(*args, **kwargs))
@@ -729,7 +749,7 @@ def ResetWindowPos():
     SaveSettingsToJson("Window_Height", "")
     SaveSettingsToJson("Window_X", "")
     SaveSettingsToJson("Window_Y", "")
-    settings_frame_button_1.configure(state="disabled", text="Window position reset")
+    settingsresetwindowbtn.configure(state="disabled", text="Window position reset")
     restart()
 
 def AppsLaucherGUISetup(frame: str):
@@ -757,14 +777,44 @@ def AppsLaucherGUISetup(frame: str):
     AppsLaucherGUISetup_col_num = 0
     del frame, key, cmd
 
-def AlwaysOnTopTrueFalse(value: bool):
+def AlwaysOnTopTrueFalse():
     """Sets the window to always be on top or not and saves the state to settings.json"""
+    value = settingsAlwayOnTopVar.get()
     window.attributes('-topmost', value)
     SaveSettingsToJson("AlwaysOnTop", str(value))
+    del value
+    return
+def LaunchOnStartupTrueFalse():
+    value = settingslaunchwithwindowsvar.get()
+    if value is True:
+        if getattr(sys, 'frozen', False):
+            target = sys.executable
+        else:
+            target = __file__
+        CreateShortcut(
+            Path=join(UserStartupDir, "Management_Panel.lnk"),
+            Target=target,
+            StartIn=getcwd(),
+            Description="Shortcut for launching 'Management_Panel.pyw'",
+            Icon=(join(getcwd(), "assets", "AppIcon", "Management_Panel_Icon.ico"), 0),
+        )
+    else:
+        try:
+            remove(join(UserStartupDir, "Management_Panel.lnk"))
+        except FileNotFoundError:
+            pass
+
+    SaveSettingsToJson("LaunchAtLogin", str(value))
+    del value
+    return
 def set_alpha(alpha_var: float):
     """Sets the window transparency and saves the state to settings.json"""
-    SaveSettingsToJson("Alpha", alpha_var)
+    def save_alpha_settings():
+        SaveSettingsToJson("Alpha", alpha_var)
     window.attributes('-alpha', alpha_var)
+    schedule_cancel(window, save_alpha_settings)
+    schedule_create(window, 420, save_alpha_settings)
+    del save_alpha_settings
 
 def YTVideoDownloaderContentType(vidtype: str):
     """Updates the video content type to either .mp4 or .mp3 according to whatever was selected in the dropdown"""
@@ -1115,7 +1165,7 @@ def select_frame_by_name(name: str):
     else:
         system_frame.pack_forget()
     if name == "Settings":
-        settings_frame.pack(anchor="center", pady=0, fill="x", expand=True)
+        settings_frame.pack(anchor="center", fill="both", expand=True)
     else:
         settings_frame.pack_forget()
 def SaveSettingsToJson(ValueToChange: str, Value: str):
@@ -1238,7 +1288,7 @@ try:
         SaveSettingsToJson("LoopState", "all")
 except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
-    exit()
+    sys.exit()
 
 # create navigation frame
 navigation_frame = CTkFrame(window, corner_radius=0)
@@ -1286,7 +1336,7 @@ assistant_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 music_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 devices_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 system_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
-settings_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
+settings_frame = CTkScrollableFrame(window, corner_radius=0, fg_color="transparent", border_width=3, border_color="#242424")
 
 
 # Create elements/widgets for frames
@@ -1397,22 +1447,34 @@ system_frame_power_optionmenu.grid(row=4, column=2, padx=5, pady=10)
 system_frame_power_optionmenu.set(UserPowerPlans['active'])
 
 
-settingsAlwayOnTopswitch = CTkSwitch(settings_frame, text="Always on top", variable=settingsAlwayOnTopVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: AlwaysOnTopTrueFalse(settingsAlwayOnTopVar.get()))
-settingsAlwayOnTopswitch.grid(row=1, column=1, padx=20, pady=10)
-settingsSpeakResponceswitch = CTkSwitch(settings_frame, text="Speak response from AI", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("SpeakResponce", str(settingsSpeakResponceVar.get())))
-settingsSpeakResponceswitch.grid(row=2, column=1, padx=20, pady=10)
-settingsSpeakResponceswitch = CTkSwitch(settings_frame, text="Check for updates on launch", variable=settingsCheckForUpdates, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("CheckForUpdatesOnLaunch", str(settingsCheckForUpdates.get())))
-settingsSpeakResponceswitch.grid(row=3, column=1, padx=20, pady=10)
-settings_frame_button_1 = CTkButton(settings_frame, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: ResetWindowPos())
-settings_frame_button_1.grid(row=4, column=1, padx=20, pady=(20, 10))
-settings_frame_button_2 = CTkButton(settings_frame, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
-settings_frame_button_2.grid(row=5, column=1, padx=20, pady=(10, 20))
-settings_default_frame_optionmenu = CTkOptionMenu(settings_frame, values=all_frames, command=lambda frame: SaveSettingsToJson("DefaultFrame", frame), fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 20), dropdown_font=("sans-serif", 17), width=200, height=30, anchor="center")
-settings_default_frame_optionmenu.grid(row=6, column=1, padx=20, pady=10)
+settingsgrid = CTkFrame(settings_frame, corner_radius=0, fg_color="transparent")
+settingsgrid.pack(fill="x", expand=True, anchor="center")
+settingsAlwayOnTopswitch = CTkSwitch(settingsgrid, text="", variable=settingsAlwayOnTopVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=AlwaysOnTopTrueFalse)
+settingsAlwayOnToplabel = CTkLabel(settingsgrid, text="Always on top", font=("sans-serif", 22))
+settingsAlwayOnTopswitch.grid(row=1, column=1, pady=5, sticky="e")
+settingsAlwayOnToplabel.grid(row=1, column=2, pady=5, sticky="w")
+settingslaunchwithwindowsswitch = CTkSwitch(settingsgrid, text="", variable=settingslaunchwithwindowsvar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=LaunchOnStartupTrueFalse)
+settingslaunchwithwindowslabel = CTkLabel(settingsgrid, text="Launch at login", font=("sans-serif", 22))
+settingslaunchwithwindowsswitch.grid(row=2, column=1, pady=5, sticky="e")
+settingslaunchwithwindowslabel.grid(row=2, column=2, pady=5, sticky="w")
+settingsSpeakResponceswitch = CTkSwitch(settingsgrid, text="", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("SpeakResponce", str(settingsSpeakResponceVar.get())))
+settingsSpeakResponcelabel = CTkLabel(settingsgrid, text="Speak response from AI", font=("sans-serif", 22))
+settingsSpeakResponceswitch.grid(row=3, column=1, pady=5, sticky="e")
+settingsSpeakResponcelabel.grid(row=3, column=2, pady=5, sticky="w")
+settingscheckupdatesswitch = CTkSwitch(settingsgrid, text="", variable=settingsCheckForUpdates, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("CheckForUpdatesOnLaunch", str(settingsCheckForUpdates.get())))
+settingscheckupdateslabel = CTkLabel(settingsgrid, text="Check for updates on launch", font=("sans-serif", 22))
+settingscheckupdatesswitch.grid(row=4, column=1, pady=5, sticky="e")
+settingscheckupdateslabel.grid(row=4, column=2, pady=5, sticky="w")
+settingsresetwindowbtn = CTkButton(settings_frame, width=300, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 20), corner_radius=10, command=lambda: ResetWindowPos())
+settingsresetwindowbtn.pack(anchor="center", padx=10, pady=10)
+settingsopensettingsbtn = CTkButton(settings_frame, width=300, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 20), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
+settingsopensettingsbtn.pack(anchor="center", padx=10, pady=10)
+alpha_slider = CTkSlider(settings_frame, width=300, from_=0.5, to=1.0, command=set_alpha, variable=settingsAlphavar) # I set the _from param to 0.5 because anything lower than that is too transparent and you can't see the window let alone interact with it.
+alpha_slider.pack(anchor="center", padx=10, pady=10)
+settings_default_frame_optionmenu = CTkOptionMenu(settings_frame, values=all_frames, command=lambda frame: SaveSettingsToJson("DefaultFrame", frame), fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 20), dropdown_font=("sans-serif", 17), width=250, height=30, anchor="center")
 settings_default_frame_optionmenu.set(settings["AppSettings"]["DefaultFrame"])
+settings_default_frame_optionmenu.pack(anchor="center", padx=10, pady=10)
 settingsAlphavar.set(settings["AppSettings"]["Alpha"])
-alpha_slider = CTkSlider(settings_frame, from_=0.5, to=1.0, command=set_alpha, variable=settingsAlphavar) # I set the _from param to 0.5 because anything lower than that is too transparent and you can't see the window let alone interact with it.
-alpha_slider.grid(row=7, column=1, padx=20, pady=10)
 
 
 # select default frame in settings.json (can be changed in GUI from "settings_default_frame_optionmenu")
@@ -1429,6 +1491,7 @@ responsive_grid(devices_frame, 3, 1) # 3 rows, 1 column responsive
 responsive_grid(system_frame, 2, 3) # 2 rows, 3 columns responsive
 responsive_grid(settings_frame, 2, 2) # 2 rows, 2 columns responsive
 music_controls_frame.grid_columnconfigure([0, 4], weight=1)
+settingsgrid.grid_columnconfigure([0, 3], weight=1)
 
 # add all buttons and their text to a list for later use
 for widget in navigation_buttons_frame.winfo_children():

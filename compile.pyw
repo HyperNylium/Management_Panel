@@ -20,7 +20,7 @@
 # from shutil import copytree
 # user = expanduser('~').replace('\\', '/')
 # current_dir = getcwd().replace('\\', '/')
-# cmd_line = f'pyinstaller --noconfirm --onedir --windowed --add-data "{user}/AppData/Local/Programs/Python/Python311/Lib/site-packages/customtkinter;customtkinter/" Management_Panel.pyw'
+# cmd_line = f'pyinstaller --noconfirm --onedir --windowed --icon=assets/AppIcon/Management_Panel_Icon.ico --add-data "{user}/AppData/Local/Programs/Python/Python311/Lib/site-packages/customtkinter;customtkinter/" Management_Panel.pyw'
 # system(cmd_line)
 # src_dir = f"{current_dir}/assets/"
 # dest_dir = f"{current_dir}/dist/Management_Panel/assets/"
