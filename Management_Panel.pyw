@@ -39,7 +39,7 @@ from datetime import datetime, date, timedelta
 from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
 from copy import deepcopy
-from time import sleep, time
+from time import sleep
 import sys
 
 try:
