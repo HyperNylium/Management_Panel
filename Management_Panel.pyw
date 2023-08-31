@@ -12,7 +12,7 @@
 ###
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
-### TODO: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
+### DONE: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
 ### DONE: Make a LaunchAtLogin setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
 ### DONE: Make a Music tab that allows you to play music from a folder
 ### DONE: Fix window maximize issue on launch
@@ -83,7 +83,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.1"
+CurrentAppVersion = "4.2.2"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -400,6 +400,18 @@ def StartUp():
         try:
             with open(SETTINGSFILE, 'r') as settings_file:
                 settings = JSload(settings_file)
+
+            for Property in default_settings:
+                if Property not in settings:
+                    settings[Property] = default_settings[Property]
+                else:
+                    for key in default_settings[Property]:
+                        if key not in settings[Property]:
+                            settings[Property][key] = default_settings[Property][key]
+
+            with open(SETTINGSFILE, 'w') as settings_file:
+                JSdump(settings, settings_file, indent=2)
+
         except FileNotFoundError:
             with open(SETTINGSFILE, 'w') as settings_file:
                 JSdump(default_settings, settings_file, indent=2)
@@ -485,7 +497,7 @@ def check_for_updates(option: str):
             elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     output = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
                     if (output):
-                        WBopen(UpdateLink)
+                        LaunchUpdater()
                         sys.exit()
                     else:
                         ShowUserInfo = f"- Update available (v{LiveAppVersion})"
@@ -545,7 +557,7 @@ def check_for_updates(option: str):
         home_frame_label_1.configure(text=f"Version: {LiveAppVersion} {ShowUserInfo}")
         home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
         home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
-        check_for_updates_button.configure(text="Check for updates complete", state="disabled")
+        check_for_updates_button.configure(text="Check complete", state="disabled")
         schedule_create(window, 3500, lambda: check_for_updates_button.configure(text="Check for updates", state="normal"), True)
     else:
         LiveAppVersion = "N/A"
@@ -1227,6 +1239,12 @@ def shorten_path(text, max_length, replacement: str = "..."):
     if len(text) > max_length:
         return text[:max_length - 3] + replacement  # Replace the last three characters with "..."
     return text
+def LaunchUpdater():
+    def launch():
+        system(f"update.exe {CurrentAppVersion} {DataTXTFileUrl}")
+        sys.exit()
+    Thread(name="UpdaterThread", daemon=True, target=launch).start()
+    sys.exit()
 
 window = CTk()
 window.title("Management Panel")
@@ -1346,8 +1364,12 @@ home_frame_label_2 = CTkLabel(home_frame, text=f"Creator/developer: {Developer}"
 home_frame_label_2.pack(anchor="center", pady=10)
 home_frame_label_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", font=("sans-serif", 28))
 home_frame_label_3.pack(anchor="center")
-check_for_updates_button = CTkButton(home_frame, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: check_for_updates(option="in-app"))
-check_for_updates_button.pack(anchor="s", fill="x", expand=True, padx=10, pady=(0, 10))
+chkforupdatesframe = CTkFrame(home_frame, corner_radius=0, fg_color="transparent")
+chkforupdatesframe.pack(anchor="s", fill="x", expand=True)
+check_for_updates_button = CTkButton(chkforupdatesframe, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: check_for_updates(option="in-app"))
+update_now_button = CTkButton(chkforupdatesframe, text="Update now", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=LaunchUpdater)
+check_for_updates_button.grid(row=1, column=0, columnspan=2, padx=5, pady=10, sticky="ew")
+update_now_button.grid(row=1, column=2, columnspan=2, padx=5, pady=10, sticky="ew")
 
 
 YTVideoContentType = "Video (.mp4)"
@@ -1490,6 +1512,7 @@ responsive_grid(assistant_responce_box_frame, 1, 0) # 1 rows, 0 columns responsi
 responsive_grid(devices_frame, 3, 1) # 3 rows, 1 column responsive
 responsive_grid(system_frame, 2, 3) # 2 rows, 3 columns responsive
 responsive_grid(settings_frame, 2, 2) # 2 rows, 2 columns responsive
+chkforupdatesframe.grid_columnconfigure([0, 3], weight=1)
 music_controls_frame.grid_columnconfigure([0, 4], weight=1)
 settingsgrid.grid_columnconfigure([0, 3], weight=1)
 
