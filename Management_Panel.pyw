@@ -24,6 +24,7 @@
 ### DONE: finish making the app responsive
 ### DISREGARDED: Instead of using tkinter.messagebox use CTkMessagebox (Didn't work out as i hoped it did. The library is not at fault, i just didn't like the way it worked)
 ###
+### BUG: In Updater.py, when it gets compiled into a .exe, the "copy2" function tries to overwrite the updater.exe file and fails because it is currently running. Need to find a way to fix this.
 ###
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
