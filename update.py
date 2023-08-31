@@ -28,7 +28,6 @@ def on_closing():
     exit()
 
 if len(argv) != 3:
-    print(len(argv), argv)
     print(f"{RED}Error{RESET}: Invalid arguments")
     on_closing()
 
