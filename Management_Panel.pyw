@@ -401,22 +401,6 @@ def StartUp():
             with open(SETTINGSFILE, 'r') as settings_file:
                 settings = JSload(settings_file)
 
-            properties_to_remove = []
-
-            for Property in settings:
-                if Property not in default_settings:
-                    properties_to_remove.append(Property)
-                else:
-                    for key in settings[Property]:
-                        if key not in default_settings[Property]:
-                            properties_to_remove.append(Property)
-                            break
-
-            for property_to_remove in properties_to_remove:
-                del settings[property_to_remove]
-
-            del properties_to_remove
-
             for Property in default_settings:
                 if Property not in settings:
                     settings[Property] = default_settings[Property]
