@@ -6,6 +6,7 @@ from colorama import init as colorinit, Fore
 from os.path import exists, join, relpath
 from sys import exit, platform, argv
 from shutil import copy2, rmtree
+from winshell import desktop
 from zipfile import ZipFile
 from requests import get
 from time import sleep
@@ -26,13 +27,14 @@ def on_closing():
     sleep(2.5)
     exit()
 
-if len(argv) != 4:
+if len(argv) != 3:
+    print(len(argv), argv)
     print(f"{RED}Error{RESET}: Invalid arguments")
     on_closing()
 
 CurrentAppVersion = argv[1]
 DataTXTFileUrl = argv[2]
-UserDesktopDir = argv[3]
+UserDesktopDir = desktop()
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     "Accept-Language": "en-US,en;q=0.9"

@@ -83,7 +83,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.1"
+CurrentAppVersion = "4.2.2"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -1241,7 +1241,7 @@ def shorten_path(text, max_length, replacement: str = "..."):
     return text
 def LaunchUpdater():
     def launch():
-        system(f"update.exe {CurrentAppVersion} {DataTXTFileUrl} {UserDesktopDir}")
+        system(f"update.exe {CurrentAppVersion} {DataTXTFileUrl}")
         sys.exit()
     Thread(name="UpdaterThread", daemon=True, target=launch).start()
     sys.exit()
