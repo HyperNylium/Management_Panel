@@ -30,8 +30,8 @@
 
 # Imports
 from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd
+from os.path import exists, join, splitext, split, expanduser
 from tkinter.messagebox import showerror, askyesno, showinfo
-from os.path import exists, join, splitext, expanduser
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from tkinter import BooleanVar, DoubleVar, IntVar
 from json import load as JSload, dump as JSdump
@@ -39,13 +39,15 @@ from threading import Thread, Timer as TD_Timer
 from datetime import datetime, date, timedelta
 from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
+from zipfile import ZipFile
 from copy import deepcopy
 from time import sleep
 import sys
 
 try:
     from customtkinter import (
-        CTk, 
+        CTk,
+        CTkToplevel,
         CTkFrame, 
         CTkScrollableFrame, 
         CTkLabel, 
@@ -411,22 +413,9 @@ def StartUp():
                         for key in default_settings[Property]:
                             if key not in settings[Property]:
                                 settings[Property][key] = default_settings[Property][key]
-
+                settings["AppSettings"]["PreviouslyUpdated"] == "False"
                 with open(SETTINGSFILE, 'w') as settings_file:
                     JSdump(settings, settings_file, indent=2)
-
-            if len(sys.argv) == 3:
-                sleep(2.5)
-                try:
-                    from shutil import rmtree
-                    local_path_zip = sys.argv[1]
-                    local_path = sys.argv[2]
-                    remove(local_path_zip)
-                    rmtree(local_path)
-                except Exception as e:
-                    showerror(title="Error cleaning up update files", message=f"An error occurred while cleaning up update files\n{e}")
-                del local_path_zip, local_path
-                SaveSettingsToJson("PreviouslyUpdated", "False")
                 restart(pass_args=False)
 
         except FileNotFoundError:
@@ -507,7 +496,7 @@ def check_for_updates(option: str):
                     if (output):
                         Developer = "Unknown"
                         LastEditDate = "Unknown"
-                        LiveAppVersion = CurrentAppVersion
+                        # LiveAppVersion = CurrentAppVersion
                         ShowUserInfo = "- Unauthentic"
                     else:
                         sys.exit()
@@ -518,7 +507,7 @@ def check_for_updates(option: str):
                         sys.exit()
                     else:
                         ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-                        LiveAppVersion = CurrentAppVersion
+                        # LiveAppVersion = CurrentAppVersion
             else:
                 ShowUserInfo = "- Latest version"
         except Timeout:
@@ -554,11 +543,11 @@ def check_for_updates(option: str):
             if LiveAppVersion < CurrentAppVersion:
                     Developer = "Unknown"
                     LastEditDate = "Unknown"
-                    LiveAppVersion = CurrentAppVersion
+                    # LiveAppVersion = CurrentAppVersion
                     ShowUserInfo = "- Unauthentic"
             elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-                    LiveAppVersion = CurrentAppVersion
+                    # LiveAppVersion = CurrentAppVersion
             else:
                 ShowUserInfo = "- Latest version"
         except Timeout:
@@ -777,6 +766,15 @@ def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: fl
     x = int(((screen_width/2) - (width/2)) * scale_factor)
     y = int(((screen_height/2) - (height/1.5)) * scale_factor)
     return f"{width}x{height}+{x}+{y}"
+def CenterWindowToMain(Screen: CTkToplevel, width: int, height: int):
+    """Centers the window to the main tkinter window"""
+    main_screen_width = Screen.winfo_width()
+    main_screen_height = Screen.winfo_height()
+    main_screen_X = Screen.winfo_x()
+    main_screen_Y = Screen.winfo_y()
+    x = main_screen_X + (main_screen_width - width) // 2
+    y = main_screen_Y + (main_screen_height - height) // 2
+    return f"{width}x{height}+{int(x)}+{int(y)}"
 def ResetWindowPos():
     """Resets window positions in settings.json"""
     SaveSettingsToJson("Window_State", "normal")
@@ -1263,16 +1261,89 @@ def shorten_path(text, max_length, replacement: str = "..."):
         return text[:max_length - 3] + replacement  # Replace the last three characters with "..."
     return text
 def LaunchUpdater():
-    def launch():
-        system(f"update.py {CurrentAppVersion} {DataTXTFileUrl} {SETTINGSFILE}")
-        sys.exit()
-    if exists("update.py"):
-        Thread(name="UpdaterThread", daemon=True, target=launch).start()
-        sys.exit()
-    else:
-        showerror(title="Updater error", message="The update.exe file is missing. Please reinstall the program")
-    return
+    if exists("update.exe"):
+        cwd = getcwd()
+        if getattr(sys, 'frozen', False):
+            downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
+            local_path_zip = f"Management_Panel-{LiveAppVersion}-windows.zip"
+        else:
+            downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
+            local_path_zip = f"Management_Panel-{LiveAppVersion}.zip"
 
+        if LiveAppVersion < CurrentAppVersion:
+            showerror(title="Invalid version!", message=f"You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.")
+            return
+
+        elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
+            usr_choice = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
+            if usr_choice is True:
+                def updatewindow_on_closing():
+                    update_now_button.configure(state="normal")
+                    updatewindow.destroy()
+                def launchupdater():
+                    def launch():
+                        system(f"update.exe {LiveAppVersion} {SETTINGSFILE}")
+                        sys.exit()
+                    Thread(name="LaunchUpdaterThread", daemon=True, target=launch).start()
+                def download_update():
+                    try:
+                        updatewindow_label.configure(text=f"Downloading update v{LiveAppVersion}...")
+                        response = get(downurl, stream=True, timeout=60, headers=headers, allow_redirects=True)
+                        total_size_in_bytes = response.headers.get('content-length', 0)
+                        print(total_size_in_bytes)
+                        block_size = 1024 # 1 Kibibyte
+                        with open(local_path_zip, 'wb') as updatefile:
+                            for data in response.iter_content(block_size):
+                                print(len(data))
+                                updatefile.write(data)
+
+                        updatewindow_label.configure(text=f"Extracting update files...")
+                        with ZipFile(local_path_zip, 'r') as zipObj:
+                            zipObj.extractall()
+
+                        remove(local_path_zip)
+
+                        # for root, dirs, files in walk(local_path):
+                        #     relative_path = relpath(root, local_path)
+                        #     dest_root = join(cwd, relative_path)
+
+                        #     makedirs(dest_root, exist_ok=True)
+
+                        #     for file in files:
+                        #         src_file = join(root, file)
+                        #         dest_file = join(dest_root, file)
+                        #         if file.lower() == "update.exe":
+                        #             copy2(src_file, dest_file)
+                        #             break
+
+                        updatewindow_label.configure(text=f"Launching update.exe to finish installing update...")
+                        # schedule_create(window, 2000, launchupdater)
+                    except Exception as e:
+                        showerror(title="Update error", message=f"An error occurred while updating. Heres the full error:\n{e}")
+                        update_now_button.configure(state="normal")
+                        updatewindow.destroy()
+                    return
+
+                updatewindow = CTkToplevel()
+                updatewindow.title("Updater")
+                updatewindow.attributes('-topmost', True)
+                updatewindow.geometry(CenterWindowToMain(window, 500, 250))
+                updatewindow.resizable(False, False)
+                updatewindow.protocol("WM_DELETE_WINDOW", updatewindow_on_closing)
+                update_now_button.configure(state="disabled")
+
+                updatewindow_label = CTkLabel(updatewindow, text="Initializing...", font=("Arial", 20))
+                updatewindow_label.pack(fill="x", expand=True)
+
+                Thread(name="UpdateDownloadThread", daemon=True, target=download_update).start()
+
+        else:
+            showinfo(title="Update", message="You are on the latest version")
+            return
+    else:
+        showerror(title="Update.exe error", message="The update.exe file is missing. Please reinstall the program")
+
+    return
 window = CTk()
 window.title("Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
@@ -1385,7 +1456,7 @@ settings_frame = CTkScrollableFrame(window, corner_radius=0, fg_color="transpare
 
 
 # Create elements/widgets for frames
-home_frame_label_1 = CTkLabel(home_frame, text=f"Version: {LiveAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
+home_frame_label_1 = CTkLabel(home_frame, text=f"Version: {CurrentAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
 home_frame_label_1.pack(anchor="center", pady=(100, 0))
 home_frame_label_2 = CTkLabel(home_frame, text=f"Creator/developer: {Developer}", font=("sans-serif", 28))
 home_frame_label_2.pack(anchor="center", pady=10)
