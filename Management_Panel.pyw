@@ -427,7 +427,7 @@ def StartUp():
                     showerror(title="Error cleaning up update files", message=f"An error occurred while cleaning up update files\n{e}")
                 del local_path_zip, local_path
                 SaveSettingsToJson("PreviouslyUpdated", "False")
-                restart()
+                restart(pass_args=False)
 
         except FileNotFoundError:
             with open(SETTINGSFILE, 'w') as settings_file:
@@ -581,10 +581,16 @@ def check_for_updates(option: str):
         Developer = "N/A"
         LastEditDate = "N/A"
         ShowUserInfo = "- Check disabled"
-def restart():
+def restart(pass_args=True):
     """Restarts app"""
     python = sys.executable
-    execl(python, python, *sys.argv)
+    print(python)
+    print(sys.argv)
+    sleep(3)
+    if pass_args is True:
+        execl(python, python, *sys.argv)
+    else:
+        execl(python, python, sys.argv[0])
 def on_closing():
     """App termination function"""
     SaveSettingsToJson("CurrentlyPlaying", "False")

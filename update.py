@@ -108,7 +108,7 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                 on_closing()
             print(f"{GREEN}Downloaded update files successfully{RESET}")
 
-            sleep(1)
+            sleep(0.5)
 
             print(f"\n{YELLOW}Extracting update files...{RESET}")
             try:
@@ -119,7 +119,7 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                 print(f"{RED}Error{RESET}: Unable to extract update files:\n   {e}")
                 error_count += 1
 
-            sleep(1)
+            sleep(0.5)
 
             print(f"\n{YELLOW}Installing update...{RESET}")
             try:
@@ -132,7 +132,7 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     for file in files:
                         src_file = join(root, file)
                         dest_file = join(dest_root, file)
-                        if not file.lower() == "update.py":
+                        if not file.lower() == "update.exe":
                             copy2(src_file, dest_file)
 
                     if exists(SETTINGSFILE):
@@ -153,7 +153,7 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
             if error_count != 0:
                 print(f"\n{error_count} errors occured during update. The update may have been installed incorrectly. Please try again later")
 
-            sleep(1.5)
+            sleep(0.5)
 
             try:
                 print(f"\n{YELLOW}Restarting Management_Panel to finish install...{RESET}")
