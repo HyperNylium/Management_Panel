@@ -2,6 +2,7 @@
 # pyinstaller --onefile --icon=assets/AppIcon/Management_Panel_Icon.ico update.py
 
 from os import system, getcwd, walk, makedirs, startfile
+from json import load as JSload, dump as JSdump
 from colorama import init as colorinit, Fore
 from os.path import exists, join, relpath
 from sys import exit, platform, argv
@@ -11,7 +12,6 @@ from shutil import copy2
 from requests import get
 from time import sleep
 from tqdm import tqdm
-import json
 
 colorinit()
 
@@ -25,11 +25,11 @@ clear_command = "cls" if platform == "win32" else "clear"
 
 def on_closing():
     print(RESET)
-    sleep(10)
+    sleep(15)
     exit()
 
 if len(argv) != 4:
-    print(f"{RED}Error{RESET}: Invalid arguments count {len(argv)}. Passed arguments:\n")
+    print(f"{RED}Error{RESET}: Invalid arguments count {len(argv)}. Expected argument count 4. Passed arguments:\n")
     for arg in argv:
         print(f" -> {arg}")
     on_closing()
@@ -39,7 +39,7 @@ DataTXTFileUrl = argv[2]
 SETTINGSFILE = argv[3]
 UserDesktopDir = desktop()
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
     "Accept-Language": "en-US,en;q=0.9"
 }
 error_count = 0
@@ -47,6 +47,7 @@ cwd = getcwd()
 
 try:
     response = get(DataTXTFileUrl, timeout=3, headers=headers)
+    sleep(2)
     lines = response.text.split('\n')
     delimiter = "="
 
@@ -67,12 +68,14 @@ except Exception as e:
 
 
 if exists(f"{cwd}\\Management_Panel.exe"):
-    downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
+    # downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
+    downurl = f"http://www.hypernylium.com/projects/ManagementPanel/assets/Management_Panel-{LiveAppVersion}-windows.zip"
     local_path_zip = f"Management_Panel-{LiveAppVersion}-windows.zip"
     local_path = f"{cwd}\\Management_Panel"
     expected_path = f"Management_Panel.exe"
 elif exists(f"{cwd}\\Management_Panel.py") or exists(f"{cwd}\\Management_Panel.pyw"):
-    downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
+    # downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
+    downurl = f"http://www.hypernylium.com/projects/ManagementPanel/assets/Management_Panel-{LiveAppVersion}.zip"
     local_path_zip = f"Management_Panel-{LiveAppVersion}.zip"
     local_path = f"{cwd}\\Management_Panel-{LiveAppVersion}"
     expected_path = f"Management_Panel.pyw"
@@ -93,8 +96,8 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
 
         print(f"\n{YELLOW}Downloading update files...{RESET}")
         try:
-            response = get(downurl, stream=True, timeout=10, headers=headers)
-            total_size_in_bytes= int(response.headers.get('content-length', 0))
+            response = get(downurl, stream=True, timeout=10, headers=headers, allow_redirects=True)
+            total_size_in_bytes = int(response.headers.get('content-length', 0))
             block_size = 1024 # 1 Kibibyte
             progress_bar = tqdm(total=total_size_in_bytes, unit='KiB', unit_scale=True)
             with open(local_path_zip, 'wb') as file:
@@ -131,18 +134,18 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     for file in files:
                         src_file = join(root, file)
                         dest_file = join(dest_root, file)
-                        if not file.lower() == "update.py":
+                        if not file.lower() == "update.exe":
                             copy2(src_file, dest_file)
 
                     if exists(SETTINGSFILE):
                         with open(SETTINGSFILE, 'r') as json_file:
-                            settings = json.load(json_file)
+                            settings = JSload(json_file)
 
                         if "AppSettings" in settings and "PreviouslyUpdated" in settings["AppSettings"]:
                             settings["AppSettings"]["PreviouslyUpdated"] = "True"
 
                         with open(SETTINGSFILE, 'w') as json_file:
-                            json.dump(settings, json_file, indent=4)
+                            JSdump(settings, json_file, indent=4)
 
                 print(f"{GREEN}Update installed successfully{RESET}")
             except Exception as e:
@@ -154,17 +157,19 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
 
             sleep(1.5)
 
-            print(f"\n{YELLOW}Restarting Management_Panel to finish install...{RESET}")
-            startfile(join(cwd, f"{expected_path} '{local_path_zip}' '{local_path}'"))
+            try:
+                print(f"\n{YELLOW}Restarting Management_Panel to finish install...{RESET}")
+                system(f"start {cwd}\{expected_path} {local_path_zip} {local_path}")
+            except Exception as e:
+                print(f"{RED}Error{RESET}: Unable to restart Management_Panel:\n   {e}")
 
         except Exception as e:
             print(f"{RED}Error{RESET}: Unable to download update:\n   {e}")
-            on_closing()
+
     else:
         print(f"{RED}Update cancelled{RESET}")
         sleep(1.5)
         startfile(join(cwd, expected_path))
-        on_closing()
 else:
     print(f"{GREEN}You are on the latest version{RESET}")
     sleep(1.5)

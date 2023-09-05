@@ -88,7 +88,7 @@ CurrentAppVersion = "4.2.0"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
     "Accept-Language": "en-US,en;q=0.9"
 }
 
@@ -1257,9 +1257,9 @@ def shorten_path(text, max_length, replacement: str = "..."):
     return text
 def LaunchUpdater():
     def launch():
-        system(f"update.py {CurrentAppVersion} {DataTXTFileUrl} {SETTINGSFILE}")
+        system(f"update.exe {CurrentAppVersion} {DataTXTFileUrl} {SETTINGSFILE}")
         sys.exit()
-    if exists("update.py"):
+    if exists("update.exe"):
         Thread(name="UpdaterThread", daemon=True, target=launch).start()
         sys.exit()
     else:
