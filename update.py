@@ -1,16 +1,17 @@
 
 # pyinstaller --onefile --icon=assets/AppIcon/Management_Panel_Icon.ico update.py
 
-from os import system, getcwd, walk, makedirs, remove, startfile
+from os import system, getcwd, walk, makedirs, startfile
 from colorama import init as colorinit, Fore
 from os.path import exists, join, relpath
 from sys import exit, platform, argv
-from shutil import copy2, rmtree
 from winshell import desktop
 from zipfile import ZipFile
+from shutil import copy2
 from requests import get
 from time import sleep
 from tqdm import tqdm
+import json
 
 colorinit()
 
@@ -24,15 +25,18 @@ clear_command = "cls" if platform == "win32" else "clear"
 
 def on_closing():
     print(RESET)
-    sleep(2.5)
+    sleep(10)
     exit()
 
-if len(argv) != 3:
-    print(f"{RED}Error{RESET}: Invalid arguments")
+if len(argv) != 4:
+    print(f"{RED}Error{RESET}: Invalid arguments count {len(argv)}. Passed arguments:\n")
+    for arg in argv:
+        print(f" -> {arg}")
     on_closing()
 
 CurrentAppVersion = argv[1]
 DataTXTFileUrl = argv[2]
+SETTINGSFILE = argv[3]
 UserDesktopDir = desktop()
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -73,12 +77,12 @@ elif exists(f"{cwd}\\Management_Panel.py") or exists(f"{cwd}\\Management_Panel.p
     local_path = f"{cwd}\\Management_Panel-{LiveAppVersion}"
     expected_path = f"Management_Panel.pyw"
 else:
-    print(f"{RED}Error{RESET}: Unable to determine which version to download. Please make sure you have either the executable or source code version of the Management Panel in the same directory as the updater")
+    print(f"{RED}Error{RESET}: Unable to determine which version to download. Please make sure you have either the executable or source code version of the Management_Panel in the same directory as this updater")
     on_closing()
 
 
 if LiveAppVersion < CurrentAppVersion:
-    print(f"{RED}Error{RESET}: Live version is older than current version")
+    print(f"{RED}Error{RESET}: Live version is older than current version meaning you are on a beta version or an invalid version.")
     on_closing()
 
 elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
@@ -87,9 +91,9 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
     if choice == "y":
         system(clear_command)
 
-        print(f"\n{YELLOW}Downloading update...{RESET}")
+        print(f"\n{YELLOW}Downloading update files...{RESET}")
         try:
-            response = get(downurl, stream=True, timeout=3, headers=headers)
+            response = get(downurl, stream=False, timeout=10, headers=headers)
             total_size_in_bytes= int(response.headers.get('content-length', 0))
             block_size = 1024 # 1 Kibibyte
             progress_bar = tqdm(total=total_size_in_bytes, unit='KiB', unit_scale=True)
@@ -99,19 +103,19 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     file.write(data)
             progress_bar.close()
             if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-                print(f"{RED}Error{RESET}: Something went wrong while downloading update file")
+                print(f"{RED}Error{RESET}: Something went wrong while downloading update files. Please try again later")
                 on_closing()
-            print(f"{GREEN}Downloaded update successfully{RESET}")
+            print(f"{GREEN}Downloaded update files successfully{RESET}")
 
             sleep(1)
 
-            print(f"\n{YELLOW}Extracting update...{RESET}")
+            print(f"\n{YELLOW}Extracting update files...{RESET}")
             try:
                 with ZipFile(local_path_zip, 'r') as zipObj:
                     zipObj.extractall()
-                print(f"{GREEN}Update extracted successfully{RESET}")
+                print(f"{GREEN}Extracted update files successfully{RESET}")
             except Exception as e:
-                print(f"{RED}Error{RESET}: Unable to extract update:\n   {e}")
+                print(f"{RED}Error{RESET}: Unable to extract update files:\n   {e}")
                 error_count += 1
 
             sleep(1)
@@ -127,29 +131,31 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     for file in files:
                         src_file = join(root, file)
                         dest_file = join(dest_root, file)
-                        copy2(src_file, dest_file)
+                        if not file.lower() == "update.py":
+                            copy2(src_file, dest_file)
+
+                    if exists(SETTINGSFILE):
+                        with open(SETTINGSFILE, 'r') as json_file:
+                            settings = json.load(json_file)
+
+                        if "AppSettings" in settings and "PreviouslyUpdated" in settings["AppSettings"]:
+                            settings["AppSettings"]["PreviouslyUpdated"] = "True"
+
+                        with open(SETTINGSFILE, 'w') as json_file:
+                            json.dump(settings, json_file, indent=4)
+
                 print(f"{GREEN}Update installed successfully{RESET}")
             except Exception as e:
                 print(f"{RED}Error{RESET}: Unable to install update:\n   {e}")
                 error_count += 1
 
-            sleep(1)
-
-            try:
-                print(f"\n{YELLOW}Cleaning up...{RESET}")
-                remove(local_path_zip)
-                rmtree(local_path)
-                print(f"{GREEN}Update cleaned up successfully{RESET}")
-            except Exception as e:
-                print(f"{RED}Error{RESET}: Unable to clean up update files:\n   {e}")
-
-            if error_count == 0:
-                print(f"\n{GREEN}Update complete{RESET}")
+            if error_count != 0:
+                print(f"\n{error_count} errors occured during update. The update may have been installed incorrectly. Please try again later")
 
             sleep(1.5)
 
-            print(f"\n{YELLOW}Restarting Management_Panel...{RESET}")
-            startfile(join(cwd, expected_path))
+            print(f"\n{YELLOW}Restarting Management_Panel to finish install...{RESET}")
+            startfile(join(cwd, f"{expected_path} '{local_path_zip}' '{local_path}'"))
 
         except Exception as e:
             print(f"{RED}Error{RESET}: Unable to download update:\n   {e}")

@@ -84,7 +84,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.2"
+CurrentAppVersion = "4.2.0"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -378,6 +378,7 @@ def StartUp():
                 "LoopState": "all"
             },
             "AppSettings": {
+                "PreviouslyUpdated": "False",
                 "AlwaysOnTop": "False",
                 "LaunchAtLogin": "False",
                 "SpeakResponce": "False",
@@ -402,16 +403,30 @@ def StartUp():
             with open(SETTINGSFILE, 'r') as settings_file:
                 settings = JSload(settings_file)
 
-            for Property in default_settings:
-                if Property not in settings:
-                    settings[Property] = default_settings[Property]
-                else:
-                    for key in default_settings[Property]:
-                        if key not in settings[Property]:
-                            settings[Property][key] = default_settings[Property][key]
+            if settings["AppSettings"]["PreviouslyUpdated"] == "True":
+                for Property in default_settings:
+                    if Property not in settings:
+                        settings[Property] = default_settings[Property]
+                    else:
+                        for key in default_settings[Property]:
+                            if key not in settings[Property]:
+                                settings[Property][key] = default_settings[Property][key]
+                print(sys.argv)
+                if len(sys.argv) == 3:
+                    try:
+                        from shutil import rmtree
+                        local_path_zip = sys.argv[1]
+                        local_path = sys.argv[2]
+                        remove(local_path_zip)
+                        rmtree(local_path)
+                    except Exception as e:
+                        showerror(title="Error cleaning up update files", message=f"An error occurred while cleaning up update files\n{e}")
+                    del local_path_zip, local_path
+                    SaveSettingsToJson("PreviouslyUpdated", "False")
+                    restart()
 
-            with open(SETTINGSFILE, 'w') as settings_file:
-                JSdump(settings, settings_file, indent=2)
+                with open(SETTINGSFILE, 'w') as settings_file:
+                    JSdump(settings, settings_file, indent=2)
 
         except FileNotFoundError:
             with open(SETTINGSFILE, 'w') as settings_file:
@@ -1242,10 +1257,14 @@ def shorten_path(text, max_length, replacement: str = "..."):
     return text
 def LaunchUpdater():
     def launch():
-        system(f"update.exe {CurrentAppVersion} {DataTXTFileUrl}")
+        system(f"update.py {CurrentAppVersion} {DataTXTFileUrl} {SETTINGSFILE}")
         sys.exit()
-    Thread(name="UpdaterThread", daemon=True, target=launch).start()
-    sys.exit()
+    if exists("update.py"):
+        Thread(name="UpdaterThread", daemon=True, target=launch).start()
+        sys.exit()
+    else:
+        showerror(title="Updater error", message="The update.exe file is missing. Please reinstall the program")
+    return
 
 window = CTk()
 window.title("Management Panel")
