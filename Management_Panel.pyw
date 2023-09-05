@@ -411,22 +411,23 @@ def StartUp():
                         for key in default_settings[Property]:
                             if key not in settings[Property]:
                                 settings[Property][key] = default_settings[Property][key]
-                print(sys.argv)
-                if len(sys.argv) == 3:
-                    try:
-                        from shutil import rmtree
-                        local_path_zip = sys.argv[1]
-                        local_path = sys.argv[2]
-                        remove(local_path_zip)
-                        rmtree(local_path)
-                    except Exception as e:
-                        showerror(title="Error cleaning up update files", message=f"An error occurred while cleaning up update files\n{e}")
-                    del local_path_zip, local_path
-                    SaveSettingsToJson("PreviouslyUpdated", "False")
-                    restart()
 
                 with open(SETTINGSFILE, 'w') as settings_file:
                     JSdump(settings, settings_file, indent=2)
+
+            if len(sys.argv) == 3:
+                sleep(2.5)
+                try:
+                    from shutil import rmtree
+                    local_path_zip = sys.argv[1]
+                    local_path = sys.argv[2]
+                    remove(local_path_zip)
+                    rmtree(local_path)
+                except Exception as e:
+                    showerror(title="Error cleaning up update files", message=f"An error occurred while cleaning up update files\n{e}")
+                del local_path_zip, local_path
+                SaveSettingsToJson("PreviouslyUpdated", "False")
+                restart()
 
         except FileNotFoundError:
             with open(SETTINGSFILE, 'w') as settings_file:
@@ -1257,9 +1258,9 @@ def shorten_path(text, max_length, replacement: str = "..."):
     return text
 def LaunchUpdater():
     def launch():
-        system(f"update.exe {CurrentAppVersion} {DataTXTFileUrl} {SETTINGSFILE}")
+        system(f"update.py {CurrentAppVersion} {DataTXTFileUrl} {SETTINGSFILE}")
         sys.exit()
-    if exists("update.exe"):
+    if exists("update.py"):
         Thread(name="UpdaterThread", daemon=True, target=launch).start()
         sys.exit()
     else:

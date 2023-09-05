@@ -25,7 +25,7 @@ clear_command = "cls" if platform == "win32" else "clear"
 
 def on_closing():
     print(RESET)
-    sleep(15)
+    sleep(1.5)
     exit()
 
 if len(argv) != 4:
@@ -68,17 +68,15 @@ except Exception as e:
 
 
 if exists(f"{cwd}\\Management_Panel.exe"):
-    # downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
-    downurl = f"http://www.hypernylium.com/projects/ManagementPanel/assets/Management_Panel-{LiveAppVersion}-windows.zip"
+    downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
     local_path_zip = f"Management_Panel-{LiveAppVersion}-windows.zip"
     local_path = f"{cwd}\\Management_Panel"
-    expected_path = f"Management_Panel.exe"
+    expected_path = "Management_Panel.exe"
 elif exists(f"{cwd}\\Management_Panel.py") or exists(f"{cwd}\\Management_Panel.pyw"):
-    # downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
-    downurl = f"http://www.hypernylium.com/projects/ManagementPanel/assets/Management_Panel-{LiveAppVersion}.zip"
+    downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
     local_path_zip = f"Management_Panel-{LiveAppVersion}.zip"
     local_path = f"{cwd}\\Management_Panel-{LiveAppVersion}"
-    expected_path = f"Management_Panel.pyw"
+    expected_path = "Management_Panel.pyw"
 else:
     print(f"{RED}Error{RESET}: Unable to determine which version to download. Please make sure you have either the executable or source code version of the Management_Panel in the same directory as this updater")
     on_closing()
@@ -96,7 +94,7 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
 
         print(f"\n{YELLOW}Downloading update files...{RESET}")
         try:
-            response = get(downurl, stream=True, timeout=10, headers=headers, allow_redirects=True)
+            response = get(downurl, stream=True, timeout=60, headers=headers, allow_redirects=True)
             total_size_in_bytes = int(response.headers.get('content-length', 0))
             block_size = 1024 # 1 Kibibyte
             progress_bar = tqdm(total=total_size_in_bytes, unit='KiB', unit_scale=True)
@@ -134,7 +132,7 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     for file in files:
                         src_file = join(root, file)
                         dest_file = join(dest_root, file)
-                        if not file.lower() == "update.exe":
+                        if not file.lower() == "update.py":
                             copy2(src_file, dest_file)
 
                     if exists(SETTINGSFILE):
@@ -159,7 +157,7 @@ elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
 
             try:
                 print(f"\n{YELLOW}Restarting Management_Panel to finish install...{RESET}")
-                system(f"start {cwd}\{expected_path} {local_path_zip} {local_path}")
+                system(f"start {cwd}/{expected_path} {local_path_zip} {local_path}")
             except Exception as e:
                 print(f"{RED}Error{RESET}: Unable to restart Management_Panel:\n   {e}")
 
