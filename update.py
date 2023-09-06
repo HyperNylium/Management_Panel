@@ -7,7 +7,6 @@ from colorama import init as colorinit, Fore
 from os.path import exists, join, relpath
 from sys import exit, platform, argv
 from shutil import copy2, rmtree
-from winshell import desktop
 from time import sleep
 
 colorinit()
@@ -33,11 +32,6 @@ if len(argv) != 3:
 
 LiveAppVersion = argv[1]
 SETTINGSFILE = argv[2]
-UserDesktopDir = desktop()
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9"
-}
 error_count = 0
 cwd = getcwd()
 
@@ -68,7 +62,7 @@ try:
             dest_file = join(dest_root, file)
             if not file.lower() == "update.exe":
                 copy2(src_file, dest_file)
-    
+
     rmtree(local_path)
 
     if exists(SETTINGSFILE):

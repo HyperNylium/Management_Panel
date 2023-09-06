@@ -29,8 +29,8 @@
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 # Imports
-from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd
-from os.path import exists, join, splitext, split, expanduser
+from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd, walk, makedirs
+from os.path import exists, join, splitext, expanduser, relpath
 from tkinter.messagebox import showerror, askyesno, showinfo
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from tkinter import BooleanVar, DoubleVar, IntVar
@@ -41,6 +41,7 @@ from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
 from zipfile import ZipFile
 from copy import deepcopy
+from shutil import copy2
 from time import sleep
 import sys
 
@@ -490,24 +491,12 @@ def check_for_updates(option: str):
                         Developer = value
                     elif key == "LastEditDate":
                         LastEditDate = value
-
             if LiveAppVersion < CurrentAppVersion:
-                    output = askyesno(title='Invalid version!', message=f'You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.\n\nDo you want to contine anyways?')
-                    if (output):
-                        Developer = "Unknown"
-                        LastEditDate = "Unknown"
-                        # LiveAppVersion = CurrentAppVersion
-                        ShowUserInfo = "- Unauthentic"
-                    else:
-                        sys.exit()
+                    Developer = "Unknown"
+                    LastEditDate = "Unknown"
+                    ShowUserInfo = "- Unauthentic"
             elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
-                    output = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
-                    if (output):
-                        LaunchUpdater()
-                        sys.exit()
-                    else:
-                        ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-                        # LiveAppVersion = CurrentAppVersion
+                    ShowUserInfo = f"- Update available (v{LiveAppVersion})"
             else:
                 ShowUserInfo = "- Latest version"
         except Timeout:
@@ -543,11 +532,9 @@ def check_for_updates(option: str):
             if LiveAppVersion < CurrentAppVersion:
                     Developer = "Unknown"
                     LastEditDate = "Unknown"
-                    # LiveAppVersion = CurrentAppVersion
                     ShowUserInfo = "- Unauthentic"
             elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-                    # LiveAppVersion = CurrentAppVersion
             else:
                 ShowUserInfo = "- Latest version"
         except Timeout:
@@ -560,7 +547,7 @@ def check_for_updates(option: str):
             Developer = "N/A"
             LastEditDate = "N/A"
             ShowUserInfo = "- offline mode"
-        home_frame_label_1.configure(text=f"Version: {LiveAppVersion} {ShowUserInfo}")
+        home_frame_label_1.configure(text=f"Version: {CurrentAppVersion} {ShowUserInfo}")
         home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
         home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
         check_for_updates_button.configure(text="Check complete", state="disabled")
@@ -1261,14 +1248,17 @@ def shorten_path(text, max_length, replacement: str = "..."):
         return text[:max_length - 3] + replacement  # Replace the last three characters with "..."
     return text
 def LaunchUpdater():
+    check_for_updates("in-app")
     if exists("update.exe"):
         cwd = getcwd()
         if getattr(sys, 'frozen', False):
             downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
             local_path_zip = f"Management_Panel-{LiveAppVersion}-windows.zip"
+            local_path = f"{cwd}\\Management_Panel"
         else:
             downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
             local_path_zip = f"Management_Panel-{LiveAppVersion}.zip"
+            local_path = f"{cwd}\\Management_Panel-{LiveAppVersion}"
 
         if LiveAppVersion < CurrentAppVersion:
             showerror(title="Invalid version!", message=f"You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.")
@@ -1283,19 +1273,34 @@ def LaunchUpdater():
                 def launchupdater():
                     def launch():
                         system(f"update.exe {LiveAppVersion} {SETTINGSFILE}")
-                        sys.exit()
                     Thread(name="LaunchUpdaterThread", daemon=True, target=launch).start()
+                    updatewindow.destroy()
+                    sys.exit()
                 def download_update():
                     try:
                         updatewindow_label.configure(text=f"Downloading update v{LiveAppVersion}...")
-                        response = get(downurl, stream=True, timeout=60, headers=headers, allow_redirects=True)
-                        total_size_in_bytes = response.headers.get('content-length', 0)
-                        print(total_size_in_bytes)
+                        downloadedoutof = CTkLabel(updatewindow, text=f"0 / 0 (0.0%)", font=("Arial", 20))
+                        downloadedoutof.pack(fill="x", expand=True, padx=20, pady=0)
+                        downloadprogress = CTkProgressBar(updatewindow, mode="determinate", height=15)
+                        downloadprogress.set(0)
+                        downloadprogress.pack(fill="x", expand=True, padx=20, pady=0)
+                        response = get(downurl, stream=False, timeout=60, headers=headers, allow_redirects=True)
+                        total_size_in_bytes = int(response.headers.get('content-length', 0))
                         block_size = 1024 # 1 Kibibyte
+                        bytes_downloaded = 0
                         with open(local_path_zip, 'wb') as updatefile:
                             for data in response.iter_content(block_size):
-                                print(len(data))
                                 updatefile.write(data)
+                                bytes_downloaded += len(data)
+                                if total_size_in_bytes > 0:
+                                    progress = bytes_downloaded / total_size_in_bytes
+                                    progress_percent = (progress * 100)
+                                    downloadedoutof.configure(text=f"{bytes_downloaded} / {total_size_in_bytes} Bytes ({progress_percent:.2f}%)")
+                                    downloadprogress.set(progress)
+                                    downloadedoutof.update()
+                                    downloadprogress.update()
+                        downloadedoutof.destroy()
+                        downloadprogress.destroy()
 
                         updatewindow_label.configure(text=f"Extracting update files...")
                         with ZipFile(local_path_zip, 'r') as zipObj:
@@ -1307,17 +1312,18 @@ def LaunchUpdater():
                         #     relative_path = relpath(root, local_path)
                         #     dest_root = join(cwd, relative_path)
 
-                        #     makedirs(dest_root, exist_ok=True)
+                            # makedirs(dest_root, exist_ok=True)
 
                         #     for file in files:
-                        #         src_file = join(root, file)
-                        #         dest_file = join(dest_root, file)
                         #         if file.lower() == "update.exe":
+                        #             src_file = join(root, file)
+                        #             dest_file = join(dest_root, file)
                         #             copy2(src_file, dest_file)
                         #             break
 
                         updatewindow_label.configure(text=f"Launching update.exe to finish installing update...")
-                        # schedule_create(window, 2000, launchupdater)
+                        launchupdater()
+                        return
                     except Exception as e:
                         showerror(title="Update error", message=f"An error occurred while updating. Heres the full error:\n{e}")
                         update_now_button.configure(state="normal")
@@ -1331,9 +1337,8 @@ def LaunchUpdater():
                 updatewindow.resizable(False, False)
                 updatewindow.protocol("WM_DELETE_WINDOW", updatewindow_on_closing)
                 update_now_button.configure(state="disabled")
-
                 updatewindow_label = CTkLabel(updatewindow, text="Initializing...", font=("Arial", 20))
-                updatewindow_label.pack(fill="x", expand=True)
+                updatewindow_label.pack(fill="x", expand=True, padx=20, pady=0)
 
                 Thread(name="UpdateDownloadThread", daemon=True, target=download_update).start()
 
