@@ -24,14 +24,13 @@
 ### DONE: finish making the app responsive
 ### DISREGARDED: Instead of using tkinter.messagebox use CTkMessagebox (Didn't work out as i hoped it did. The library is not at fault, i just didn't like the way it worked)
 ###
-### BUG: In Updater.py, when it gets compiled into a .exe, the "copy2" function tries to overwrite the updater.exe file and fails because it is currently running. Need to find a way to fix this.
 ###
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 # Imports
-from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd
+from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd, walk, makedirs
+from os.path import exists, join, splitext, expanduser, relpath
 from tkinter.messagebox import showerror, askyesno, showinfo
-from os.path import exists, join, splitext, expanduser
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from tkinter import BooleanVar, DoubleVar, IntVar
 from json import load as JSload, dump as JSdump
@@ -39,13 +38,16 @@ from threading import Thread, Timer as TD_Timer
 from datetime import datetime, date, timedelta
 from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
+from zipfile import ZipFile
 from copy import deepcopy
+from shutil import copy2
 from time import sleep
 import sys
 
 try:
     from customtkinter import (
-        CTk, 
+        CTk,
+        CTkToplevel,
         CTkFrame, 
         CTkScrollableFrame, 
         CTkLabel, 
@@ -84,11 +86,11 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.2"
+CurrentAppVersion = "4.2.3"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
     "Accept-Language": "en-US,en;q=0.9"
 }
 
@@ -378,6 +380,7 @@ def StartUp():
                 "LoopState": "all"
             },
             "AppSettings": {
+                "PreviouslyUpdated": "False",
                 "AlwaysOnTop": "False",
                 "LaunchAtLogin": "False",
                 "SpeakResponce": "False",
@@ -402,16 +405,18 @@ def StartUp():
             with open(SETTINGSFILE, 'r') as settings_file:
                 settings = JSload(settings_file)
 
-            for Property in default_settings:
-                if Property not in settings:
-                    settings[Property] = default_settings[Property]
-                else:
-                    for key in default_settings[Property]:
-                        if key not in settings[Property]:
-                            settings[Property][key] = default_settings[Property][key]
-
-            with open(SETTINGSFILE, 'w') as settings_file:
-                JSdump(settings, settings_file, indent=2)
+            if settings["AppSettings"]["PreviouslyUpdated"] == "True":
+                for Property in default_settings:
+                    if Property not in settings:
+                        settings[Property] = default_settings[Property]
+                    else:
+                        for key in default_settings[Property]:
+                            if key not in settings[Property]:
+                                settings[Property][key] = default_settings[Property][key]
+                settings["AppSettings"]["PreviouslyUpdated"] == "False"
+                with open(SETTINGSFILE, 'w') as settings_file:
+                    JSdump(settings, settings_file, indent=2)
+                restart(pass_args=False)
 
         except FileNotFoundError:
             with open(SETTINGSFILE, 'w') as settings_file:
@@ -485,24 +490,12 @@ def check_for_updates(option: str):
                         Developer = value
                     elif key == "LastEditDate":
                         LastEditDate = value
-
             if LiveAppVersion < CurrentAppVersion:
-                    output = askyesno(title='Invalid version!', message=f'You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.\n\nDo you want to contine anyways?')
-                    if (output):
-                        Developer = "Unknown"
-                        LastEditDate = "Unknown"
-                        LiveAppVersion = CurrentAppVersion
-                        ShowUserInfo = "- Unauthentic"
-                    else:
-                        sys.exit()
+                    Developer = "Unknown"
+                    LastEditDate = "Unknown"
+                    ShowUserInfo = "- Unauthentic"
             elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
-                    output = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
-                    if (output):
-                        LaunchUpdater()
-                        sys.exit()
-                    else:
-                        ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-                        LiveAppVersion = CurrentAppVersion
+                    ShowUserInfo = f"- Update available (v{LiveAppVersion})"
             else:
                 ShowUserInfo = "- Latest version"
         except Timeout:
@@ -538,11 +531,9 @@ def check_for_updates(option: str):
             if LiveAppVersion < CurrentAppVersion:
                     Developer = "Unknown"
                     LastEditDate = "Unknown"
-                    LiveAppVersion = CurrentAppVersion
                     ShowUserInfo = "- Unauthentic"
             elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
                     ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-                    LiveAppVersion = CurrentAppVersion
             else:
                 ShowUserInfo = "- Latest version"
         except Timeout:
@@ -555,7 +546,7 @@ def check_for_updates(option: str):
             Developer = "N/A"
             LastEditDate = "N/A"
             ShowUserInfo = "- offline mode"
-        home_frame_label_1.configure(text=f"Version: {LiveAppVersion} {ShowUserInfo}")
+        home_frame_label_1.configure(text=f"Version: {CurrentAppVersion} {ShowUserInfo}")
         home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
         home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
         check_for_updates_button.configure(text="Check complete", state="disabled")
@@ -565,10 +556,16 @@ def check_for_updates(option: str):
         Developer = "N/A"
         LastEditDate = "N/A"
         ShowUserInfo = "- Check disabled"
-def restart():
+def restart(pass_args=True):
     """Restarts app"""
     python = sys.executable
-    execl(python, python, *sys.argv)
+    print(python)
+    print(sys.argv)
+    sleep(3)
+    if pass_args is True:
+        execl(python, python, *sys.argv)
+    else:
+        execl(python, python, sys.argv[0])
 def on_closing():
     """App termination function"""
     SaveSettingsToJson("CurrentlyPlaying", "False")
@@ -755,6 +752,15 @@ def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: fl
     x = int(((screen_width/2) - (width/2)) * scale_factor)
     y = int(((screen_height/2) - (height/1.5)) * scale_factor)
     return f"{width}x{height}+{x}+{y}"
+def CenterWindowToMain(Screen: CTkToplevel, width: int, height: int):
+    """Centers the window to the main tkinter window"""
+    main_screen_width = Screen.winfo_width()
+    main_screen_height = Screen.winfo_height()
+    main_screen_X = Screen.winfo_x()
+    main_screen_Y = Screen.winfo_y()
+    x = main_screen_X + (main_screen_width - width) // 2
+    y = main_screen_Y + (main_screen_height - height) // 2
+    return f"{width}x{height}+{int(x)}+{int(y)}"
 def ResetWindowPos():
     """Resets window positions in settings.json"""
     SaveSettingsToJson("Window_State", "normal")
@@ -1241,11 +1247,102 @@ def shorten_path(text, max_length, replacement: str = "..."):
         return text[:max_length - 3] + replacement  # Replace the last three characters with "..."
     return text
 def LaunchUpdater():
-    def launch():
-        system(f"update.exe {CurrentAppVersion} {DataTXTFileUrl}")
-        sys.exit()
-    Thread(name="UpdaterThread", daemon=True, target=launch).start()
-    sys.exit()
+    check_for_updates("in-app")
+    cwd = getcwd()
+    if getattr(sys, 'frozen', False):
+        downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
+        local_path_zip = f"Management_Panel-{LiveAppVersion}-windows.zip"
+        local_path = f"{cwd}\\Management_Panel"
+    else:
+        downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
+        local_path_zip = f"Management_Panel-{LiveAppVersion}.zip"
+        local_path = f"{cwd}\\Management_Panel-{LiveAppVersion}"
+
+    if LiveAppVersion < CurrentAppVersion:
+        showerror(title="Invalid version!", message=f"You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.")
+        return
+
+    elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
+        usr_choice = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
+        if usr_choice is True:
+            def updatewindow_on_closing():
+                update_now_button.configure(state="normal")
+                updatewindow.destroy()
+            def launchupdater():
+                def launch():
+                    system(f"update.exe {LiveAppVersion} {SETTINGSFILE}")
+                    sys.exit()
+                Thread(name="LaunchUpdaterThread", daemon=True, target=launch).start()
+                on_closing()
+            def download_update():
+                try:
+                    updatewindow_label.configure(text=f"Downloading update v{LiveAppVersion}...")
+                    downloadedoutof = CTkLabel(updatewindow, text=f"0 / 0 (0.0%)", font=("Arial", 20))
+                    downloadedoutof.pack(fill="x", expand=True, padx=20, pady=0)
+                    downloadprogress = CTkProgressBar(updatewindow, mode="determinate", height=15)
+                    downloadprogress.set(0)
+                    downloadprogress.pack(fill="x", expand=True, padx=20, pady=0)
+                    response = get(downurl, stream=False, timeout=60, headers=headers, allow_redirects=True)
+                    total_size_in_bytes = int(response.headers.get('content-length', 0))
+                    bytes_downloaded = 0
+                    block_size = 1024
+                    with open(local_path_zip, 'wb') as updatefile:
+                        for data in response.iter_content(block_size):
+                            updatefile.write(data)
+                            bytes_downloaded += len(data)
+                            if total_size_in_bytes > 0:
+                                progress = bytes_downloaded / total_size_in_bytes
+                                progress_percent = (progress * 100)
+                                downloadedoutof.configure(text=f"{bytes_downloaded} out of {total_size_in_bytes} bytes downloaded\n({progress_percent:.2f}%)")
+                                downloadprogress.set(progress)
+                                downloadedoutof.update()
+                                downloadprogress.update()
+                    downloadedoutof.destroy()
+                    downloadprogress.destroy()
+
+                    updatewindow_label.configure(text=f"Extracting update files...")
+                    with ZipFile(local_path_zip, 'r') as zipObj:
+                        zipObj.extractall()
+
+                    remove(local_path_zip)
+
+                    for root, dirs, files in walk(local_path):
+                        relative_path = relpath(root, local_path)
+                        dest_root = join(cwd, relative_path)
+
+                        makedirs(dest_root, exist_ok=True)
+
+                        for file in files:
+                            if file.lower() == "update.exe":
+                                src_file = join(root, file)
+                                dest_file = join(dest_root, file)
+                                copy2(src_file, dest_file)
+                                break
+
+                    updatewindow_label.configure(text=f"Launching update.exe to finish installing update...")
+                    launchupdater()
+                    return
+                except Exception as e:
+                    showerror(title="Update error", message=f"An error occurred while updating. Heres the full error:\n{e}")
+                    update_now_button.configure(state="normal")
+                    updatewindow.destroy()
+                return
+
+            updatewindow = CTkToplevel()
+            updatewindow.title("Updater")
+            updatewindow.attributes('-topmost', True)
+            updatewindow.geometry(CenterWindowToMain(window, 500, 250))
+            updatewindow.resizable(False, False)
+            updatewindow.protocol("WM_DELETE_WINDOW", updatewindow_on_closing)
+            update_now_button.configure(state="disabled")
+            updatewindow_label = CTkLabel(updatewindow, text="Initializing...", font=("Arial", 20))
+            updatewindow_label.pack(fill="x", expand=True, padx=20, pady=0)
+            Thread(name="UpdateDownloadThread", daemon=True, target=download_update).start()
+    else:
+        showinfo(title="Update", message="You are on the latest version")
+        return
+
+    return
 
 window = CTk()
 window.title("Management Panel")
@@ -1307,7 +1404,7 @@ try:
         SaveSettingsToJson("LoopState", "all")
 except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
-    sys.exit()
+    on_closing()
 
 # create navigation frame
 navigation_frame = CTkFrame(window, corner_radius=0)
@@ -1359,7 +1456,7 @@ settings_frame = CTkScrollableFrame(window, corner_radius=0, fg_color="transpare
 
 
 # Create elements/widgets for frames
-home_frame_label_1 = CTkLabel(home_frame, text=f"Version: {LiveAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
+home_frame_label_1 = CTkLabel(home_frame, text=f"Version: {CurrentAppVersion} {ShowUserInfo}", font=("sans-serif", 28))
 home_frame_label_1.pack(anchor="center", pady=(100, 0))
 home_frame_label_2 = CTkLabel(home_frame, text=f"Creator/developer: {Developer}", font=("sans-serif", 28))
 home_frame_label_2.pack(anchor="center", pady=10)
