@@ -77,11 +77,11 @@ try:
 
     print(f"{GREEN}Update installed successfully{RESET}")
 except Exception as e:
-    print(f"{RED}Error{RESET}: Unable to install update:\n   {e}")
+    print(f"{RED}Error{RESET}: Encountered an error while installing the update:\n   {e}")
     error_count += 1
 
 if error_count != 0:
-    print(f"\n{error_count} errors occured during update. The update may have been installed incorrectly. Please try again later")
+    print(f"\n{YELLOW}Warning{RESET}: {error_count} errors occured during update. The update may have been installed incorrectly. Please try again later")
 
 sleep(0.5)
 

@@ -24,7 +24,6 @@
 ### DONE: finish making the app responsive
 ### DISREGARDED: Instead of using tkinter.messagebox use CTkMessagebox (Didn't work out as i hoped it did. The library is not at fault, i just didn't like the way it worked)
 ###
-### BUG: In Updater.py, when it gets compiled into a .exe, the "copy2" function tries to overwrite the updater.exe file and fails because it is currently running. Need to find a way to fix this.
 ###
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
@@ -1273,9 +1272,9 @@ def LaunchUpdater():
                 def launchupdater():
                     def launch():
                         system(f"update.exe {LiveAppVersion} {SETTINGSFILE}")
+                        sys.exit()
                     Thread(name="LaunchUpdaterThread", daemon=True, target=launch).start()
-                    updatewindow.destroy()
-                    sys.exit()
+                    on_closing()
                 def download_update():
                     try:
                         updatewindow_label.configure(text=f"Downloading update v{LiveAppVersion}...")
@@ -1286,8 +1285,8 @@ def LaunchUpdater():
                         downloadprogress.pack(fill="x", expand=True, padx=20, pady=0)
                         response = get(downurl, stream=False, timeout=60, headers=headers, allow_redirects=True)
                         total_size_in_bytes = int(response.headers.get('content-length', 0))
-                        block_size = 1024 # 1 Kibibyte
                         bytes_downloaded = 0
+                        block_size = 1024 # 1 Kibibyte
                         with open(local_path_zip, 'wb') as updatefile:
                             for data in response.iter_content(block_size):
                                 updatefile.write(data)
@@ -1295,7 +1294,7 @@ def LaunchUpdater():
                                 if total_size_in_bytes > 0:
                                     progress = bytes_downloaded / total_size_in_bytes
                                     progress_percent = (progress * 100)
-                                    downloadedoutof.configure(text=f"{bytes_downloaded} / {total_size_in_bytes} Bytes ({progress_percent:.2f}%)")
+                                    downloadedoutof.configure(text=f"{bytes_downloaded}(MB version) / {total_size_in_bytes}(MB version) Bytes ({progress_percent:.2f}%)")
                                     downloadprogress.set(progress)
                                     downloadedoutof.update()
                                     downloadprogress.update()
@@ -1308,18 +1307,18 @@ def LaunchUpdater():
 
                         remove(local_path_zip)
 
-                        # for root, dirs, files in walk(local_path):
-                        #     relative_path = relpath(root, local_path)
-                        #     dest_root = join(cwd, relative_path)
+                        for root, dirs, files in walk(local_path):
+                            relative_path = relpath(root, local_path)
+                            dest_root = join(cwd, relative_path)
 
-                            # makedirs(dest_root, exist_ok=True)
+                            makedirs(dest_root, exist_ok=True)
 
-                        #     for file in files:
-                        #         if file.lower() == "update.exe":
-                        #             src_file = join(root, file)
-                        #             dest_file = join(dest_root, file)
-                        #             copy2(src_file, dest_file)
-                        #             break
+                            for file in files:
+                                if file.lower() == "update.exe":
+                                    src_file = join(root, file)
+                                    dest_file = join(dest_root, file)
+                                    copy2(src_file, dest_file)
+                                    break
 
                         updatewindow_label.configure(text=f"Launching update.exe to finish installing update...")
                         launchupdater()
@@ -1339,9 +1338,7 @@ def LaunchUpdater():
                 update_now_button.configure(state="disabled")
                 updatewindow_label = CTkLabel(updatewindow, text="Initializing...", font=("Arial", 20))
                 updatewindow_label.pack(fill="x", expand=True, padx=20, pady=0)
-
                 Thread(name="UpdateDownloadThread", daemon=True, target=download_update).start()
-
         else:
             showinfo(title="Update", message="You are on the latest version")
             return
@@ -1349,6 +1346,7 @@ def LaunchUpdater():
         showerror(title="Update.exe error", message="The update.exe file is missing. Please reinstall the program")
 
     return
+
 window = CTk()
 window.title("Management Panel")
 window.protocol("WM_DELETE_WINDOW", on_closing)
@@ -1409,7 +1407,7 @@ try:
         SaveSettingsToJson("LoopState", "all")
 except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
-    sys.exit()
+    on_closing()
 
 # create navigation frame
 navigation_frame = CTkFrame(window, corner_radius=0)
