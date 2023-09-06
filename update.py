@@ -51,6 +51,8 @@ system(clear_command)
 
 print(f"\n{YELLOW}Installing v{LiveAppVersion} update...{RESET}")
 try:
+    disregard = ["update.exe", "VCRUNTIME140.dll", "VCRUNTIME140_1.dll", "python3.dll"]
+
     for root, dirs, files in walk(local_path):
         relative_path = relpath(root, local_path)
         dest_root = join(cwd, relative_path)
@@ -60,7 +62,7 @@ try:
         for file in files:
             src_file = join(root, file)
             dest_file = join(dest_root, file)
-            if not file.lower() == "update.exe":
+            if not file.lower() in disregard:
                 copy2(src_file, dest_file)
 
     rmtree(local_path)

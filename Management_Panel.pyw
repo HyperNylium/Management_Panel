@@ -86,7 +86,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.0"
+CurrentAppVersion = "4.2.3"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -1248,102 +1248,99 @@ def shorten_path(text, max_length, replacement: str = "..."):
     return text
 def LaunchUpdater():
     check_for_updates("in-app")
-    if exists("update.exe"):
-        cwd = getcwd()
-        if getattr(sys, 'frozen', False):
-            downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
-            local_path_zip = f"Management_Panel-{LiveAppVersion}-windows.zip"
-            local_path = f"{cwd}\\Management_Panel"
-        else:
-            downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
-            local_path_zip = f"Management_Panel-{LiveAppVersion}.zip"
-            local_path = f"{cwd}\\Management_Panel-{LiveAppVersion}"
+    cwd = getcwd()
+    if getattr(sys, 'frozen', False):
+        downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
+        local_path_zip = f"Management_Panel-{LiveAppVersion}-windows.zip"
+        local_path = f"{cwd}\\Management_Panel"
+    else:
+        downurl = f"https://github.com/HyperNylium/Management_Panel/archive/refs/tags/v{LiveAppVersion}.zip"
+        local_path_zip = f"Management_Panel-{LiveAppVersion}.zip"
+        local_path = f"{cwd}\\Management_Panel-{LiveAppVersion}"
 
-        if LiveAppVersion < CurrentAppVersion:
-            showerror(title="Invalid version!", message=f"You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.")
-            return
+    if LiveAppVersion < CurrentAppVersion:
+        showerror(title="Invalid version!", message=f"You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.")
+        return
 
-        elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
-            usr_choice = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
-            if usr_choice is True:
-                def updatewindow_on_closing():
+    elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
+        usr_choice = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
+        if usr_choice is True:
+            def updatewindow_on_closing():
+                update_now_button.configure(state="normal")
+                updatewindow.destroy()
+            def launchupdater():
+                def launch():
+                    system(f"update.exe {LiveAppVersion} {SETTINGSFILE}")
+                    sys.exit()
+                Thread(name="LaunchUpdaterThread", daemon=True, target=launch).start()
+                on_closing()
+            def download_update():
+                try:
+                    updatewindow_label.configure(text=f"Downloading update v{LiveAppVersion}...")
+                    downloadedoutof = CTkLabel(updatewindow, text=f"0 / 0 (0.0%)", font=("Arial", 20))
+                    downloadedoutof.pack(fill="x", expand=True, padx=20, pady=0)
+                    downloadprogress = CTkProgressBar(updatewindow, mode="determinate", height=15)
+                    downloadprogress.set(0)
+                    downloadprogress.pack(fill="x", expand=True, padx=20, pady=0)
+                    response = get(downurl, stream=False, timeout=60, headers=headers, allow_redirects=True)
+                    total_size_in_bytes = int(response.headers.get('content-length', 0))
+                    bytes_downloaded = 0
+                    block_size = 1024
+                    with open(local_path_zip, 'wb') as updatefile:
+                        for data in response.iter_content(block_size):
+                            updatefile.write(data)
+                            bytes_downloaded += len(data)
+                            if total_size_in_bytes > 0:
+                                progress = bytes_downloaded / total_size_in_bytes
+                                progress_percent = (progress * 100)
+                                downloadedoutof.configure(text=f"{bytes_downloaded} out of {total_size_in_bytes} bytes downloaded\n({progress_percent:.2f}%)")
+                                downloadprogress.set(progress)
+                                downloadedoutof.update()
+                                downloadprogress.update()
+                    downloadedoutof.destroy()
+                    downloadprogress.destroy()
+
+                    updatewindow_label.configure(text=f"Extracting update files...")
+                    with ZipFile(local_path_zip, 'r') as zipObj:
+                        zipObj.extractall()
+
+                    remove(local_path_zip)
+
+                    for root, dirs, files in walk(local_path):
+                        relative_path = relpath(root, local_path)
+                        dest_root = join(cwd, relative_path)
+
+                        makedirs(dest_root, exist_ok=True)
+
+                        for file in files:
+                            if file.lower() == "update.exe":
+                                src_file = join(root, file)
+                                dest_file = join(dest_root, file)
+                                copy2(src_file, dest_file)
+                                break
+
+                    updatewindow_label.configure(text=f"Launching update.exe to finish installing update...")
+                    launchupdater()
+                    return
+                except Exception as e:
+                    showerror(title="Update error", message=f"An error occurred while updating. Heres the full error:\n{e}")
                     update_now_button.configure(state="normal")
                     updatewindow.destroy()
-                def launchupdater():
-                    def launch():
-                        system(f"update.exe {LiveAppVersion} {SETTINGSFILE}")
-                        sys.exit()
-                    Thread(name="LaunchUpdaterThread", daemon=True, target=launch).start()
-                    on_closing()
-                def download_update():
-                    try:
-                        updatewindow_label.configure(text=f"Downloading update v{LiveAppVersion}...")
-                        downloadedoutof = CTkLabel(updatewindow, text=f"0 / 0 (0.0%)", font=("Arial", 20))
-                        downloadedoutof.pack(fill="x", expand=True, padx=20, pady=0)
-                        downloadprogress = CTkProgressBar(updatewindow, mode="determinate", height=15)
-                        downloadprogress.set(0)
-                        downloadprogress.pack(fill="x", expand=True, padx=20, pady=0)
-                        response = get(downurl, stream=False, timeout=60, headers=headers, allow_redirects=True)
-                        total_size_in_bytes = int(response.headers.get('content-length', 0))
-                        bytes_downloaded = 0
-                        block_size = 1024 # 1 Kibibyte
-                        with open(local_path_zip, 'wb') as updatefile:
-                            for data in response.iter_content(block_size):
-                                updatefile.write(data)
-                                bytes_downloaded += len(data)
-                                if total_size_in_bytes > 0:
-                                    progress = bytes_downloaded / total_size_in_bytes
-                                    progress_percent = (progress * 100)
-                                    downloadedoutof.configure(text=f"{bytes_downloaded}(MB version) / {total_size_in_bytes}(MB version) Bytes ({progress_percent:.2f}%)")
-                                    downloadprogress.set(progress)
-                                    downloadedoutof.update()
-                                    downloadprogress.update()
-                        downloadedoutof.destroy()
-                        downloadprogress.destroy()
+                return
 
-                        updatewindow_label.configure(text=f"Extracting update files...")
-                        with ZipFile(local_path_zip, 'r') as zipObj:
-                            zipObj.extractall()
-
-                        remove(local_path_zip)
-
-                        for root, dirs, files in walk(local_path):
-                            relative_path = relpath(root, local_path)
-                            dest_root = join(cwd, relative_path)
-
-                            makedirs(dest_root, exist_ok=True)
-
-                            for file in files:
-                                if file.lower() == "update.exe":
-                                    src_file = join(root, file)
-                                    dest_file = join(dest_root, file)
-                                    copy2(src_file, dest_file)
-                                    break
-
-                        updatewindow_label.configure(text=f"Launching update.exe to finish installing update...")
-                        launchupdater()
-                        return
-                    except Exception as e:
-                        showerror(title="Update error", message=f"An error occurred while updating. Heres the full error:\n{e}")
-                        update_now_button.configure(state="normal")
-                        updatewindow.destroy()
-                    return
-
-                updatewindow = CTkToplevel()
-                updatewindow.title("Updater")
-                updatewindow.attributes('-topmost', True)
-                updatewindow.geometry(CenterWindowToMain(window, 500, 250))
-                updatewindow.resizable(False, False)
-                updatewindow.protocol("WM_DELETE_WINDOW", updatewindow_on_closing)
-                update_now_button.configure(state="disabled")
-                updatewindow_label = CTkLabel(updatewindow, text="Initializing...", font=("Arial", 20))
-                updatewindow_label.pack(fill="x", expand=True, padx=20, pady=0)
-                Thread(name="UpdateDownloadThread", daemon=True, target=download_update).start()
-        else:
-            showinfo(title="Update", message="You are on the latest version")
-            return
+            updatewindow = CTkToplevel()
+            updatewindow.title("Updater")
+            updatewindow.attributes('-topmost', True)
+            updatewindow.geometry(CenterWindowToMain(window, 500, 250))
+            updatewindow.resizable(False, False)
+            updatewindow.protocol("WM_DELETE_WINDOW", updatewindow_on_closing)
+            update_now_button.configure(state="disabled")
+            updatewindow_label = CTkLabel(updatewindow, text="Initializing...", font=("Arial", 20))
+            updatewindow_label.pack(fill="x", expand=True, padx=20, pady=0)
+            Thread(name="UpdateDownloadThread", daemon=True, target=download_update).start()
     else:
-        showerror(title="Update.exe error", message="The update.exe file is missing. Please reinstall the program")
+        showinfo(title="Update", message="You are on the latest version")
+        return
 
     return
 
