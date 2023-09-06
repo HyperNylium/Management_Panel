@@ -413,7 +413,7 @@ def StartUp():
                         for key in default_settings[Property]:
                             if key not in settings[Property]:
                                 settings[Property][key] = default_settings[Property][key]
-                settings["AppSettings"]["PreviouslyUpdated"] == "False"
+                settings["AppSettings"]["PreviouslyUpdated"] = "False"
                 with open(SETTINGSFILE, 'w') as settings_file:
                     JSdump(settings, settings_file, indent=2)
                 restart(pass_args=False)
