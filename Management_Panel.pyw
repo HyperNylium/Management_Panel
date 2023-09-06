@@ -449,8 +449,11 @@ def StartUp():
     elif exists(join(UserStartupDir, "Management_Panel.lnk")):
         usr_res = askyesno(title="Management_Panel: Startup shortcut found", message="Even though the 'LaunchAtLogin' setting is turned off\nwe have found a shortcut that launches this app when you login in your startup folder.\nWould you like the app to still lauch on login?")
         if usr_res is True:
-            SaveSettingsToJson("LaunchAtLogin", "True")
+            settingslaunchwithwindowsvar.set(False)
+            LaunchOnStartupTrueFalse()
             settingslaunchwithwindowsvar.set(True)
+            LaunchOnStartupTrueFalse()
+            SaveSettingsToJson("LaunchAtLogin", "True")
         else:
             try:
                 remove(join(UserStartupDir, "Management_Panel.lnk"))
