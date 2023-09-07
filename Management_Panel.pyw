@@ -789,7 +789,7 @@ def AppsLaucherGUISetup(frame: str):
         return
 
     for url_name, url in settings[key].items():
-        CTkButton(frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: cmd(url)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
+        CTkButton(frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda cmd=cmd, url=url: cmd(url)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
         AppsLaucherGUISetup_col_num += 1
         if AppsLaucherGUISetup_col_num >= AppsLaucherGUISetup_max_buttons_per_row:
             AppsLaucherGUISetup_col_num = 0
