@@ -72,7 +72,6 @@ try:
     from pygame import mixer as pygmixer
     from pyttsx3 import init as ttsinit
     from numpy import array as nparray
-    from plyer import notification
     from requests import get
     import openai
 except ImportError as importError:
@@ -734,21 +733,21 @@ def systemsettings(setting: str):
         )
     else:
         pass
-def LaunchGame(GameVar: str):
+def LaunchGame(game_url: str = None, game_name: str = None) -> None:
     """Launches selected game"""
-    if GameVar == None or GameVar == "":
+    if game_url == None or game_url == "" and game_name == None or game_name == "":
         showerror(
             title="No game link found",
             message="Make sure you have configured a game shortcut link in you're settings and try restarting the app",
         )
     else:
-        WBopen(GameVar)
-        notification.notify(
-            "Management Panel", "Your game is now launching.", timeout=6
-        )
-def SocialMediaLoader(MediaVar: str):
+        usr_input = askyesno(title="You are about to launch a game", message=f"Are you sure you want to launch '{game_name}'?\nClick 'Yes' to continue and 'No' to cancel.")
+        if usr_input is True:
+            WBopen(game_url)
+        return
+def SocialMediaLoader(media_url: str = None, media_name: str = None) -> None:
     """Launches a website URL (either http or https)"""
-    WBopen(MediaVar)
+    WBopen(media_url)
 
 def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: float = 1.0):
     """Centers the window to the main display/monitor"""
@@ -791,7 +790,7 @@ def AppsLaucherGUISetup(frame: str):
         return
 
     for url_name, url in settings[key].items():
-        CTkButton(frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda cmd=cmd, url=url: cmd(url)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
+        CTkButton(frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda cmd=cmd, url=url, url_name=url_name: cmd(url, url_name)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
         AppsLaucherGUISetup_col_num += 1
         if AppsLaucherGUISetup_col_num >= AppsLaucherGUISetup_max_buttons_per_row:
             AppsLaucherGUISetup_col_num = 0
