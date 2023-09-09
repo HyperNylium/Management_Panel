@@ -45,6 +45,7 @@ from copy import deepcopy
 from shutil import copy2
 from time import sleep
 import sys
+import gc
 
 try:
     from customtkinter import (
@@ -733,6 +734,7 @@ def systemsettings(setting: str):
         )
     else:
         pass
+    del setting
 def LaunchGame(game_url: str = None, game_name: str = None) -> None:
     """Launches selected game"""
     if game_url == None or game_url == "" and game_name == None or game_name == "":
@@ -745,10 +747,11 @@ def LaunchGame(game_url: str = None, game_name: str = None) -> None:
         if usr_input is True:
             WBopen(game_url)
         return
+    del game_url, game_name, usr_input
 def SocialMediaLoader(media_url: str = None, media_name: str = None) -> None:
     """Launches a website URL (either http or https)"""
     WBopen(media_url)
-
+    del media_url, media_name
 def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: float = 1.0):
     """Centers the window to the main display/monitor"""
     screen_width = Screen.winfo_screenwidth()
@@ -828,7 +831,7 @@ def LaunchOnStartupTrueFalse():
             pass
 
     SaveSettingsToJson("LaunchAtLogin", str(value))
-    del value
+    del value, target
     return
 def set_alpha(alpha_var: float):
     """Sets the window transparency and saves the state to settings.json"""
@@ -843,6 +846,7 @@ def YTVideoDownloaderContentType(vidtype: str):
     """Updates the video content type to either .mp4 or .mp3 according to whatever was selected in the dropdown"""
     global YTVideoContentType
     YTVideoContentType = vidtype
+    del vidtype
 def YTVideoDownloader(ContentType: str):
     """Downloads youtube videos and shows progress on GUI"""
     def DefaultStates(**kwargs):
@@ -1347,6 +1351,12 @@ def LaunchUpdater():
         return
 
     return
+def GC_COLLECT():
+    """Runs garbage collection"""
+    gc.collect(generation=0)
+    gc.collect(generation=1)
+    gc.collect(generation=2)
+    return
 
 window = CTk()
 window.title("Management Panel")
@@ -1644,5 +1654,9 @@ AppsLaucherGUISetup("socialmedia_frame") # create the socialmedia_frame content
 # if my personel netdrive script does not exist on the system, disable the button to launch it
 if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
     system_frame_button_2.configure(state="disabled")
+
+# schedule garbage collection to run after 15 seconds of the window being open.
+# This is to free up memory that is not being used.
+schedule_create(window, 30000, GC_COLLECT, True)
 
 window.mainloop()
