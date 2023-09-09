@@ -1191,14 +1191,14 @@ def select_frame_by_name(name: str):
         settings_frame.pack(anchor="center", fill="both", expand=True)
     else:
         settings_frame.pack_forget()
-def SaveSettingsToJson(ValueToChange: str, Value: str):
+def SaveSettingsToJson(key: str, value: str):
     """Saves data to settings.json file"""
     for Property in ['URLs', 'GameShortcutURLs', 'OpenAISettings', 'MusicSettings', 'AppSettings']:
-        if Property in settings and ValueToChange in settings[Property]:
-            settings[Property][ValueToChange] = Value
+        if Property in settings and key in settings[Property]:
+            settings[Property][key] = value
             break
     else:
-        showerror(title="settings error", message="There was an error when writing to the settings file")
+        showerror(title="settings error", message=f"There was an error while writing to the settings file\nProperty: {Property}\nKey: {key}\nValue: {value}")
         return
 
     with open(SETTINGSFILE, 'w') as SettingsToWrite:
@@ -1281,7 +1281,7 @@ def LaunchUpdater():
             def download_update():
                 try:
                     updatewindow_label.configure(text=f"Downloading update v{LiveAppVersion}...")
-                    downloadedoutof = CTkLabel(updatewindow, text=f"0 / 0 (0.0%)", font=("Arial", 20))
+                    downloadedoutof = CTkLabel(updatewindow, text=f"0 out of 0 bytes downloaded\n(0.0%)", font=("Arial", 20))
                     downloadedoutof.pack(fill="x", expand=True, padx=20, pady=0)
                     downloadprogress = CTkProgressBar(updatewindow, mode="determinate", height=15)
                     downloadprogress.set(0)
