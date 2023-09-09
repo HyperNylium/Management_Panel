@@ -1504,7 +1504,7 @@ music_info_frame = CTkFrame(music_frame, corner_radius=0, fg_color="transparent"
 music_controls_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
 music_volume_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
 music_progress_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
-all_music_frame.pack(fill="x", expand=True, anchor="s", pady=0)
+all_music_frame.pack(fill="both", expand=True, anchor="s", pady=0)
 music_info_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 music_frame_container.pack(fill="x", expand=True, anchor="s", pady=0)
 music_controls_frame.pack(fill="x", expand=True, anchor="s", pady=0)
