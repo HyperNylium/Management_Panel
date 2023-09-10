@@ -77,7 +77,9 @@ try:
     import openai
 except ImportError as importError:
     ModuleNotFound = str(importError).split("'")[1]
-    showerror(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'")
+    usr_choice = askyesno(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'.\nWould you like to run the setup.bat script?")
+    if usr_choice is True:
+        system("setup.bat")
     sys.exit()
 
 # Minimizes console window that launches with .py files if you want to use this app as a .py instead of a .pyw file

@@ -16,5 +16,5 @@ pip install pygame==2.5.0
 pip install numpy==1.25.2
 
 echo Installation complete.
-pause
+
 start Management_Panel.pyw
