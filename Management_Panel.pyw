@@ -45,7 +45,6 @@ from copy import deepcopy
 from shutil import copy2
 from time import sleep
 import sys
-import gc
 
 try:
     from customtkinter import (
@@ -566,9 +565,6 @@ def check_for_updates(option: str):
 def restart(pass_args=True):
     """Restarts app"""
     python = sys.executable
-    print(python)
-    print(sys.argv)
-    sleep(3)
     if pass_args is True:
         execl(python, python, *sys.argv)
     else:
@@ -777,7 +773,6 @@ def ResetWindowPos():
     SaveSettingsToJson("Window_Height", "")
     SaveSettingsToJson("Window_X", "")
     SaveSettingsToJson("Window_Y", "")
-    settingsresetwindowbtn.configure(state="disabled", text="Window position reset")
     restart()
 
 def AppsLaucherGUISetup(frame: str):
@@ -1353,12 +1348,6 @@ def LaunchUpdater():
         return
 
     return
-def GC_COLLECT():
-    """Runs garbage collection"""
-    gc.collect(generation=0)
-    gc.collect(generation=1)
-    gc.collect(generation=2)
-    return
 
 window = CTk()
 window.title("Management Panel")
@@ -1601,7 +1590,7 @@ settingscheckupdatesswitch = CTkSwitch(settingsgrid, text="", variable=settingsC
 settingscheckupdateslabel = CTkLabel(settingsgrid, text="Check for updates on launch", font=("sans-serif", 22))
 settingscheckupdatesswitch.grid(row=4, column=1, pady=5, sticky="e")
 settingscheckupdateslabel.grid(row=4, column=2, pady=5, sticky="w")
-settingsresetwindowbtn = CTkButton(settings_frame, width=300, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 20), corner_radius=10, command=lambda: ResetWindowPos())
+settingsresetwindowbtn = CTkButton(settings_frame, width=300, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 20), corner_radius=10, command=ResetWindowPos)
 settingsresetwindowbtn.pack(anchor="center", padx=10, pady=10)
 settingsopensettingsbtn = CTkButton(settings_frame, width=300, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 20), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
 settingsopensettingsbtn.pack(anchor="center", padx=10, pady=10)
@@ -1656,9 +1645,5 @@ AppsLaucherGUISetup("socialmedia_frame") # create the socialmedia_frame content
 # if my personel netdrive script does not exist on the system, disable the button to launch it
 if not exists(f"{UserDesktopDir}/Stuff/GitHub/Environment_Scripts/netdrive.bat"):
     system_frame_button_2.configure(state="disabled")
-
-# schedule garbage collection to run after 15 seconds of the window being open.
-# This is to free up memory that is not being used.
-schedule_create(window, 30000, GC_COLLECT, True)
 
 window.mainloop()
