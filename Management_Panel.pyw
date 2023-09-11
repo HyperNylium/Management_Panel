@@ -163,6 +163,7 @@ class TitleUpdater:
                 current_time = datetime.now().strftime('%I:%M:%S %p')
                 current_date = date.today().strftime('%a, %b %d, %Y')
             self.label.configure(text=f"{current_date}\n{current_time}")
+            del current_time, current_date
 class MusicManager:
     def __init__(self):
         self.song_info = {}  # Dictionary to store song info: {"song_name": {"duration": duration_in_seconds}}
@@ -178,6 +179,7 @@ class MusicManager:
             pygmixer.music.stop()
             pygmixer.quit()
         except: pass
+        del self.song_info, self.current_song_index, self.current_song_paused, self.has_started_before, self.updating
         return
 
     def main_event_loop(self):
@@ -193,6 +195,7 @@ class MusicManager:
                 time_left_label.configure(text=formatted_remaining_time)
                 song_progressbar.set((current_pos_secs / total_duration))
                 total_time_label.configure(text=formatted_total_duration)
+                del current_pos_secs, total_duration, remaining_time, formatted_remaining_time, formatted_total_duration
             if pygmixer.music.get_pos() == -1 and self.current_song_paused is False and self.has_started_before is True:
                 if settings["MusicSettings"]["LoopState"] == "all":
                     # This is where the infinite loop around all the music in your music dir happens.
@@ -224,11 +227,11 @@ class MusicManager:
         Thread(target=self.main_event_loop, daemon=True, name="MusicManager_main_event_loop").start()
 
     def update(self):
-        MusicDir_exists = exists(settings["MusicSettings"]["MusicDir"])
-        if MusicDir_exists:
-            self.song_list = [f for f in listdir(settings["MusicSettings"]["MusicDir"]) if f.endswith((".mp3", ".m4a"))]
+        MusicDir = str(settings["MusicSettings"]["MusicDir"])
+        if exists(MusicDir):
+            self.song_list = [f for f in listdir(MusicDir) if f.endswith((".mp3", ".m4a"))]
             for song_name in self.song_list:
-                self.song_info[song_name] = {"duration": pygmixer.Sound(join(settings["MusicSettings"]["MusicDir"], song_name)).get_length()}
+                self.song_info[song_name] = {"duration": pygmixer.Sound(join(MusicDir, song_name)).get_length()}
         else:
             self.song_list = []
         for widget in all_music_frame.winfo_children():
@@ -239,9 +242,9 @@ class MusicManager:
         change_music_dir.configure(state="normal")
         play_pause_song_btn.configure(state="normal")
         volume_slider.configure(state="normal")
-        currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir_exists is True > 0 else 'None'}")
-        music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
-        del MusicDir_exists
+        currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir is True > 0 else 'None'}")
+        music_dir_label.configure(text=f"Music Directory: {shorten_path(MusicDir, 25)}" if MusicDir != "" else "Music Directory: None")
+        del MusicDir
         if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
             self.musicmanager("play")
         self.updating = False
@@ -312,6 +315,7 @@ class MusicManager:
             if tmp_music_dir != "":
                 SaveSettingsToJson("MusicDir", tmp_music_dir)
                 self.musicmanager("update")
+            del tmp_music_dir
         elif action == "update":
             self.updating = True
             update_music_list.configure(state="disabled")
@@ -329,6 +333,7 @@ class MusicManager:
             Thread(target=self.update, daemon=True, name="MusicManager_update").start()
         else:
             pass
+        del action
 
 def StartUp():
     """Reads settings.json and loads all the variables into the settings variable.\n
