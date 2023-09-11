@@ -821,6 +821,7 @@ def LaunchOnStartupTrueFalse():
             Description="Shortcut for launching 'Management_Panel.pyw'",
             Icon=(join(getcwd(), "assets", "AppIcon", "Management_Panel_Icon.ico"), 0),
         )
+        del target
     else:
         try:
             remove(join(UserStartupDir, "Management_Panel.lnk"))
@@ -828,7 +829,7 @@ def LaunchOnStartupTrueFalse():
             pass
 
     SaveSettingsToJson("LaunchAtLogin", str(value))
-    del value, target
+    del value
     return
 def set_alpha(alpha_var: float):
     """Sets the window transparency and saves the state to settings.json"""
