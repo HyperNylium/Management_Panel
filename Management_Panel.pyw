@@ -755,6 +755,7 @@ def SocialMediaLoader(media_url: str = None, media_name: str = None) -> None:
     """Launches a website URL (either http or https)"""
     WBopen(media_url)
     del media_url, media_name
+
 def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: float = 1.0):
     """Centers the window to the main display/monitor"""
     screen_width = Screen.winfo_screenwidth()
