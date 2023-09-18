@@ -31,7 +31,7 @@
 
 # Imports
 from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd, walk, makedirs
-from os.path import exists, join, splitext, expanduser, relpath
+from os.path import exists, join, splitext, expanduser, relpath, abspath, splitdrive
 from tkinter.messagebox import showerror, askyesno, showinfo
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from tkinter import BooleanVar, DoubleVar, IntVar
@@ -64,7 +64,7 @@ try:
         set_appearance_mode
     )
     from PIL.Image import open as PILopen, fromarray as PILfromarray
-    from winshell import desktop, CreateShortcut, startup
+    from winshell import desktop, startup, CreateShortcut, shortcut
     from watchdog.events import FileSystemEventHandler
     from pytube import YouTube as PY_Youtube
     from requests.exceptions import Timeout
@@ -89,7 +89,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.4"
+CurrentAppVersion = "4.2.5"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -453,20 +453,20 @@ def StartUp():
         settingsAlwayOnTopVar.set(True)
 
     if settings["AppSettings"]["LaunchAtLogin"] == "True":
-        settingslaunchwithwindowsvar.set(True)
+        shortcut_target_path = shortcut(join(UserStartupDir, "Management_Panel.lnk")).path
+        if shortcut_target_path != file_path():
+            reset_LaunchOnStartup_shortcut()
+            SaveSettingsToJson("LaunchAtLogin", "True")
+        del shortcut_target_path
     elif exists(join(UserStartupDir, "Management_Panel.lnk")):
-        usr_res = askyesno(title="Management_Panel: Startup shortcut found", message="Even though the 'LaunchAtLogin' setting is turned off\nwe have found a shortcut that launches this app when you login in your startup folder.\nWould you like the app to still lauch on login?")
+        usr_res = askyesno(title="Management_Panel: Startup shortcut found", message="Despite 'LaunchAtLogin' being turned off, we've discovered a startup folder shortcut for this app.\nWould you like the app to still lauch on login?")
         if usr_res is True:
-            settingslaunchwithwindowsvar.set(False)
-            LaunchOnStartupTrueFalse()
-            settingslaunchwithwindowsvar.set(True)
-            LaunchOnStartupTrueFalse()
+            reset_LaunchOnStartup_shortcut()
             SaveSettingsToJson("LaunchAtLogin", "True")
         else:
-            try:
-                remove(join(UserStartupDir, "Management_Panel.lnk"))
-            except FileNotFoundError:
-                pass
+            settingslaunchwithwindowsvar.set(False)
+            LaunchOnStartupTrueFalse()
+            SaveSettingsToJson("LaunchAtLogin", "False")
 
     if settings["AppSettings"]["SpeakResponce"] == "True":
         settingsSpeakResponceVar.set(True)
@@ -816,18 +816,13 @@ def AlwaysOnTopTrueFalse():
 def LaunchOnStartupTrueFalse():
     value = settingslaunchwithwindowsvar.get()
     if value is True:
-        if getattr(sys, 'frozen', False):
-            target = sys.executable
-        else:
-            target = __file__
         CreateShortcut(
             Path=join(UserStartupDir, "Management_Panel.lnk"),
-            Target=target,
+            Target=file_path(),
             StartIn=getcwd(),
             Description="Shortcut for launching 'Management_Panel.pyw'",
             Icon=(join(getcwd(), "assets", "AppIcon", "Management_Panel_Icon.ico"), 0),
         )
-        del target
     else:
         try:
             remove(join(UserStartupDir, "Management_Panel.lnk"))
@@ -1354,6 +1349,20 @@ def LaunchUpdater():
         showinfo(title="Update", message="You are on the latest version")
         return
 
+    return
+def file_path():
+    """Gets the file path of the current file regardless of if its a .pyw file or a .exe file"""
+    if getattr(sys, 'frozen', False):
+        return sys.executable
+    else:
+        drive, rest_of_path = splitdrive(abspath(__file__))
+        formatted_path = drive.upper() + rest_of_path
+        return formatted_path
+def reset_LaunchOnStartup_shortcut():
+    settingslaunchwithwindowsvar.set(False)
+    LaunchOnStartupTrueFalse()
+    settingslaunchwithwindowsvar.set(True)
+    LaunchOnStartupTrueFalse()
     return
 
 window = CTk()
