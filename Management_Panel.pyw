@@ -31,7 +31,7 @@
 
 # Imports
 from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd, walk, makedirs
-from os.path import exists, join, splitext, expanduser, relpath
+from os.path import exists, join, splitext, expanduser, relpath, abspath, splitdrive
 from tkinter.messagebox import showerror, askyesno, showinfo
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from tkinter import BooleanVar, DoubleVar, IntVar
@@ -64,7 +64,7 @@ try:
         set_appearance_mode
     )
     from PIL.Image import open as PILopen, fromarray as PILfromarray
-    from winshell import desktop, CreateShortcut, startup
+    from winshell import desktop, startup, CreateShortcut, shortcut
     from watchdog.events import FileSystemEventHandler
     from pytube import YouTube as PY_Youtube
     from requests.exceptions import Timeout
@@ -72,12 +72,13 @@ try:
     from pygame import mixer as pygmixer
     from pyttsx3 import init as ttsinit
     from numpy import array as nparray
-    from plyer import notification
     from requests import get
     import openai
 except ImportError as importError:
     ModuleNotFound = str(importError).split("'")[1]
-    showerror(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'")
+    usr_choice = askyesno(title="Import error", message=f"An error occurred while importing '{ModuleNotFound}'.\nWould you like to run the setup.bat script?")
+    if usr_choice is True:
+        system("setup.bat")
     sys.exit()
 
 # Minimizes console window that launches with .py files if you want to use this app as a .py instead of a .pyw file
@@ -88,7 +89,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.4"
+CurrentAppVersion = "4.2.5"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -162,6 +163,7 @@ class TitleUpdater:
                 current_time = datetime.now().strftime('%I:%M:%S %p')
                 current_date = date.today().strftime('%a, %b %d, %Y')
             self.label.configure(text=f"{current_date}\n{current_time}")
+            del current_time, current_date
 class MusicManager:
     def __init__(self):
         self.song_info = {}  # Dictionary to store song info: {"song_name": {"duration": duration_in_seconds}}
@@ -177,6 +179,7 @@ class MusicManager:
             pygmixer.music.stop()
             pygmixer.quit()
         except: pass
+        del self.song_info, self.current_song_index, self.current_song_paused, self.has_started_before, self.updating
         return
 
     def main_event_loop(self):
@@ -192,6 +195,7 @@ class MusicManager:
                 time_left_label.configure(text=formatted_remaining_time)
                 song_progressbar.set((current_pos_secs / total_duration))
                 total_time_label.configure(text=formatted_total_duration)
+                del current_pos_secs, total_duration, remaining_time, formatted_remaining_time, formatted_total_duration
             if pygmixer.music.get_pos() == -1 and self.current_song_paused is False and self.has_started_before is True:
                 if settings["MusicSettings"]["LoopState"] == "all":
                     # This is where the infinite loop around all the music in your music dir happens.
@@ -223,11 +227,11 @@ class MusicManager:
         Thread(target=self.main_event_loop, daemon=True, name="MusicManager_main_event_loop").start()
 
     def update(self):
-        MusicDir_exists = exists(settings["MusicSettings"]["MusicDir"])
-        if MusicDir_exists:
-            self.song_list = [f for f in listdir(settings["MusicSettings"]["MusicDir"]) if f.endswith((".mp3", ".m4a"))]
+        MusicDir = str(settings["MusicSettings"]["MusicDir"])
+        if exists(MusicDir):
+            self.song_list = [f for f in listdir(MusicDir) if f.endswith((".mp3", ".m4a"))]
             for song_name in self.song_list:
-                self.song_info[song_name] = {"duration": pygmixer.Sound(join(settings["MusicSettings"]["MusicDir"], song_name)).get_length()}
+                self.song_info[song_name] = {"duration": pygmixer.Sound(join(MusicDir, song_name)).get_length()}
         else:
             self.song_list = []
         for widget in all_music_frame.winfo_children():
@@ -238,9 +242,9 @@ class MusicManager:
         change_music_dir.configure(state="normal")
         play_pause_song_btn.configure(state="normal")
         volume_slider.configure(state="normal")
-        currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir_exists is True > 0 else 'None'}")
-        music_dir_label.configure(text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 25)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None")
-        del MusicDir_exists
+        currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir is True > 0 else 'None'}")
+        music_dir_label.configure(text=f"Music Directory: {shorten_path(MusicDir, 25)}" if MusicDir != "" else "Music Directory: None")
+        del MusicDir
         if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
             self.musicmanager("play")
         self.updating = False
@@ -311,6 +315,7 @@ class MusicManager:
             if tmp_music_dir != "":
                 SaveSettingsToJson("MusicDir", tmp_music_dir)
                 self.musicmanager("update")
+            del tmp_music_dir
         elif action == "update":
             self.updating = True
             update_music_list.configure(state="disabled")
@@ -328,6 +333,7 @@ class MusicManager:
             Thread(target=self.update, daemon=True, name="MusicManager_update").start()
         else:
             pass
+        del action
 
 def StartUp():
     """Reads settings.json and loads all the variables into the settings variable.\n
@@ -447,20 +453,20 @@ def StartUp():
         settingsAlwayOnTopVar.set(True)
 
     if settings["AppSettings"]["LaunchAtLogin"] == "True":
-        settingslaunchwithwindowsvar.set(True)
+        shortcut_target_path = shortcut(join(UserStartupDir, "Management_Panel.lnk")).path
+        if shortcut_target_path != file_path():
+            reset_LaunchOnStartup_shortcut()
+            SaveSettingsToJson("LaunchAtLogin", "True")
+        del shortcut_target_path
     elif exists(join(UserStartupDir, "Management_Panel.lnk")):
-        usr_res = askyesno(title="Management_Panel: Startup shortcut found", message="Even though the 'LaunchAtLogin' setting is turned off\nwe have found a shortcut that launches this app when you login in your startup folder.\nWould you like the app to still lauch on login?")
+        usr_res = askyesno(title="Management_Panel: Startup shortcut found", message="Despite 'LaunchAtLogin' being turned off, we've discovered a startup folder shortcut for this app.\nWould you like the app to still lauch on login?")
         if usr_res is True:
-            settingslaunchwithwindowsvar.set(False)
-            LaunchOnStartupTrueFalse()
-            settingslaunchwithwindowsvar.set(True)
-            LaunchOnStartupTrueFalse()
+            reset_LaunchOnStartup_shortcut()
             SaveSettingsToJson("LaunchAtLogin", "True")
         else:
-            try:
-                remove(join(UserStartupDir, "Management_Panel.lnk"))
-            except FileNotFoundError:
-                pass
+            settingslaunchwithwindowsvar.set(False)
+            LaunchOnStartupTrueFalse()
+            SaveSettingsToJson("LaunchAtLogin", "False")
 
     if settings["AppSettings"]["SpeakResponce"] == "True":
         settingsSpeakResponceVar.set(True)
@@ -564,9 +570,6 @@ def check_for_updates(option: str):
 def restart(pass_args=True):
     """Restarts app"""
     python = sys.executable
-    print(python)
-    print(sys.argv)
-    sleep(3)
     if pass_args is True:
         execl(python, python, *sys.argv)
     else:
@@ -734,21 +737,24 @@ def systemsettings(setting: str):
         )
     else:
         pass
-def LaunchGame(GameVar: str):
+    del setting
+def LaunchGame(game_url: str = None, game_name: str = None) -> None:
     """Launches selected game"""
-    if GameVar == None or GameVar == "":
+    if game_url == None or game_url == "" and game_name == None or game_name == "":
         showerror(
             title="No game link found",
             message="Make sure you have configured a game shortcut link in you're settings and try restarting the app",
         )
     else:
-        WBopen(GameVar)
-        notification.notify(
-            "Management Panel", "Your game is now launching.", timeout=6
-        )
-def SocialMediaLoader(MediaVar: str):
+        usr_input = askyesno(title="You are about to launch a game", message=f"Are you sure you want to launch '{game_name}'?\nClick 'Yes' to continue and 'No' to cancel.")
+        if usr_input is True:
+            WBopen(game_url)
+        return
+    del game_url, game_name, usr_input
+def SocialMediaLoader(media_url: str = None, media_name: str = None) -> None:
     """Launches a website URL (either http or https)"""
-    WBopen(MediaVar)
+    WBopen(media_url)
+    del media_url, media_name
 
 def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: float = 1.0):
     """Centers the window to the main display/monitor"""
@@ -773,7 +779,6 @@ def ResetWindowPos():
     SaveSettingsToJson("Window_Height", "")
     SaveSettingsToJson("Window_X", "")
     SaveSettingsToJson("Window_Y", "")
-    settingsresetwindowbtn.configure(state="disabled", text="Window position reset")
     restart()
 
 def AppsLaucherGUISetup(frame: str):
@@ -791,7 +796,7 @@ def AppsLaucherGUISetup(frame: str):
         return
 
     for url_name, url in settings[key].items():
-        CTkButton(frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda cmd=cmd, url=url: cmd(url)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
+        CTkButton(frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda cmd=cmd, url=url, url_name=url_name: cmd(url, url_name)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
         AppsLaucherGUISetup_col_num += 1
         if AppsLaucherGUISetup_col_num >= AppsLaucherGUISetup_max_buttons_per_row:
             AppsLaucherGUISetup_col_num = 0
@@ -811,13 +816,9 @@ def AlwaysOnTopTrueFalse():
 def LaunchOnStartupTrueFalse():
     value = settingslaunchwithwindowsvar.get()
     if value is True:
-        if getattr(sys, 'frozen', False):
-            target = sys.executable
-        else:
-            target = __file__
         CreateShortcut(
             Path=join(UserStartupDir, "Management_Panel.lnk"),
-            Target=target,
+            Target=file_path(),
             StartIn=getcwd(),
             Description="Shortcut for launching 'Management_Panel.pyw'",
             Icon=(join(getcwd(), "assets", "AppIcon", "Management_Panel_Icon.ico"), 0),
@@ -844,6 +845,7 @@ def YTVideoDownloaderContentType(vidtype: str):
     """Updates the video content type to either .mp4 or .mp3 according to whatever was selected in the dropdown"""
     global YTVideoContentType
     YTVideoContentType = vidtype
+    del vidtype
 def YTVideoDownloader(ContentType: str):
     """Downloads youtube videos and shows progress on GUI"""
     def DefaultStates(**kwargs):
@@ -1192,14 +1194,14 @@ def select_frame_by_name(name: str):
         settings_frame.pack(anchor="center", fill="both", expand=True)
     else:
         settings_frame.pack_forget()
-def SaveSettingsToJson(ValueToChange: str, Value: str):
+def SaveSettingsToJson(key: str, value: str):
     """Saves data to settings.json file"""
     for Property in ['URLs', 'GameShortcutURLs', 'OpenAISettings', 'MusicSettings', 'AppSettings']:
-        if Property in settings and ValueToChange in settings[Property]:
-            settings[Property][ValueToChange] = Value
+        if Property in settings and key in settings[Property]:
+            settings[Property][key] = value
             break
     else:
-        showerror(title="settings error", message="There was an error when writing to the settings file")
+        showerror(title="settings error", message=f"There was an error while writing to the settings file\nProperty: {Property}\nKey: {key}\nValue: {value}")
         return
 
     with open(SETTINGSFILE, 'w') as SettingsToWrite:
@@ -1282,7 +1284,7 @@ def LaunchUpdater():
             def download_update():
                 try:
                     updatewindow_label.configure(text=f"Downloading update v{LiveAppVersion}...")
-                    downloadedoutof = CTkLabel(updatewindow, text=f"0 / 0 (0.0%)", font=("Arial", 20))
+                    downloadedoutof = CTkLabel(updatewindow, text=f"0 out of 0 bytes downloaded\n(0.0%)", font=("Arial", 20))
                     downloadedoutof.pack(fill="x", expand=True, padx=20, pady=0)
                     downloadprogress = CTkProgressBar(updatewindow, mode="determinate", height=15)
                     downloadprogress.set(0)
@@ -1347,6 +1349,20 @@ def LaunchUpdater():
         showinfo(title="Update", message="You are on the latest version")
         return
 
+    return
+def file_path():
+    """Gets the file path of the current file regardless of if its a .pyw file or a .exe file"""
+    if getattr(sys, 'frozen', False):
+        return sys.executable
+    else:
+        drive, rest_of_path = splitdrive(abspath(__file__))
+        formatted_path = drive.upper() + rest_of_path
+        return formatted_path
+def reset_LaunchOnStartup_shortcut():
+    settingslaunchwithwindowsvar.set(False)
+    LaunchOnStartupTrueFalse()
+    settingslaunchwithwindowsvar.set(True)
+    LaunchOnStartupTrueFalse()
     return
 
 window = CTk()
@@ -1505,7 +1521,7 @@ music_info_frame = CTkFrame(music_frame, corner_radius=0, fg_color="transparent"
 music_controls_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
 music_volume_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
 music_progress_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
-all_music_frame.pack(fill="x", expand=True, anchor="s", pady=0)
+all_music_frame.pack(fill="both", expand=True, anchor="s", pady=0)
 music_info_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 music_frame_container.pack(fill="x", expand=True, anchor="s", pady=0)
 music_controls_frame.pack(fill="x", expand=True, anchor="s", pady=0)
@@ -1590,7 +1606,7 @@ settingscheckupdatesswitch = CTkSwitch(settingsgrid, text="", variable=settingsC
 settingscheckupdateslabel = CTkLabel(settingsgrid, text="Check for updates on launch", font=("sans-serif", 22))
 settingscheckupdatesswitch.grid(row=4, column=1, pady=5, sticky="e")
 settingscheckupdateslabel.grid(row=4, column=2, pady=5, sticky="w")
-settingsresetwindowbtn = CTkButton(settings_frame, width=300, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 20), corner_radius=10, command=lambda: ResetWindowPos())
+settingsresetwindowbtn = CTkButton(settings_frame, width=300, text="Reset window position", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 20), corner_radius=10, command=ResetWindowPos)
 settingsresetwindowbtn.pack(anchor="center", padx=10, pady=10)
 settingsopensettingsbtn = CTkButton(settings_frame, width=300, text="Open settings.json", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 20), corner_radius=10, command=lambda: startfile(SETTINGSFILE))
 settingsopensettingsbtn.pack(anchor="center", padx=10, pady=10)
