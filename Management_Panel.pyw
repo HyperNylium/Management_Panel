@@ -804,6 +804,7 @@ def AppsLaucherGUISetup(frame: str):
 
     AppsLaucherGUISetup_row_num = 0
     AppsLaucherGUISetup_col_num = 0
+
     del frame, key, cmd
 
 def AlwaysOnTopTrueFalse():
@@ -1427,19 +1428,28 @@ except Exception as e:
     showerror(title="Icon import error", message=f"Couldn't import an icon.\nDetails: {e}")
     on_closing()
 
-# create navigation frame
+# create navigation frame and 
 navigation_frame = CTkFrame(window, corner_radius=0)
 navigation_buttons_frame = CTkFrame(navigation_frame, corner_radius=0, fg_color="transparent")
 navigation_frame.pack(side="left", fill="y")
 
-# X button and time&date label
-close_open_nav_button = CTkButton(window, width=25, height=25, text="", fg_color="transparent", image=closeimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: NavbarAction("close"))
-close_open_nav_button.pack(side="top", anchor="nw", padx=0, pady=5)
+# time&date label
 navigation_frame_label = CTkLabel(navigation_frame, text="Loading...", font=("sans-serif", 18, "bold"))
 navigation_frame_label.pack(side="top", padx=20, pady=20)
 
 # navigation_buttons_frame pack. We need to pack it here so its under the navigation_frame_label (under the time and date)
 navigation_buttons_frame.pack(fill="x", expand=True, anchor="center")
+
+# X button and Edit Mode switch
+navigation_bar_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
+navigation_bar_frame.pack(side="top", fill="x", expand=False)
+
+close_open_nav_button = CTkButton(navigation_bar_frame, width=25, height=25, text="", fg_color="transparent", image=closeimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: NavbarAction("close"))
+close_open_nav_button.pack(side="left", anchor="nw", padx=0, pady=5)
+
+toggle_edit_mode = CTkSwitch(navigation_bar_frame, text="Edit Mode", variable=None, onvalue=True, offvalue=False, font=("sans-serif", 22), command=None)
+toggle_edit_mode.pack(side="right", anchor="ne", padx=15, pady=(5, 0))
+
 
 # menu btns
 home_button = CTkButton(navigation_buttons_frame, corner_radius=10, width=10, height=40, text="Home", fg_color="transparent", image=homeimage, anchor="w", text_color=("gray10", "gray90"), font=("Arial", 22), hover_color=("gray70", "gray30"), command=lambda: select_frame_by_name("Home"))
