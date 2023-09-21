@@ -838,6 +838,7 @@ def EditModeInit():
         for button in socialmedia_frame.winfo_children():
             button.configure(fg_color=("gray75", "gray30"))
             button.update()
+    del value
     return
 def EditButton(btn_title: str, btn_url: str, placed_frame: str):
     def preview_new_btn():
@@ -859,26 +860,28 @@ def EditButton(btn_title: str, btn_url: str, placed_frame: str):
                 button.configure(text=new_title, command=lambda cmd=cmd, url=new_url, url_name=new_title, placed_frame=placed_frame: cmd(url, url_name, placed_frame))
                 button.update()
                 break
-
-        del settings[Property][btn_title] # Delete old button info from settings.json
-        settings[Property][new_title] = new_url # Add new button info to settings.json
+        original_index = list(settings[Property].keys()).index(btn_title)
+        del settings[Property][btn_title]
+        new_url_dict = {}
+        for idx, key in enumerate(settings[Property].keys()):
+            if idx == original_index:
+                new_url_dict[new_title] = new_url
+            new_url_dict[key] = settings[Property][key]
+        settings[Property] = new_url_dict
         with open(SETTINGSFILE, 'w') as settings_file:
             JSdump(settings, settings_file, indent=2)
-
+        del new_title, new_url, original_index, new_url_dict
         editmodewindow.destroy()
     def remove_selected_btn():
         for button in master_frame.winfo_children():
             if button.cget('text') == btn_title:
                 button.destroy()
                 break
-
         del settings[Property][btn_title]
         with open(SETTINGSFILE, 'w') as settings_file:
             JSdump(settings, settings_file, indent=2)
-
         reload_func()
         EditModeInit()
-
         editmodewindow.destroy()
 
     if placed_frame == "games_frame":
@@ -933,14 +936,12 @@ def AddButton(placed_frame: str):
     def save_new_btn():
         new_title = button_title.get("0.0", "end-1c")
         new_url = button_url.get("0.0", "end-1c")
-
-        settings[Property][new_title] = new_url # Add new button info to settings.json
+        settings[Property][new_title] = new_url
         with open(SETTINGSFILE, 'w') as settings_file:
             JSdump(settings, settings_file, indent=2)
-
         reload_func()
         EditModeInit()
-
+        del new_title, new_url
         addbtnwindow.destroy()
 
     if placed_frame == "games_frame":
@@ -992,6 +993,7 @@ def ChangeButtonPosition(placed_frame: str):
         listofbtns.delete(0, "end")
         for item in listbox_items:
             listofbtns.insert("end", item)
+        listofbtns.activate(new_index)
         selected_item_index =- new_index
     def move_selected_item_down():
         nonlocal selected_item
@@ -1007,7 +1009,21 @@ def ChangeButtonPosition(placed_frame: str):
         listofbtns.delete(0, "end")
         for item in listbox_items:
             listofbtns.insert("end", item)
+        listofbtns.activate(new_index)
         selected_item_index =+ new_index
+    def save_config():
+        nonlocal selected_item
+        if selected_item is None:
+            return
+        new_config = {}
+        for item in listbox_items:
+            new_config[item] = settings[Property][item]
+        settings[Property] = new_config
+        with open(SETTINGSFILE, 'w') as settings_file:
+            JSdump(settings, settings_file, indent=2)
+        reload_func()
+        EditModeInit()
+        changepositionwindow.destroy()
 
     if placed_frame == "games_frame":
         frame_name = "Games"
@@ -1039,12 +1055,11 @@ def ChangeButtonPosition(placed_frame: str):
     move_up_btn = CTkButton(changepositionwindow, text="Move Up", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_up)
     move_up_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
-    save_config_btn = CTkButton(changepositionwindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=None)
+    save_config_btn = CTkButton(changepositionwindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_config)
     save_config_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
     move_down_btn = CTkButton(changepositionwindow, text="Move Down", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_down)
     move_down_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
-
 
 def AlwaysOnTopTrueFalse():
     """Sets the window to always be on top or not and saves the state to settings.json"""

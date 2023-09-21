@@ -8,3 +8,4 @@ pyttsx3==2.90
 watchdog==3.0.0
 pygame==2.5.0
 numpy==1.25.2
+CTkListbox==0.9
