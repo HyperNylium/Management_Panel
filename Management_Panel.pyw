@@ -778,15 +778,6 @@ def EditMode(btn_title: str, btn_url: str, placed_frame: str):
         new_btn = CTkButton(editmodewindowpreview, text=button_title.get("0.0", "end-1c"), font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=lambda: WBopen(button_url.get("0.0", "end-1c")))
         new_btn.pack(pady=50)
     def save_new_btn():
-        if placed_frame == "games_frame":
-            master_frame = games_frame
-            Property = "GameShortcutURLs"
-            cmd = LaunchGame
-        elif placed_frame == "socialmedia_frame":
-            master_frame = socialmedia_frame
-            Property = "URLs"
-            cmd = SocialMediaLoader
-
         for button in master_frame.winfo_children():
             if button.cget('text') == btn_title:
                 new_title = button_title.get("0.0", "end-1c")
@@ -801,6 +792,30 @@ def EditMode(btn_title: str, btn_url: str, placed_frame: str):
             JSdump(settings, settings_file, indent=2)
 
         editmodewindow.destroy()
+    def remove_selected_btn():
+        for button in master_frame.winfo_children():
+            if button.cget('text') == btn_title:
+                button.destroy()
+                break
+
+        del settings[Property][btn_title]
+        with open(SETTINGSFILE, 'w') as settings_file:
+            JSdump(settings, settings_file, indent=2)
+
+        reload_func()
+
+        editmodewindow.destroy()
+
+    if placed_frame == "games_frame":
+        master_frame = games_frame
+        Property = "GameShortcutURLs"
+        cmd = LaunchGame
+        reload_func = lambda: AppsLaucherGUISetup("games_frame")
+    elif placed_frame == "socialmedia_frame":
+        master_frame = socialmedia_frame
+        Property = "URLs"
+        cmd = SocialMediaLoader
+        reload_func = lambda: AppsLaucherGUISetup("socialmedia_frame")
 
     editmodewindow = CTkToplevel()
     editmodewindow.title(f"Modify '{btn_title}' button")
@@ -827,7 +842,8 @@ def EditMode(btn_title: str, btn_url: str, placed_frame: str):
     preview_btn = CTkButton(editmodewindow, text="Preview", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=preview_new_btn)
     preview_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
-
+    remove_btn = CTkButton(editmodewindow, text="Remove", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=remove_selected_btn)
+    remove_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
 def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: float = 1.0):
     """Centers the window to the main display/monitor"""
@@ -859,16 +875,19 @@ def AppsLaucherGUISetup(frame: str):
 
     if frame == "games_frame":
         master_frame = games_frame
-        key = "GameShortcutURLs"
+        Property = "GameShortcutURLs"
         cmd = LaunchGame
     elif frame == "socialmedia_frame":
         master_frame = socialmedia_frame
-        key = "URLs"
+        Property = "URLs"
         cmd = SocialMediaLoader
     else:
         return
 
-    for url_name, url in settings[key].items():
+    for button in master_frame.winfo_children():
+        button.destroy()
+
+    for url_name, url in settings[Property].items():
         CTkButton(master_frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda cmd=cmd, url=url, url_name=url_name, placed_frame=frame: cmd(url, url_name, placed_frame)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
         AppsLaucherGUISetup_col_num += 1
         if AppsLaucherGUISetup_col_num >= AppsLaucherGUISetup_max_buttons_per_row:
@@ -878,7 +897,7 @@ def AppsLaucherGUISetup(frame: str):
     AppsLaucherGUISetup_row_num = 0
     AppsLaucherGUISetup_col_num = 0
 
-    del frame, key, cmd, master_frame
+    del frame, Property, cmd, master_frame
 
 def AlwaysOnTopTrueFalse():
     """Sets the window to always be on top or not and saves the state to settings.json"""
@@ -1271,9 +1290,9 @@ def select_frame_by_name(name: str):
         settings_frame.pack_forget()
 
     if name == "Games" or name == "Social Media":
-        toggle_edit_mode.configure(state="normal")
+        toggle_edit_mode.pack(side="right", anchor="ne", padx=15, pady=(10, 0))
     else:
-        toggle_edit_mode.configure(state="disabled")
+        toggle_edit_mode.pack_forget()
 def SaveSettingsToJson(key: str, value: str):
     """Saves data to settings.json file"""
     for Property in ['URLs', 'GameShortcutURLs', 'OpenAISettings', 'MusicSettings', 'AppSettings']:
@@ -1527,7 +1546,6 @@ close_open_nav_button = CTkButton(navigation_bar_frame, width=25, height=25, tex
 close_open_nav_button.pack(side="left", anchor="nw", padx=0, pady=(5, 0))
 
 toggle_edit_mode = CTkSwitch(navigation_bar_frame, text="Edit Mode", variable=EditModeVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=None)
-toggle_edit_mode.pack(side="right", anchor="ne", padx=15, pady=(10, 0))
 
 
 # menu btns
