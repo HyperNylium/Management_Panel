@@ -980,23 +980,34 @@ def ChangeButtonPosition(placed_frame: str):
         selected_item = listbox_selected_item
     def move_selected_item_up():
         nonlocal selected_item
-
         if selected_item is None:
             return
-        if selected_item == 0:
-            return
-
         selected_item_index = listbox_items.index(selected_item)
-        listbox_items[selected_item_index], listbox_items[selected_item_index - 1] = listbox_items[selected_item_index - 1], listbox_items[selected_item_index]
+        new_index = (selected_item_index - 1) % len(listbox_items)
+
+        item_to_move_up = listbox_items[selected_item_index]
+        listbox_items[selected_item_index] = listbox_items[new_index]
+        listbox_items[new_index] = item_to_move_up
 
         listofbtns.delete(0, "end")
         for item in listbox_items:
             listofbtns.insert("end", item)
+        selected_item_index =- new_index
+    def move_selected_item_down():
+        nonlocal selected_item
+        if selected_item is None:
+            return
+        selected_item_index = listbox_items.index(selected_item)
+        new_index = (selected_item_index + 1) % len(listbox_items)
 
-        selected_item_index =- 1
+        item_to_move_up = listbox_items[selected_item_index]
+        listbox_items[selected_item_index] = listbox_items[new_index]
+        listbox_items[new_index] = item_to_move_up
 
-
-
+        listofbtns.delete(0, "end")
+        for item in listbox_items:
+            listofbtns.insert("end", item)
+        selected_item_index =+ new_index
 
     if placed_frame == "games_frame":
         frame_name = "Games"
@@ -1016,6 +1027,7 @@ def ChangeButtonPosition(placed_frame: str):
     changepositionwindow.resizable(False, False)
     changepositionwindow.grab_set()
 
+    selected_item = None
     listbox_items = []
     listofbtns = CTkListbox(changepositionwindow, command=item_selected, font=("sans-serif", 22))
     listofbtns.pack(fill="both", expand=True, padx=10, pady=10)
@@ -1024,16 +1036,13 @@ def ChangeButtonPosition(placed_frame: str):
         listofbtns.insert("END", button.cget('text'))
         listbox_items.append(button.cget('text'))
 
-    listbox_index_size = listofbtns.size()
-    selected_item = None
-
     move_up_btn = CTkButton(changepositionwindow, text="Move Up", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_up)
     move_up_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
     save_config_btn = CTkButton(changepositionwindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=None)
     save_config_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
-    move_down_btn = CTkButton(changepositionwindow, text="Move Down", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=None)
+    move_down_btn = CTkButton(changepositionwindow, text="Move Down", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_down)
     move_down_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
 
