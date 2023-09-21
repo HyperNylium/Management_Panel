@@ -823,7 +823,6 @@ def AppsLaucherGUISetup(frame: str):
 def EditModeInit():
     value = EditModeVar.get()
     if value is True:
-        change_btn_position.configure(state="normal")
         for button in games_frame.winfo_children():
             button.configure(fg_color="#1364cf")
             button.update()
@@ -831,7 +830,6 @@ def EditModeInit():
             button.configure(fg_color="#1364cf")
             button.update()
     elif value is False:
-        change_btn_position.configure(state="disabled")
         for button in games_frame.winfo_children():
             button.configure(fg_color=("gray75", "gray30"))
             button.update()
@@ -841,20 +839,20 @@ def EditModeInit():
     del value
     return
 def EditButton(btn_title: str, btn_url: str, placed_frame: str):
-    def preview_new_btn():
-        editmodewindowpreview = CTkToplevel()
-        editmodewindowpreview.title(f"Preview '{button_title.get('0.0', 'end-1c')}' button")
-        editmodewindowpreview.attributes('-topmost', True)
-        editmodewindowpreview.geometry(CenterWindowToMain(window, 400, 150))
-        editmodewindowpreview.resizable(False, False)
-        editmodewindowpreview.grab_set()
-
-        new_btn = CTkButton(editmodewindowpreview, text=button_title.get("0.0", "end-1c"), font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=lambda: WBopen(button_url.get("0.0", "end-1c")))
-        new_btn.pack(pady=50)
+    def remove_selected_btn():
+        for button in master_frame.winfo_children():
+            if button.cget('text') == btn_title:
+                button.destroy()
+                break
+        del settings[Property][btn_title]
+        with open(SETTINGSFILE, 'w') as settings_file:
+            JSdump(settings, settings_file, indent=2)
+        reload_func()
+        EditModeInit()
+        editmodewindow.destroy()
     def save_new_btn():
         new_title = button_title.get("0.0", "end-1c")
         new_url = button_url.get("0.0", "end-1c")
-
         for button in master_frame.winfo_children():
             if button.cget('text') == btn_title:
                 button.configure(text=new_title, command=lambda cmd=cmd, url=new_url, url_name=new_title, placed_frame=placed_frame: cmd(url, url_name, placed_frame))
@@ -872,17 +870,105 @@ def EditButton(btn_title: str, btn_url: str, placed_frame: str):
             JSdump(settings, settings_file, indent=2)
         del new_title, new_url, original_index, new_url_dict
         editmodewindow.destroy()
-    def remove_selected_btn():
+    def preview_new_btn():
+        editmodewindowpreview = CTkToplevel()
+        editmodewindowpreview.title(f"Preview '{button_title.get('0.0', 'end-1c')}' button")
+        editmodewindowpreview.attributes('-topmost', True)
+        editmodewindowpreview.geometry(CenterWindowToMain(window, 400, 150))
+        editmodewindowpreview.resizable(False, False)
+        editmodewindowpreview.grab_set()
+
+        new_btn = CTkButton(editmodewindowpreview, text=button_title.get("0.0", "end-1c"), font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=lambda: WBopen(button_url.get("0.0", "end-1c")))
+        new_btn.pack(pady=50)
+    def change_button_position():
+        def item_selected(listbox_selected_item):
+            nonlocal selected_item
+            selected_item = listbox_selected_item
+        def move_selected_item_up():
+            nonlocal selected_item
+            if selected_item is None:
+                return
+            selected_item_index = listbox_items.index(selected_item)
+            new_index = (selected_item_index - 1) % len(listbox_items)
+
+            item_to_move_up = listbox_items[selected_item_index]
+            listbox_items[selected_item_index] = listbox_items[new_index]
+            listbox_items[new_index] = item_to_move_up
+
+            listofbtns.delete(0, "end")
+            for item in listbox_items:
+                listofbtns.insert("end", item)
+            listofbtns.activate(new_index)
+            selected_item_index =- new_index
+        def move_selected_item_down():
+            nonlocal selected_item
+            if selected_item is None:
+                return
+            selected_item_index = listbox_items.index(selected_item)
+            new_index = (selected_item_index + 1) % len(listbox_items)
+
+            item_to_move_up = listbox_items[selected_item_index]
+            listbox_items[selected_item_index] = listbox_items[new_index]
+            listbox_items[new_index] = item_to_move_up
+
+            listofbtns.delete(0, "end")
+            for item in listbox_items:
+                listofbtns.insert("end", item)
+            listofbtns.activate(new_index)
+            selected_item_index =+ new_index
+        def save_config():
+            nonlocal selected_item
+            if selected_item is None:
+                return
+            new_config = {}
+            for item in listbox_items:
+                new_config[item] = settings[Property][item]
+            settings[Property] = new_config
+            with open(SETTINGSFILE, 'w') as settings_file:
+                JSdump(settings, settings_file, indent=2)
+            reload_func()
+            EditModeInit()
+            changepositionwindow.destroy()
+            editmodewindow.destroy()
+
+        if placed_frame == "games_frame":
+            frame_name = "Games"
+            master_frame = games_frame
+            Property = "GameShortcutURLs"
+            reload_func = lambda: AppsLaucherGUISetup("games_frame")
+        elif placed_frame == "socialmedia_frame":
+            frame_name = "Social Media"
+            master_frame = socialmedia_frame
+            Property = "URLs"
+            reload_func = lambda: AppsLaucherGUISetup("socialmedia_frame")
+
+        changepositionwindow = CTkToplevel()
+        changepositionwindow.title(f"Modify button positions for '{frame_name}' ")
+        changepositionwindow.attributes('-topmost', True)
+        changepositionwindow.geometry(CenterWindowToMain(window, 500, 450))
+        changepositionwindow.resizable(False, False)
+        changepositionwindow.grab_set()
+
+        selected_item = None
+        listbox_items = []
+        listofbtns = CTkListbox(changepositionwindow, command=item_selected, font=("sans-serif", 22))
+        listofbtns.pack(fill="both", expand=True, padx=10, pady=10)
+
         for button in master_frame.winfo_children():
-            if button.cget('text') == btn_title:
-                button.destroy()
-                break
-        del settings[Property][btn_title]
-        with open(SETTINGSFILE, 'w') as settings_file:
-            JSdump(settings, settings_file, indent=2)
-        reload_func()
-        EditModeInit()
-        editmodewindow.destroy()
+            listofbtns.insert("END", button.cget('text'))
+            listbox_items.append(button.cget('text'))
+
+        currently_modifying_item_index = listbox_items.index(btn_title)
+        listofbtns.activate(currently_modifying_item_index)
+
+        move_up_btn = CTkButton(changepositionwindow, text="Move Up", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_up)
+        move_up_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+
+        save_config_btn = CTkButton(changepositionwindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_config)
+        save_config_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+
+        move_down_btn = CTkButton(changepositionwindow, text="Move Down", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_down)
+        move_down_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
     if placed_frame == "games_frame":
         master_frame = games_frame
@@ -898,7 +984,7 @@ def EditButton(btn_title: str, btn_url: str, placed_frame: str):
     editmodewindow = CTkToplevel()
     editmodewindow.title(f"Modify '{btn_title}' button")
     editmodewindow.attributes('-topmost', True)
-    editmodewindow.geometry(CenterWindowToMain(window, 650, 370))
+    editmodewindow.geometry(CenterWindowToMain(window, 650, 450))
     editmodewindow.resizable(False, False)
     editmodewindow.grab_set()
 
@@ -914,14 +1000,22 @@ def EditButton(btn_title: str, btn_url: str, placed_frame: str):
     button_url.insert("0.0", btn_url)
     button_url.pack(fill="x", padx=10, pady=10)
 
-    save_btn = CTkButton(editmodewindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_new_btn)
-    save_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+    btn_level_1_frame = CTkFrame(editmodewindow, corner_radius=0, fg_color="transparent")
+    btn_level_2_frame = CTkFrame(editmodewindow, corner_radius=0, fg_color="transparent")
+    btn_level_1_frame.pack(fill="x", anchor="center")
+    btn_level_2_frame.pack(fill="x", anchor="center")
 
-    preview_btn = CTkButton(editmodewindow, text="Preview", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=preview_new_btn)
-    preview_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+    remove_btn = CTkButton(btn_level_1_frame, width=315, text="Remove", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=remove_selected_btn)
+    remove_btn.grid(row=1, column=1, padx=5, pady=(20, 10), sticky="ew")
 
-    remove_btn = CTkButton(editmodewindow, text="Remove", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=remove_selected_btn)
-    remove_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+    save_btn = CTkButton(btn_level_1_frame, width=315, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_new_btn)
+    save_btn.grid(row=1, column=2, padx=5, pady=(20, 10), sticky="ew")
+
+    preview_btn = CTkButton(btn_level_2_frame, width=315, text="Preview", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=preview_new_btn)
+    preview_btn.grid(row=1, column=1, padx=5, pady=(20, 10), sticky="ew")
+
+    change_btn_position = CTkButton(btn_level_2_frame, width=315, text="Edit Position", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=change_button_position)
+    change_btn_position.grid(row=1, column=2, padx=5, pady=(20, 10), sticky="ew")
 def AddButton(placed_frame: str):
     def preview_new_btn():
         addbtnwindowpreview = CTkToplevel()
@@ -975,91 +1069,6 @@ def AddButton(placed_frame: str):
 
     preview_btn = CTkButton(addbtnwindow, text="Preview", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=preview_new_btn)
     preview_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
-def ChangeButtonPosition(placed_frame: str):
-    def item_selected(listbox_selected_item):
-        nonlocal selected_item
-        selected_item = listbox_selected_item
-    def move_selected_item_up():
-        nonlocal selected_item
-        if selected_item is None:
-            return
-        selected_item_index = listbox_items.index(selected_item)
-        new_index = (selected_item_index - 1) % len(listbox_items)
-
-        item_to_move_up = listbox_items[selected_item_index]
-        listbox_items[selected_item_index] = listbox_items[new_index]
-        listbox_items[new_index] = item_to_move_up
-
-        listofbtns.delete(0, "end")
-        for item in listbox_items:
-            listofbtns.insert("end", item)
-        listofbtns.activate(new_index)
-        selected_item_index =- new_index
-    def move_selected_item_down():
-        nonlocal selected_item
-        if selected_item is None:
-            return
-        selected_item_index = listbox_items.index(selected_item)
-        new_index = (selected_item_index + 1) % len(listbox_items)
-
-        item_to_move_up = listbox_items[selected_item_index]
-        listbox_items[selected_item_index] = listbox_items[new_index]
-        listbox_items[new_index] = item_to_move_up
-
-        listofbtns.delete(0, "end")
-        for item in listbox_items:
-            listofbtns.insert("end", item)
-        listofbtns.activate(new_index)
-        selected_item_index =+ new_index
-    def save_config():
-        nonlocal selected_item
-        if selected_item is None:
-            return
-        new_config = {}
-        for item in listbox_items:
-            new_config[item] = settings[Property][item]
-        settings[Property] = new_config
-        with open(SETTINGSFILE, 'w') as settings_file:
-            JSdump(settings, settings_file, indent=2)
-        reload_func()
-        EditModeInit()
-        changepositionwindow.destroy()
-
-    if placed_frame == "games_frame":
-        frame_name = "Games"
-        master_frame = games_frame
-        Property = "GameShortcutURLs"
-        reload_func = lambda: AppsLaucherGUISetup("games_frame")
-    elif placed_frame == "socialmedia_frame":
-        frame_name = "Social Media"
-        master_frame = socialmedia_frame
-        Property = "URLs"
-        reload_func = lambda: AppsLaucherGUISetup("socialmedia_frame")
-
-    changepositionwindow = CTkToplevel()
-    changepositionwindow.title(f"Modify button positions for '{frame_name}' ")
-    changepositionwindow.attributes('-topmost', True)
-    changepositionwindow.geometry(CenterWindowToMain(window, 500, 450))
-    changepositionwindow.resizable(False, False)
-    changepositionwindow.grab_set()
-
-    selected_item = None
-    listbox_items = []
-    listofbtns = CTkListbox(changepositionwindow, command=item_selected, font=("sans-serif", 22))
-    listofbtns.pack(fill="both", expand=True, padx=10, pady=10)
-
-    for button in master_frame.winfo_children():
-        listofbtns.insert("END", button.cget('text'))
-        listbox_items.append(button.cget('text'))
-
-    move_up_btn = CTkButton(changepositionwindow, text="Move Up", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_up)
-    move_up_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
-
-    save_config_btn = CTkButton(changepositionwindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_config)
-    save_config_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
-
-    move_down_btn = CTkButton(changepositionwindow, text="Move Down", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_down)
-    move_down_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
 def AlwaysOnTopTrueFalse():
     """Sets the window to always be on top or not and saves the state to settings.json"""
@@ -1457,13 +1466,10 @@ def select_frame_by_name(name: str):
         elif name == "Social Media":
             btn_origin_frame = "socialmedia_frame"
         toggle_edit_mode.pack(side="right", anchor="ne", padx=15, pady=(10, 0))
-        change_btn_position.configure(command=lambda: ChangeButtonPosition(btn_origin_frame))
-        change_btn_position.pack(side="right", anchor="ne", padx=5, pady=(5, 0))
         add_new_btn.pack(side="right", anchor="ne", padx=5, pady=(5, 0))
         add_new_btn.configure(command=lambda: AddButton(btn_origin_frame))
     else:
         toggle_edit_mode.pack_forget()
-        change_btn_position.pack_forget()
         add_new_btn.pack_forget()
 def SaveSettingsToJson(key: str, value: str):
     """Saves data to settings.json file"""
@@ -1720,7 +1726,6 @@ close_open_nav_button = CTkButton(navigation_bar_frame, width=25, height=25, tex
 close_open_nav_button.pack(side="left", anchor="nw", padx=0, pady=(5, 0))
 
 add_new_btn = CTkButton(navigation_bar_frame, width=100, text="Add", fg_color=("gray75", "gray30"), image=addbtnimage, anchor="w", font=("sans-serif", 20), command=None)
-change_btn_position = CTkButton(navigation_bar_frame, text="Modify Positions", font=("sans-serif", 22), image=modbtnpositionimage, fg_color=("gray75", "gray30"), corner_radius=10, command=None, state="disabled")
 toggle_edit_mode = CTkSwitch(navigation_bar_frame, text="Edit Mode", variable=EditModeVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=EditModeInit)
 
 
