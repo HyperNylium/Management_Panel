@@ -12,8 +12,8 @@
 ###
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
-### TODO: Make a "Edit Mode" toggle both for "Games" and "Social Media" frames that will be on the "window" frame next to the X to close the menu.
-###       It will allow you to edit the buttons in that frame. Will have functionality to add, remove, edit, and move button grid indexes (change order). (90% DONE)
+### Done: Make a "Edit Mode" toggle both for "Games" and "Social Media" frames that will be on the "window" frame next to the X to close the menu.
+###       It will allow you to edit the buttons in that frame. Will have functionality to add, remove, edit, and move button grid indexes (change order)
 ### DONE: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
 ### DONE: Make a LaunchAtLogin setting in the settings.json file. This will create a shortcut in the startup folder (shell:startup) to launch the app on startup
 ### DONE: Make a Music tab that allows you to play music from a folder
