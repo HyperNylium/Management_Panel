@@ -72,6 +72,7 @@ try:
     from pygame import mixer as pygmixer
     from pyttsx3 import init as ttsinit
     from numpy import array as nparray
+    from CTkListbox import CTkListbox
     from requests import get
     import openai
 except ImportError as importError:
@@ -822,6 +823,7 @@ def AppsLaucherGUISetup(frame: str):
 def EditModeInit():
     value = EditModeVar.get()
     if value is True:
+        change_btn_position.configure(state="normal")
         for button in games_frame.winfo_children():
             button.configure(fg_color="#1364cf")
             button.update()
@@ -829,6 +831,7 @@ def EditModeInit():
             button.configure(fg_color="#1364cf")
             button.update()
     elif value is False:
+        change_btn_position.configure(state="disabled")
         for button in games_frame.winfo_children():
             button.configure(fg_color=("gray75", "gray30"))
             button.update()
@@ -837,7 +840,7 @@ def EditModeInit():
             button.update()
     return
 def EditButton(btn_title: str, btn_url: str, placed_frame: str):
-    def preview_btn():
+    def preview_new_btn():
         editmodewindowpreview = CTkToplevel()
         editmodewindowpreview.title(f"Preview '{button_title.get('0.0', 'end-1c')}' button")
         editmodewindowpreview.attributes('-topmost', True)
@@ -847,7 +850,7 @@ def EditButton(btn_title: str, btn_url: str, placed_frame: str):
 
         new_btn = CTkButton(editmodewindowpreview, text=button_title.get("0.0", "end-1c"), font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=lambda: WBopen(button_url.get("0.0", "end-1c")))
         new_btn.pack(pady=50)
-    def save_btn():
+    def save_new_btn():
         new_title = button_title.get("0.0", "end-1c")
         new_url = button_url.get("0.0", "end-1c")
 
@@ -892,7 +895,7 @@ def EditButton(btn_title: str, btn_url: str, placed_frame: str):
     editmodewindow = CTkToplevel()
     editmodewindow.title(f"Modify '{btn_title}' button")
     editmodewindow.attributes('-topmost', True)
-    editmodewindow.geometry(CenterWindowToMain(window, 500, 370))
+    editmodewindow.geometry(CenterWindowToMain(window, 650, 370))
     editmodewindow.resizable(False, False)
     editmodewindow.grab_set()
 
@@ -908,10 +911,10 @@ def EditButton(btn_title: str, btn_url: str, placed_frame: str):
     button_url.insert("0.0", btn_url)
     button_url.pack(fill="x", padx=10, pady=10)
 
-    save_btn = CTkButton(editmodewindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_btn)
+    save_btn = CTkButton(editmodewindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_new_btn)
     save_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
-    preview_btn = CTkButton(editmodewindow, text="Preview", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=preview_btn)
+    preview_btn = CTkButton(editmodewindow, text="Preview", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=preview_new_btn)
     preview_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
     remove_btn = CTkButton(editmodewindow, text="Remove", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=remove_selected_btn)
@@ -971,6 +974,68 @@ def AddButton(placed_frame: str):
 
     preview_btn = CTkButton(addbtnwindow, text="Preview", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=preview_new_btn)
     preview_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+def ChangeButtonPosition(placed_frame: str):
+    def item_selected(listbox_selected_item):
+        nonlocal selected_item
+        selected_item = listbox_selected_item
+    def move_selected_item_up():
+        nonlocal selected_item
+
+        if selected_item is None:
+            return
+        if selected_item == 0:
+            return
+
+        selected_item_index = listbox_items.index(selected_item)
+        listbox_items[selected_item_index], listbox_items[selected_item_index - 1] = listbox_items[selected_item_index - 1], listbox_items[selected_item_index]
+
+        listofbtns.delete(0, "end")
+        for item in listbox_items:
+            listofbtns.insert("end", item)
+
+        selected_item_index =- 1
+
+
+
+
+    if placed_frame == "games_frame":
+        frame_name = "Games"
+        master_frame = games_frame
+        Property = "GameShortcutURLs"
+        reload_func = lambda: AppsLaucherGUISetup("games_frame")
+    elif placed_frame == "socialmedia_frame":
+        frame_name = "Social Media"
+        master_frame = socialmedia_frame
+        Property = "URLs"
+        reload_func = lambda: AppsLaucherGUISetup("socialmedia_frame")
+
+    changepositionwindow = CTkToplevel()
+    changepositionwindow.title(f"Modify button positions for '{frame_name}' ")
+    changepositionwindow.attributes('-topmost', True)
+    changepositionwindow.geometry(CenterWindowToMain(window, 500, 450))
+    changepositionwindow.resizable(False, False)
+    changepositionwindow.grab_set()
+
+    listbox_items = []
+    listofbtns = CTkListbox(changepositionwindow, command=item_selected, font=("sans-serif", 22))
+    listofbtns.pack(fill="both", expand=True, padx=10, pady=10)
+
+    for button in master_frame.winfo_children():
+        listofbtns.insert("END", button.cget('text'))
+        listbox_items.append(button.cget('text'))
+
+    listbox_index_size = listofbtns.size()
+    selected_item = None
+
+    move_up_btn = CTkButton(changepositionwindow, text="Move Up", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=move_selected_item_up)
+    move_up_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+
+    save_config_btn = CTkButton(changepositionwindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=None)
+    save_config_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+
+    move_down_btn = CTkButton(changepositionwindow, text="Move Down", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=None)
+    move_down_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+
 
 def AlwaysOnTopTrueFalse():
     """Sets the window to always be on top or not and saves the state to settings.json"""
@@ -1368,10 +1433,13 @@ def select_frame_by_name(name: str):
         elif name == "Social Media":
             btn_origin_frame = "socialmedia_frame"
         toggle_edit_mode.pack(side="right", anchor="ne", padx=15, pady=(10, 0))
+        change_btn_position.configure(command=lambda: ChangeButtonPosition(btn_origin_frame))
+        change_btn_position.pack(side="right", anchor="ne", padx=5, pady=(5, 0))
         add_new_btn.pack(side="right", anchor="ne", padx=5, pady=(5, 0))
         add_new_btn.configure(command=lambda: AddButton(btn_origin_frame))
     else:
         toggle_edit_mode.pack_forget()
+        change_btn_position.pack_forget()
         add_new_btn.pack_forget()
 def SaveSettingsToJson(key: str, value: str):
     """Saves data to settings.json file"""
@@ -1588,6 +1656,7 @@ try:
     systemimage = CTkImage(PILopen("assets/MenuIcons/system.png"), size=(25, 25))
     settingsimage = CTkImage(PILopen("assets/MenuIcons/settings.png"), size=(25, 25))
     addbtnimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/add-btn.png'), "#ffffff"), size=(30, 30))
+    modbtnpositionimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/modify-btn-positions.png'), "#ffffff"), size=(30, 30))
     closeimage = CTkImage(PILopen("assets/MenuIcons/close.png"), size=(20, 20))
     openimage = CTkImage(PILopen("assets/MenuIcons/open.png"), size=(25, 25))
     previousimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/previous.png'), "#ffffff"), size=(25, 25))
@@ -1627,6 +1696,7 @@ close_open_nav_button = CTkButton(navigation_bar_frame, width=25, height=25, tex
 close_open_nav_button.pack(side="left", anchor="nw", padx=0, pady=(5, 0))
 
 add_new_btn = CTkButton(navigation_bar_frame, width=100, text="Add", fg_color=("gray75", "gray30"), image=addbtnimage, anchor="w", font=("sans-serif", 20), command=None)
+change_btn_position = CTkButton(navigation_bar_frame, text="Modify Positions", font=("sans-serif", 22), image=modbtnpositionimage, fg_color=("gray75", "gray30"), corner_radius=10, command=None, state="disabled")
 toggle_edit_mode = CTkSwitch(navigation_bar_frame, text="Edit Mode", variable=EditModeVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=EditModeInit)
 
 
