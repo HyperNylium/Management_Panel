@@ -435,13 +435,14 @@ def StartUp():
 
     Thread(target=load_settings, name="settings_thread", daemon=True).start()
 
-    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingslaunchwithwindowsvar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager
+    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingslaunchwithwindowsvar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager, EditModeVar
     settingsSpeakResponceVar = BooleanVar()
     settingsAlwayOnTopVar = BooleanVar()
     settingslaunchwithwindowsvar = BooleanVar()
     settingsCheckForUpdates = BooleanVar()
     settingsAlphavar = DoubleVar()
     musicVolumeVar = IntVar()
+    EditModeVar = BooleanVar()
 
     UserPowerPlans = GetPowerPlans()
 
@@ -738,9 +739,14 @@ def systemsettings(setting: str):
     else:
         pass
     del setting
-def LaunchGame(game_url: str = None, game_name: str = None) -> None:
+def LaunchGame(game_url: str = None, game_name: str = None, placed_frame: str = None) -> None:
     """Launches selected game"""
-    if game_url == None or game_url == "" and game_name == None or game_name == "":
+
+    if EditModeVar.get() is True:
+        EditMode(game_name, game_url, placed_frame)
+        return
+
+    if game_url == None or game_url == "" or game_name == None or game_name == "":
         showerror(
             title="No game link found",
             message="Make sure you have configured a game shortcut link in you're settings and try restarting the app",
@@ -749,12 +755,79 @@ def LaunchGame(game_url: str = None, game_name: str = None) -> None:
         usr_input = askyesno(title="You are about to launch a game", message=f"Are you sure you want to launch '{game_name}'?\nClick 'Yes' to continue and 'No' to cancel.")
         if usr_input is True:
             WBopen(game_url)
+        del usr_input
         return
-    del game_url, game_name, usr_input
-def SocialMediaLoader(media_url: str = None, media_name: str = None) -> None:
+    del game_url, game_name
+def SocialMediaLoader(media_url: str = None, media_name: str = None, placed_frame: str = None) -> None:
     """Launches a website URL (either http or https)"""
+    if EditModeVar.get() is True:
+        EditMode(media_name, media_url, placed_frame)
+        return
     WBopen(media_url)
     del media_url, media_name
+
+def EditMode(btn_title: str, btn_url: str, placed_frame: str):
+    def preview_new_btn():
+        editmodewindowpreview = CTkToplevel()
+        editmodewindowpreview.title(f"Preview '{button_title.get('0.0', 'end-1c')}' button")
+        editmodewindowpreview.attributes('-topmost', True)
+        editmodewindowpreview.geometry(CenterWindowToMain(window, 400, 150))
+        editmodewindowpreview.resizable(False, False)
+        editmodewindowpreview.grab_set()
+
+        new_btn = CTkButton(editmodewindowpreview, text=button_title.get("0.0", "end-1c"), font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=lambda: WBopen(button_url.get("0.0", "end-1c")))
+        new_btn.pack(pady=50)
+    def save_new_btn():
+        if placed_frame == "games_frame":
+            master_frame = games_frame
+            Property = "GameShortcutURLs"
+            cmd = LaunchGame
+        elif placed_frame == "socialmedia_frame":
+            master_frame = socialmedia_frame
+            Property = "URLs"
+            cmd = SocialMediaLoader
+
+        for button in master_frame.winfo_children():
+            if button.cget('text') == btn_title:
+                new_title = button_title.get("0.0", "end-1c")
+                new_url = button_url.get("0.0", "end-1c")
+                button.configure(text=new_title, command=lambda cmd=cmd, url=new_url, url_name=new_title, placed_frame=placed_frame: cmd(url, url_name, placed_frame))
+                button.update()
+                break
+
+        del settings[Property][btn_title] # Delete old button info from settings.json
+        settings[Property][new_title] = new_url # Add new button info to settings.json
+        with open(SETTINGSFILE, 'w') as settings_file:
+            JSdump(settings, settings_file, indent=2)
+
+        editmodewindow.destroy()
+
+    editmodewindow = CTkToplevel()
+    editmodewindow.title(f"Modify '{btn_title}' button")
+    editmodewindow.attributes('-topmost', True)
+    editmodewindow.geometry(CenterWindowToMain(window, 500, 370))
+    editmodewindow.resizable(False, False)
+    editmodewindow.grab_set()
+
+    button_title_label = CTkLabel(editmodewindow, text="Button Title", font=("sans-serif", 25))
+    button_title_label.pack(padx=10, pady=(20, 10), anchor="center")
+    button_title = CTkTextbox(editmodewindow, width=30, height=5, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
+    button_title.insert("0.0", btn_title)
+    button_title.pack(fill="x", padx=10, pady=10)
+
+    button_url_label = CTkLabel(editmodewindow, text="Button URL", font=("sans-serif", 25))
+    button_url_label.pack(padx=10, pady=(20, 10), anchor="center")
+    button_url = CTkTextbox(editmodewindow, width=30, height=100, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
+    button_url.insert("0.0", btn_url)
+    button_url.pack(fill="x", padx=10, pady=10)
+
+    save_btn = CTkButton(editmodewindow, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_new_btn)
+    save_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+
+    preview_btn = CTkButton(editmodewindow, text="Preview", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=preview_new_btn)
+    preview_btn.pack(side="left", padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+
+
 
 def CenterWindowToDisplay(Screen: CTk, width: int, height: int, scale_factor: float = 1.0):
     """Centers the window to the main display/monitor"""
@@ -785,18 +858,18 @@ def AppsLaucherGUISetup(frame: str):
     global AppsLaucherGUISetup_row_num, AppsLaucherGUISetup_col_num
 
     if frame == "games_frame":
-        frame = games_frame
+        master_frame = games_frame
         key = "GameShortcutURLs"
         cmd = LaunchGame
     elif frame == "socialmedia_frame":
-        frame = socialmedia_frame
+        master_frame = socialmedia_frame
         key = "URLs"
         cmd = SocialMediaLoader
     else:
         return
 
     for url_name, url in settings[key].items():
-        CTkButton(frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda cmd=cmd, url=url, url_name=url_name: cmd(url, url_name)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
+        CTkButton(master_frame, width=200, text=url_name, compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda cmd=cmd, url=url, url_name=url_name, placed_frame=frame: cmd(url, url_name, placed_frame)).grid(row=AppsLaucherGUISetup_row_num, column=AppsLaucherGUISetup_col_num, padx=5, pady=10)
         AppsLaucherGUISetup_col_num += 1
         if AppsLaucherGUISetup_col_num >= AppsLaucherGUISetup_max_buttons_per_row:
             AppsLaucherGUISetup_col_num = 0
@@ -805,7 +878,7 @@ def AppsLaucherGUISetup(frame: str):
     AppsLaucherGUISetup_row_num = 0
     AppsLaucherGUISetup_col_num = 0
 
-    del frame, key, cmd
+    del frame, key, cmd, master_frame
 
 def AlwaysOnTopTrueFalse():
     """Sets the window to always be on top or not and saves the state to settings.json"""
@@ -841,6 +914,7 @@ def set_alpha(alpha_var: float):
     schedule_cancel(window, save_alpha_settings)
     schedule_create(window, 420, save_alpha_settings)
     del save_alpha_settings
+    return
 
 def YTVideoDownloaderContentType(vidtype: str):
     """Updates the video content type to either .mp4 or .mp3 according to whatever was selected in the dropdown"""
@@ -1195,6 +1269,11 @@ def select_frame_by_name(name: str):
         settings_frame.pack(anchor="center", fill="both", expand=True)
     else:
         settings_frame.pack_forget()
+
+    if name == "Games" or name == "Social Media":
+        toggle_edit_mode.configure(state="normal")
+    else:
+        toggle_edit_mode.configure(state="disabled")
 def SaveSettingsToJson(key: str, value: str):
     """Saves data to settings.json file"""
     for Property in ['URLs', 'GameShortcutURLs', 'OpenAISettings', 'MusicSettings', 'AppSettings']:
@@ -1445,10 +1524,10 @@ navigation_bar_frame = CTkFrame(window, corner_radius=0, fg_color="transparent")
 navigation_bar_frame.pack(side="top", fill="x", expand=False)
 
 close_open_nav_button = CTkButton(navigation_bar_frame, width=25, height=25, text="", fg_color="transparent", image=closeimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: NavbarAction("close"))
-close_open_nav_button.pack(side="left", anchor="nw", padx=0, pady=5)
+close_open_nav_button.pack(side="left", anchor="nw", padx=0, pady=(5, 0))
 
-toggle_edit_mode = CTkSwitch(navigation_bar_frame, text="Edit Mode", variable=None, onvalue=True, offvalue=False, font=("sans-serif", 22), command=None)
-toggle_edit_mode.pack(side="right", anchor="ne", padx=15, pady=(5, 0))
+toggle_edit_mode = CTkSwitch(navigation_bar_frame, text="Edit Mode", variable=EditModeVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=None)
+toggle_edit_mode.pack(side="right", anchor="ne", padx=15, pady=(10, 0))
 
 
 # menu btns
