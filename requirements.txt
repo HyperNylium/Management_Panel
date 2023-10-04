@@ -1,11 +1,11 @@
 customtkinter==5.2.0
 requests==2.31.0
 winshell==0.6
-pillow==10.0.0
-openai==0.27.8
+pillow==10.0.1
+openai==0.28.1
 pytube==15.0.0
 pyttsx3==2.90
 watchdog==3.0.0
-pygame==2.5.0
-numpy==1.25.2
+pygame==2.5.2
+numpy==1.26.0
 CTkListbox==0.9
