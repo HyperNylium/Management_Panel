@@ -87,7 +87,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.7"
+CurrentAppVersion = "4.2.8"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -1218,6 +1218,14 @@ def speak(audio):
     SpeechThread.start()
 def ChatGPT():
     """Sends requests to ChatGPT and puts Response in text box"""
+
+    if (settings["OpenAISettings"]["OpenAI_API_Key"] == "") or (settings["OpenAISettings"]["OpenAI_API_Key"] == None):
+        ans = askyesno(title="OpenAI API Key Error", message=f"It seems like you don't have an OpenAI API Key set.\nWould you like to set one now?")
+        if ans:
+            ChatGPTConfig()
+        del ans
+        return
+
     UserText = assistant_responce_box_1.get("0.0", "end").strip("\n")
     if UserText != "" and UserText != None:
         def generate_response(prompt):
@@ -1235,11 +1243,8 @@ def ChatGPT():
                 if settingsSpeakResponceVar.get():
                     speak(message)
             except Exception as e:
-                if (settings["OpenAISettings"]["OpenAI_API_Key"] == "") or (settings["OpenAISettings"]["OpenAI_API_Key"] == None):
-                    showerror(title="OpenAI API Key Error", message=f"In settings.xml make sure 'OpenAI_API_Key' has a vaild OpenAI API key. Heres the full error:\n{e}")
-                else:
-                    showerror(title="OpenAI Error", message=e)
                 assistant_responce_box_2.delete("0.0", "end")
+                showerror(title="OpenAI Error", message=e)
         assistant_responce_box_2.delete("0.0", "end")
         assistant_responce_box_2.insert("end", "Thinking...")
         prompt = f"User: {UserText}"
@@ -1308,6 +1313,8 @@ def ChatGPTConfig():
 
     save_btn = CTkButton(chatgptconfigwindow, width=315, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_config)
     save_btn.pack(padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
+
+    api_key_textbox.focus_force()
 
 def GetPowerPlans():
     """Gets all power plans that are listed at:\n
@@ -1515,9 +1522,11 @@ def select_frame_by_name(frame_name: str):
         add_new_btn.pack_forget()
 
     if frame_name == "Assistant":
-        assistant_settings_btn.pack(side="right", anchor="ne", padx=15, pady=(10, 0))
+        assistant_settings_btn.pack(side="right", anchor="ne", padx=5, pady=(10, 0))
+        assistant_submit_button.pack(side="right", anchor="ne", padx=5, pady=(10, 0))
     else:
         assistant_settings_btn.pack_forget()
+        assistant_submit_button.pack_forget()
 
     SaveSettingsToJson("DefaultFrame", frame_name)
 def SaveSettingsToJson(key: str, value: str):
@@ -1735,7 +1744,8 @@ try:
     systemimage = CTkImage(PILopen("assets/MenuIcons/system.png"), size=(25, 25))
     settingsimage = CTkImage(PILopen("assets/MenuIcons/settings.png"), size=(25, 25))
     addbtnimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/add-btn.png'), "#ffffff"), size=(30, 30))
-    assistantsettingsimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/assistant-settings-btn.png'), "#ffffff"), size=(35, 35))
+    assistantsettingsimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/assistant-settings.png'), "#ffffff"), size=(35, 35))
+    assistantsubmitimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/assistant-submit.png'), "#ffffff"), size=(35, 35))
     modbtnpositionimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/modify-btn-positions.png'), "#ffffff"), size=(30, 30))
     closeimage = CTkImage(PILopen("assets/MenuIcons/close.png"), size=(20, 20))
     openimage = CTkImage(PILopen("assets/MenuIcons/open.png"), size=(25, 25))
@@ -1777,7 +1787,6 @@ close_open_nav_button.pack(side="left", anchor="nw", padx=0, pady=(5, 0))
 
 add_new_btn = CTkButton(navigation_bar_frame, width=100, text="Add", fg_color=("gray75", "gray30"), image=addbtnimage, anchor="w", font=("sans-serif", 20), command=None)
 toggle_edit_mode = CTkSwitch(navigation_bar_frame, text="Edit Mode", variable=EditModeVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=EditModeInit)
-assistant_settings_btn = CTkButton(navigation_bar_frame, width=50, text="", fg_color=("gray75", "gray30"), image=assistantsettingsimage, anchor="w", font=("sans-serif", 20), command=ChatGPTConfig)
 
 
 # menu btns
@@ -1844,14 +1853,14 @@ ytdownloader_progressbar.set(0)
 ytdownloader_progressbarpercentage= CTkLabel(ytdownloader_frame, text="0%", font=("sans-serif Bold", 18))
 
 
+assistant_submit_button = CTkButton(navigation_bar_frame, text="", width=50, image=assistantsubmitimage, fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=ChatGPT)
+assistant_settings_btn = CTkButton(navigation_bar_frame, width=50, text="", fg_color=("gray75", "gray30"), image=assistantsettingsimage, anchor="w", font=("sans-serif", 20), command=ChatGPTConfig)
 assistant_responce_box_frame = CTkFrame(assistant_frame, corner_radius=0, fg_color="transparent")
 assistant_responce_box_frame.pack(fill="x", expand=True, anchor="center")
 assistant_responce_box_1 = CTkTextbox(assistant_responce_box_frame, width=680, height=150, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
 assistant_responce_box_1.grid(row=0, column=0, padx=10, pady=10)
 assistant_responce_box_2 = CTkTextbox(assistant_responce_box_frame, width=680, height=150, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
 assistant_responce_box_2.grid(row=1, column=0, padx=10, pady=10)
-assistant_frame_button_1 = CTkButton(assistant_frame, text="Submit question", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: ChatGPT())
-assistant_frame_button_1.pack(fill="x", expand=True, anchor="center", padx=10, pady=5)
 
 
 music_frame_container = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
