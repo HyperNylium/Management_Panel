@@ -36,12 +36,11 @@ from tkinter.messagebox import showerror, askyesno, showinfo
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
 from tkinter import BooleanVar, DoubleVar, IntVar
 from json import load as JSload, dump as JSdump
-from threading import Thread, Timer as TD_Timer
 from datetime import datetime, date, timedelta
 from tkinter.filedialog import askdirectory
 from webbrowser import open as WBopen
+from threading import Thread
 from zipfile import ZipFile
-from copy import deepcopy
 from shutil import copy2
 from time import sleep
 import sys
@@ -65,10 +64,8 @@ try:
     )
     from PIL.Image import open as PILopen, fromarray as PILfromarray
     from winshell import desktop, startup, CreateShortcut, shortcut
-    from watchdog.events import FileSystemEventHandler
     from pytube import YouTube as PY_Youtube
     from requests.exceptions import Timeout
-    from watchdog.observers import Observer
     from pygame import mixer as pygmixer
     from pyttsx3 import init as ttsinit
     from numpy import array as nparray
@@ -108,36 +105,13 @@ devices = {} # dict to store device info (battey persetage, type)
 after_events = {} # dict to store after events
 all_buttons: list[CTkButton] = [] # list to store all buttons in the navigation bar
 all_buttons_text: list[str] = [] # list to store all buttons text in the navigation bar
-all_frames = ["Home", "Games", "Social Media", "YT Downloader", "Assistant", "Music", "Devices", "System", "Settings"] # list to store all frames
 prev_x = 0 # variable to store previous x coordinate of the window
 prev_y = 0 # variable to store previous y coordinate of the window
 AppsLaucherGUISetup_max_buttons_per_row = 3 # Maximum number of buttons per row in the "Games" and "Social Media" frames
 AppsLaucherGUISetup_row_num = 0 # Current row number in the "Games" and "Social Media" frames
 AppsLaucherGUISetup_col_num = 0 # Current column number in the "Games" and "Social Media" frames
 
-class SettingsFileEventHandler(FileSystemEventHandler):
-    def __init__(self):
-        self.modified_event_pending = False
 
-    def on_modified(self, event):
-        if event.src_path.endswith(SETTINGSFILE) and not self.modified_event_pending:
-            self.modified_event_pending = True
-            TD_Timer(1, self.reload_settings).start()
-
-    def reload_settings(self):
-        if exists(SETTINGSFILE):
-            global settings
-            try:
-                with open(SETTINGSFILE, 'r') as settings_file:
-                    new_settings = JSload(settings_file)
-                if new_settings != settings:
-                    if exists(new_settings["MusicSettings"]["MusicDir"]) or new_settings["MusicSettings"]["MusicDir"] == "":
-                        settings = deepcopy(new_settings)
-                        music_manager.musicmanager("update")
-                del new_settings
-            except Exception as e:
-                print("Error reloading settings:", e)
-        self.modified_event_pending = False
 class TitleUpdater:
     def __init__(self, label: CTkLabel = None):
         if label is not None:
@@ -167,7 +141,8 @@ class TitleUpdater:
             del current_time, current_date
 class MusicManager:
     def __init__(self):
-        self.song_info = {}  # Dictionary to store song info: {"song_name": {"duration": duration_in_seconds}}
+        self.song_info = {}  # Dictionary to store song info: {"song_name"(str): {"duration"(str): duration_in_seconds(int)}}
+        self.song_list = []
         self.current_song_index = 0
         self.current_song_paused = False
         self.has_started_before = False
@@ -205,53 +180,32 @@ class MusicManager:
                     # So, after the last song is done playing in your music dir, 
                     # it will come back to the first song and play that. 
                     # It will do this infinitely.
-                    self.musicmanager("next")
+                    self.next()
                 elif settings["MusicSettings"]["LoopState"] == "one":
                     # This is where the infinite loop around the currently playing song happens.
                     # After the current song is done playing, it will start playing it again after it finishes.
                     # You can still change the song by clicking the next or previous button.
                     # And that new song will be the new song to be played infinitely.
                     pygmixer.music.stop()
-                    self.musicmanager("play")
+                    self.play()
                 elif settings["MusicSettings"]["LoopState"] == "off":
                     # When the song finishes playing, it will stop playing music
                     # until either you click the Play button or the Next button.
                     pygmixer.music.stop()
                     pre_song_btn.configure(state="disabled")
                     next_song_btn.configure(state="disabled")
-                    play_pause_song_btn.configure(image=playimage, command=lambda: music_manager.musicmanager("play"))
+                    play_pause_song_btn.configure(image=playimage, command=music_manager.play)
                     if self.updating is False:
                         SaveSettingsToJson("CurrentlyPlaying", "False")
             sleep(1)
 
-    def start_event_loops(self):
-        Thread(target=self.main_event_loop, daemon=True, name="MusicManager_main_event_loop").start()
+    def start_event_loop(self):
+        Thread(target=self.main_event_loop, daemon=True, name="MusicManager").start()
 
-    def update(self):
-        MusicDir = str(settings["MusicSettings"]["MusicDir"])
-        if exists(MusicDir):
-            self.song_list = [f for f in listdir(MusicDir) if f.endswith((".mp3", ".m4a"))]
-            for song_name in self.song_list:
-                self.song_info[song_name] = {"duration": pygmixer.Sound(join(MusicDir, song_name)).get_length()}
-        else:
-            self.song_list = []
-        for widget in all_music_frame.winfo_children():
-            widget.destroy()
-        for index, song_name in enumerate(self.song_list):
-            CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=self.song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
-        update_music_list.configure(state="normal")
-        change_music_dir.configure(state="normal")
-        play_pause_song_btn.configure(state="normal")
-        volume_slider.configure(state="normal")
-        currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir is True > 0 else 'None'}")
-        music_dir_label.configure(text=f"Music Directory: {shorten_path(MusicDir, 25)}" if MusicDir != "" else "Music Directory: None")
-        del MusicDir
-        if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
-            self.musicmanager("play")
-        self.updating = False
-
-    def musicmanager(self, action: str):
-        if action == "play" and len(self.song_list) > 0:
+    ### Functions for managing music (play, pause, etc) ###
+    def play(self) -> None:
+        """Plays the current song or resumes the song if it was paused"""
+        if len(self.song_list) > 0:
             if self.current_song_paused is True:
                 pygmixer.music.unpause()
                 self.current_song_paused = False
@@ -263,78 +217,111 @@ class MusicManager:
                 self.current_song_paused = False
             pre_song_btn.configure(state="normal")
             next_song_btn.configure(state="normal")
-            play_pause_song_btn.configure(image=pauseimage, command=lambda: music_manager.musicmanager("pause"))
+            play_pause_song_btn.configure(image=pauseimage, command=music_manager.pause)
             SaveSettingsToJson("CurrentlyPlaying", "True")
-        elif action == "pause":
-            if self.current_song_paused is False:
-                pygmixer.music.pause()
-                self.current_song_paused = True
-            else:
-                self.current_song_paused = False
-                self.musicmanager("play")
-            pre_song_btn.configure(state="disabled")
-            next_song_btn.configure(state="disabled")
-            play_pause_song_btn.configure(image=playimage, command=lambda: music_manager.musicmanager("play"))
-            if self.updating is False:
-                SaveSettingsToJson("CurrentlyPlaying", "False")
-        elif action == "next":
-            if len(self.song_list) > 0:
-                pygmixer.music.stop()
-                self.current_song_index = (self.current_song_index + 1) % len(self.song_list)
-                self.musicmanager("play")
-        elif action == "previous":
-           if len(self.song_list) > 0:
-                pygmixer.music.stop()
-                self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
-                self.musicmanager("play")
-        elif action == "volume":
-            def savevolume():
-                SaveSettingsToJson("Volume", musicVolumeVar.get())
-            pygmixer.music.set_volume(float(musicVolumeVar.get() / 100))
-            volume_label.configure(text=f"{musicVolumeVar.get()}%")
-            schedule_cancel(window, savevolume)
-            schedule_create(window, 420, savevolume)
-
-        elif action == "loop":
-            self.loopstate = settings["MusicSettings"]["LoopState"]
-            if self.loopstate == "all":
-                loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop-1.png'), "#00ff00"), size=(25, 25)))
-                SaveSettingsToJson("LoopState", "one")
-            elif self.loopstate == "one":
-                loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#ff0000"), size=(25, 25)))
-                SaveSettingsToJson("LoopState", "off")
-            elif self.loopstate == "off":
-                loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#00ff00"), size=(25, 25)))
-                SaveSettingsToJson("LoopState", "all")
-            del self.loopstate
-
-        elif action == "changedir":
-            if settings["MusicSettings"]["MusicDir"] != "" and exists(settings["MusicSettings"]["MusicDir"]):
-                tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=settings["MusicSettings"]["MusicDir"])
-            else:
-                tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=expanduser("~"))
-            if tmp_music_dir != "":
-                SaveSettingsToJson("MusicDir", tmp_music_dir)
-                self.musicmanager("update")
-            del tmp_music_dir
-        elif action == "update":
-            self.updating = True
-            update_music_list.configure(state="disabled")
-            change_music_dir.configure(state="disabled")
-            pre_song_btn.configure(state="disabled")
-            play_pause_song_btn.configure(state="disabled")
-            next_song_btn.configure(state="disabled")
-            volume_slider.configure(state="disabled")
-            currently_playing_label.configure(text="Status: Scanning files...")
-            song_progressbar.set(0.0)
-            time_left_label.configure(text="0:00")
-            total_time_label.configure(text="0:00")
-            if pygmixer.music.get_busy() and not self.current_song_paused:
-                self.musicmanager("pause")
-            Thread(target=self.update, daemon=True, name="MusicManager_update").start()
+        return
+    def pause(self) -> None:
+        """Pauses the current playing song"""
+        if self.current_song_paused is False:
+            pygmixer.music.pause()
+            self.current_song_paused = True
         else:
-            pass
-        del action
+            self.current_song_paused = False
+            self.play()
+        pre_song_btn.configure(state="disabled")
+        next_song_btn.configure(state="disabled")
+        play_pause_song_btn.configure(image=playimage, command=music_manager.play)
+        if self.updating is False:
+            SaveSettingsToJson("CurrentlyPlaying", "False")
+        return
+    def next(self) -> None:
+        """Plays the next song in the song list"""
+        if len(self.song_list) > 0:
+            pygmixer.music.stop()
+            self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
+            self.play()
+        return
+    def previous(self) -> None:
+        """Plays the previous song in the song list"""
+        if len(self.song_list) > 0:
+            pygmixer.music.stop()
+            self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
+            self.play()
+        return
+    def volume(self) -> None:
+        """Changes the volume of the music player"""
+        def savevolume():
+            SaveSettingsToJson("Volume", musicVolumeVar.get())
+        pygmixer.music.set_volume(float(musicVolumeVar.get() / 100))
+        volume_label.configure(text=f"{musicVolumeVar.get()}%")
+        schedule_cancel(window, savevolume)
+        schedule_create(window, 420, savevolume)
+        return
+    def loop(self) -> None:
+        """Changes the loop state of the music player"""
+        self.loopstate = settings["MusicSettings"]["LoopState"]
+        if self.loopstate == "all":
+            loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop-1.png'), "#00ff00"), size=(25, 25)))
+            SaveSettingsToJson("LoopState", "one")
+        elif self.loopstate == "one":
+            loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#ff0000"), size=(25, 25)))
+            SaveSettingsToJson("LoopState", "off")
+        elif self.loopstate == "off":
+            loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#00ff00"), size=(25, 25)))
+            SaveSettingsToJson("LoopState", "all")
+        del self.loopstate
+        return
+    def changedir(self) -> None:
+        """Changes the music directory"""
+        if settings["MusicSettings"]["MusicDir"] != "" and exists(settings["MusicSettings"]["MusicDir"]):
+            tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=settings["MusicSettings"]["MusicDir"])
+        else:
+            tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=expanduser("~"))
+        if tmp_music_dir != "":
+            SaveSettingsToJson("MusicDir", tmp_music_dir)
+            self.update()
+        del tmp_music_dir
+        return
+    def update(self) -> None:
+        """Updates the music list and the music directory label (if changed)"""
+        def update_song_list(self: MusicManager):
+            MusicDir = str(settings["MusicSettings"]["MusicDir"])
+            if exists(MusicDir):
+                self.song_list = [f for f in listdir(MusicDir) if f.endswith((".mp3", ".m4a"))]
+                for song_name in self.song_list:
+                    self.song_info[song_name] = {"duration": pygmixer.Sound(join(MusicDir, song_name)).get_length()}
+            else:
+                self.song_list = []
+            for widget in all_music_frame.winfo_children():
+                widget.destroy()
+            for index, song_name in enumerate(self.song_list):
+                CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=self.song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
+            update_music_list.configure(state="normal")
+            change_music_dir.configure(state="normal")
+            play_pause_song_btn.configure(state="normal")
+            volume_slider.configure(state="normal")
+            currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir is True > 0 else 'None'}")
+            music_dir_label.configure(text=f"Music Directory: {shorten_path(MusicDir, 25)}" if MusicDir != "" else "Music Directory: None")
+            del MusicDir
+            if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
+                self.play()
+            return
+        self.updating = False
+        self.updating = True
+        update_music_list.configure(state="disabled")
+        change_music_dir.configure(state="disabled")
+        pre_song_btn.configure(state="disabled")
+        play_pause_song_btn.configure(state="disabled")
+        next_song_btn.configure(state="disabled")
+        volume_slider.configure(state="disabled")
+        currently_playing_label.configure(text="Status: Scanning files...")
+        song_progressbar.set(0.0)
+        time_left_label.configure(text="0:00")
+        total_time_label.configure(text="0:00")
+        if pygmixer.music.get_busy() and not self.current_song_paused:
+            self.pause()
+        Thread(target=lambda: update_song_list(self), daemon=True, name="MusicManager_updater").start()
+
 
 def StartUp():
     """Reads settings.json and loads all the variables into the settings variable.\n
@@ -352,7 +339,7 @@ def StartUp():
 
     def load_settings():
         nonlocal settings_loaded
-        global observer, settings
+        global settings
         default_settings = {
             "URLs": {
                 "HyperNylium.com": "http://hypernylium.com/",
@@ -406,10 +393,6 @@ def StartUp():
             },
             "Devices": []
         }
-        event_handler = SettingsFileEventHandler()
-        observer = Observer()
-        observer.schedule(event_handler, path='.', recursive=False)
-        observer.start()
         try:
             with open(SETTINGSFILE, 'r') as settings_file:
                 settings = JSload(settings_file)
@@ -432,7 +415,6 @@ def StartUp():
                 JSdump(default_settings, settings_file, indent=2)
             settings = default_settings
         settings_loaded = True
-        observer.join()
 
     Thread(target=load_settings, name="settings_thread", daemon=True).start()
 
@@ -579,9 +561,6 @@ def restart(pass_args=True):
 def on_closing():
     """App termination function"""
     SaveSettingsToJson("CurrentlyPlaying", "False")
-    try: 
-        observer.stop()
-    except: pass
     music_manager.cleanup()
     window.destroy()
     sys.exit()
@@ -1266,6 +1245,69 @@ def ChatGPT():
         prompt = f"User: {UserText}"
         AIThread = Thread(name="AIThread", daemon=True, target=lambda: generate_response(model_prompt + "\n" + prompt))
         AIThread.start()
+def ChatGPTConfig():
+    """Opens a window that allows you to modify the settings for ChatGPT"""
+
+    def save_config():
+        SaveSettingsToJson("OpenAI_API_Key", api_key_textbox.get("0.0", "end-1c").strip().replace("\n", "").replace(" ", ""))
+        SaveSettingsToJson("OpenAI_Max_Tokens", int(max_tokens_var.get()))
+        SaveSettingsToJson("OpenAI_Temperature", round(temperature_var.get(), 1))
+        if voice_type_optionmenu.get() == "Male":
+            SaveSettingsToJson("VoiceType", 0)
+        else:
+            SaveSettingsToJson("VoiceType", 1)
+        chatgptconfigwindow.destroy()
+
+    chatgptconfigwindow = CTkToplevel()
+    chatgptconfigwindow.title("Modify ChatGPT settings")
+    chatgptconfigwindow.attributes('-topmost', True)
+    chatgptconfigwindow.geometry(CenterWindowToMain(window, 650, 450))
+    chatgptconfigwindow.resizable(False, False)
+    chatgptconfigwindow.grab_set()
+    temperature_var = DoubleVar()
+    max_tokens_var = IntVar()
+    temperature_var.set(settings["OpenAISettings"]["OpenAI_Temperature"])
+    max_tokens_var.set(settings["OpenAISettings"]["OpenAI_Max_Tokens"])
+
+    model_engine_label = CTkLabel(chatgptconfigwindow, text=f"Model Engine: {settings['OpenAISettings']['OpenAI_model_engine']}", font=("sans-serif", 22))
+    model_engine_label.pack(padx=10, pady=(20, 10), anchor="nw")
+
+    api_key_label = CTkLabel(chatgptconfigwindow, text="OpenAI API Key", font=("sans-serif", 22))
+    api_key_label.pack(padx=10, pady=(20, 10), anchor="center")
+    api_key_textbox = CTkTextbox(chatgptconfigwindow, width=30, height=3, border_width=0, corner_radius=10, font=("sans-serif", 22), activate_scrollbars=True, border_color="#242424")
+    api_key_textbox.insert("0.0", settings["OpenAISettings"]["OpenAI_API_Key"])
+    api_key_textbox.pack(fill="x", padx=10, pady=10)
+
+    max_tokens_frame = CTkFrame(chatgptconfigwindow, corner_radius=0, fg_color="transparent")
+    max_tokens_frame.grid_columnconfigure(1, weight=1)
+    max_tokens_frame.pack(fill="x", anchor="center")
+    max_tokens_slider = CTkSlider(max_tokens_frame, width=300, height=20, from_=0, to=4000, command=lambda mtokens: max_tokens_label.configure(text=int(mtokens)), variable=max_tokens_var)
+    max_tokens_slider.grid(row=1, column=1, padx=5, pady=(20, 10), sticky="ew")
+    max_tokens_label = CTkLabel(max_tokens_frame, text=f"{settings['OpenAISettings']['OpenAI_Max_Tokens']}", font=("sans-serif", 22))
+    max_tokens_label.grid(row=1, column=2, padx=5, pady=(20, 10), sticky="ew")
+
+    temperature_frame = CTkFrame(chatgptconfigwindow, corner_radius=0, fg_color="transparent")
+    temperature_frame.grid_columnconfigure(1, weight=1)
+    temperature_frame.pack(fill="x", anchor="center")
+    temperature_slider = CTkSlider(temperature_frame, width=300, height=20, from_=0.0, to=1.0, command=lambda temp: temperature_label.configure(text=round(temp, 1)), variable=temperature_var)
+    temperature_slider.grid(row=1, column=1, padx=5, pady=(20, 10), sticky="ew")
+    temperature_label = CTkLabel(temperature_frame, text=f"{settings['OpenAISettings']['OpenAI_Temperature']}", font=("sans-serif", 22))
+    temperature_label.grid(row=1, column=2, padx=5, pady=(20, 10), sticky="ew")
+
+    voice_type_frame = CTkFrame(chatgptconfigwindow, corner_radius=0, fg_color="transparent")
+    voice_type_frame.grid_columnconfigure([1, 2], weight=1)
+    voice_type_frame.pack(fill="x", anchor="center")
+    voice_type_label = CTkLabel(voice_type_frame, text="Voice Type", font=("sans-serif", 22))
+    voice_type_label.grid(row=1, column=1, padx=5, pady=(20, 10), sticky="e")
+    voice_type_optionmenu = CTkOptionMenu(voice_type_frame, values=["Male", "Female"], command=None, fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 20), dropdown_font=("sans-serif", 17), anchor="center")
+    voice_type_optionmenu.grid(row=1, column=2, padx=5, pady=(20, 10), sticky="w")
+    if settings["OpenAISettings"]["VoiceType"] == 0:
+        voice_type_optionmenu.set("Male")
+    else:
+        voice_type_optionmenu.set("Female")
+
+    save_btn = CTkButton(chatgptconfigwindow, width=315, text="Save", font=("sans-serif", 22), fg_color=("gray75", "gray30"), corner_radius=10, command=save_config)
+    save_btn.pack(padx=5, pady=(20, 10), fill="x", expand=True, anchor="center")
 
 def GetPowerPlans():
     """Gets all power plans that are listed at:\n
@@ -1403,67 +1445,67 @@ def AllDeviceDetails():
     else:
         Thread(name="DeviceUpdateThread", daemon=True, target=lambda: UpdateDevices()).start()
 
-def select_frame_by_name(name: str):
+def select_frame_by_name(frame_name: str):
     """Changes selected frame"""
     # set button color for selected button
-    home_button.configure(fg_color=("gray75", "gray25") if name == "Home" else "transparent")
-    games_button.configure(fg_color=("gray75", "gray25") if name == "Games" else "transparent")
-    socialmedia_button.configure(fg_color=("gray75", "gray25") if name == "Social Media" else "transparent")
-    ytdownloader_button.configure(fg_color=("gray75", "gray25") if name == "YT Downloader" else "transparent")
-    assistant_button.configure(fg_color=("gray75", "gray25") if name == "Assistant" else "transparent")
-    music_button.configure(fg_color=("gray75", "gray25") if name == "Music" else "transparent")
-    devices_button.configure(fg_color=("gray75", "gray25") if name == "Devices" else "transparent")
-    system_button.configure(fg_color=("gray75", "gray25") if name == "System" else "transparent")
-    settings_button.configure(fg_color=("gray75", "gray25") if name == "Settings" else "transparent")
+    home_button.configure(fg_color=("gray75", "gray25") if frame_name == "Home" else "transparent")
+    games_button.configure(fg_color=("gray75", "gray25") if frame_name == "Games" else "transparent")
+    socialmedia_button.configure(fg_color=("gray75", "gray25") if frame_name == "Social Media" else "transparent")
+    ytdownloader_button.configure(fg_color=("gray75", "gray25") if frame_name == "YT Downloader" else "transparent")
+    assistant_button.configure(fg_color=("gray75", "gray25") if frame_name == "Assistant" else "transparent")
+    music_button.configure(fg_color=("gray75", "gray25") if frame_name == "Music" else "transparent")
+    devices_button.configure(fg_color=("gray75", "gray25") if frame_name == "Devices" else "transparent")
+    system_button.configure(fg_color=("gray75", "gray25") if frame_name == "System" else "transparent")
+    settings_button.configure(fg_color=("gray75", "gray25") if frame_name == "Settings" else "transparent")
 
     # show selected frame
-    if name == "Home":
+    if frame_name == "Home":
         home_frame.pack(fill="both", expand=True)
     else:
         home_frame.pack_forget()
-    if name == "Games":
+    if frame_name == "Games":
         games_frame.pack(anchor="center", fill="both", expand=True)
     else:
         games_frame.pack_forget()
-    if name == "Social Media":
+    if frame_name == "Social Media":
         socialmedia_frame.pack(anchor="center", fill="both", expand=True)
     else:
         socialmedia_frame.pack_forget()
-    if name == "YT Downloader":
+    if frame_name == "YT Downloader":
         ytdownloader_frame.pack(fill="both", expand=True, anchor="center")
         ytdownloader_entry.bind("<Return>", lambda event: YTVideoDownloader(YTVideoContentType))
     else:
         ytdownloader_frame.pack_forget()
         ytdownloader_entry.unbind("<Return>")
-    if name == "Assistant":
+    if frame_name == "Assistant":
         assistant_frame.pack(fill="both", expand=True)
         assistant_responce_box_1.bind("<Shift-Return>", lambda event: ChatGPT())
     else:
         assistant_frame.pack_forget()
         assistant_responce_box_1.unbind("<Shift-Return>")
-    if name == "Music":
+    if frame_name == "Music":
         music_frame.pack(fill="both", expand=True)
     else:
         music_frame.pack_forget()
-    if name == "Devices":
+    if frame_name == "Devices":
         devices_frame.pack(fill="both", expand=True)
         window.bind('<Control-r>', lambda event: AllDeviceDetails())
     else:
         devices_frame.pack_forget()
         window.unbind('<Control-r>')
-    if name == "System":
+    if frame_name == "System":
         system_frame.pack(anchor="center", pady=(0, 20), fill="x", expand=True)
     else:
         system_frame.pack_forget()
-    if name == "Settings":
+    if frame_name == "Settings":
         settings_frame.pack(anchor="center", fill="both", expand=True)
     else:
         settings_frame.pack_forget()
 
-    if name == "Games" or name == "Social Media":
-        if name == "Games":
+    if frame_name == "Games" or frame_name == "Social Media":
+        if frame_name == "Games":
             btn_origin_frame = "games_frame"
-        elif name == "Social Media":
+        elif frame_name == "Social Media":
             btn_origin_frame = "socialmedia_frame"
         toggle_edit_mode.pack(side="right", anchor="ne", padx=15, pady=(10, 0))
         add_new_btn.pack(side="right", anchor="ne", padx=5, pady=(5, 0))
@@ -1471,6 +1513,13 @@ def select_frame_by_name(name: str):
     else:
         toggle_edit_mode.pack_forget()
         add_new_btn.pack_forget()
+
+    if frame_name == "Assistant":
+        assistant_settings_btn.pack(side="right", anchor="ne", padx=15, pady=(10, 0))
+    else:
+        assistant_settings_btn.pack_forget()
+
+    SaveSettingsToJson("DefaultFrame", frame_name)
 def SaveSettingsToJson(key: str, value: str):
     """Saves data to settings.json file"""
     for Property in ['URLs', 'GameShortcutURLs', 'OpenAISettings', 'MusicSettings', 'AppSettings']:
@@ -1686,6 +1735,7 @@ try:
     systemimage = CTkImage(PILopen("assets/MenuIcons/system.png"), size=(25, 25))
     settingsimage = CTkImage(PILopen("assets/MenuIcons/settings.png"), size=(25, 25))
     addbtnimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/add-btn.png'), "#ffffff"), size=(30, 30))
+    assistantsettingsimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/assistant-settings-btn.png'), "#ffffff"), size=(35, 35))
     modbtnpositionimage = CTkImage(change_image_clr(PILopen('assets/ExtraIcons/modify-btn-positions.png'), "#ffffff"), size=(30, 30))
     closeimage = CTkImage(PILopen("assets/MenuIcons/close.png"), size=(20, 20))
     openimage = CTkImage(PILopen("assets/MenuIcons/open.png"), size=(25, 25))
@@ -1727,6 +1777,7 @@ close_open_nav_button.pack(side="left", anchor="nw", padx=0, pady=(5, 0))
 
 add_new_btn = CTkButton(navigation_bar_frame, width=100, text="Add", fg_color=("gray75", "gray30"), image=addbtnimage, anchor="w", font=("sans-serif", 20), command=None)
 toggle_edit_mode = CTkSwitch(navigation_bar_frame, text="Edit Mode", variable=EditModeVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=EditModeInit)
+assistant_settings_btn = CTkButton(navigation_bar_frame, width=50, text="", fg_color=("gray75", "gray30"), image=assistantsettingsimage, anchor="w", font=("sans-serif", 20), command=ChatGPTConfig)
 
 
 # menu btns
@@ -1817,22 +1868,22 @@ music_volume_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 music_progress_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 currently_playing_label = CTkLabel(music_info_frame, text="Status: Scanning files...", font=("sans-serif", 18))
 music_dir_label = CTkLabel(music_info_frame, text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 45)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None", font=("sans-serif", 18))
-update_music_list = CTkButton(music_info_frame, width=80, text="Update", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=lambda: music_manager.musicmanager("update"))
-change_music_dir = CTkButton(music_info_frame, width=80, text="Change", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=lambda: music_manager.musicmanager("changedir"))
+update_music_list = CTkButton(music_info_frame, width=80, text="Update", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=music_manager.update)
+change_music_dir = CTkButton(music_info_frame, width=80, text="Change", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=music_manager.changedir)
 currently_playing_label.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 music_dir_label.grid(row=2, column=1, padx=10, pady=5, sticky="w")
 update_music_list.grid(row=2, column=2, padx=5, pady=5, sticky="e")
 change_music_dir.grid(row=2, column=3, padx=5, pady=5, sticky="w")
 music_info_frame.grid_columnconfigure([0, 3], weight=1)
-pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("previous"))
-play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("play"))
-next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("next"))
-loop_playlist_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=loopimage, anchor="w", hover_color=("gray70", "gray30"), command=lambda: music_manager.musicmanager("loop"))
+pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.previous)
+play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.play)
+next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.next)
+loop_playlist_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=loopimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.loop)
 pre_song_btn.grid(row=1, column=1, padx=10, pady=0, sticky="e")
 play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
 next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
 loop_playlist_btn.grid(row=1, column=4, padx=10, pady=0, sticky="w")
-volume_slider = CTkSlider(music_volume_frame, width=250, from_=0, to=100, command=lambda volume: music_manager.musicmanager("volume"), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
+volume_slider = CTkSlider(music_volume_frame, width=250, from_=0, to=100, command=lambda volume: music_manager.volume(), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
 volume_label = CTkLabel(music_volume_frame, text=f"{musicVolumeVar.get()}%", font=("sans-serif", 18, "bold"), fg_color="transparent")
 volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
 volume_slider.grid(row=1, column=1, padx=40, pady=0, sticky="e")
@@ -1900,9 +1951,6 @@ settingsopensettingsbtn = CTkButton(settings_frame, width=300, text="Open settin
 settingsopensettingsbtn.pack(anchor="center", padx=10, pady=10)
 alpha_slider = CTkSlider(settings_frame, width=300, from_=0.5, to=1.0, command=set_alpha, variable=settingsAlphavar) # I set the _from param to 0.5 because anything lower than that is too transparent and you can't see the window let alone interact with it.
 alpha_slider.pack(anchor="center", padx=10, pady=10)
-settings_default_frame_optionmenu = CTkOptionMenu(settings_frame, values=all_frames, command=lambda frame: SaveSettingsToJson("DefaultFrame", frame), fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 20), dropdown_font=("sans-serif", 17), width=250, height=30, anchor="center")
-settings_default_frame_optionmenu.set(settings["AppSettings"]["DefaultFrame"])
-settings_default_frame_optionmenu.pack(anchor="center", padx=10, pady=10)
 settingsAlphavar.set(settings["AppSettings"]["Alpha"])
 
 
@@ -1930,8 +1978,8 @@ for widget in navigation_buttons_frame.winfo_children():
         all_buttons_text.append(widget.cget('text'))
 
 # initialize and start the MusicManager
-music_manager.musicmanager("update")
-music_manager.start_event_loops()
+music_manager.update()
+music_manager.start_event_loop()
 
 # initialize and start the TitleUpdater
 title_bar = TitleUpdater(navigation_frame_label)
