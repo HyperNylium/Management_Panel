@@ -87,7 +87,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.2.8"
+CurrentAppVersion = "4.2.9"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -238,7 +238,7 @@ class MusicManager:
         """Plays the next song in the song list"""
         if len(self.song_list) > 0:
             pygmixer.music.stop()
-            self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
+            self.current_song_index = (self.current_song_index + 1) % len(self.song_list)
             self.play()
         return
     def previous(self) -> None:

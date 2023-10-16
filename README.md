@@ -4,8 +4,8 @@
 
 ## App Information
 
-**Version:** v4.2.8\
-**Last updated Github Repo:** 10/13/2023
+**Version:** v4.2.9\
+**Last updated Github Repo:** 10/16/2023
 
 ## Setup
 
