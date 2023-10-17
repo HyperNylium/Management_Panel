@@ -426,8 +426,7 @@ def StartUp():
     settingsAlphavar = DoubleVar()
     musicVolumeVar = IntVar()
     EditModeVar = BooleanVar()
-
-    UserPowerPlans = GetPowerPlans()
+    UserPowerPlans = None
 
     while not settings_loaded:
         sleep(0.3)
@@ -443,7 +442,7 @@ def StartUp():
             SaveSettingsToJson("LaunchAtLogin", "True")
         del shortcut_target_path
     elif exists(join(UserStartupDir, "Management_Panel.lnk")):
-        usr_res = askyesno(title="Management_Panel: Startup shortcut found", message="Despite 'LaunchAtLogin' being turned off, we've discovered a startup folder shortcut for this app.\nWould you like the app to still lauch on login?")
+        usr_res = askyesno(title="Startup shortcut found", message="Despite 'LaunchAtLogin' being turned off, we've discovered a startup shortcut for this app.\nWould you like the app to still lauch on startup?")
         if usr_res is True:
             reset_LaunchOnStartup_shortcut()
             SaveSettingsToJson("LaunchAtLogin", "True")
@@ -712,13 +711,13 @@ def systemsettings(setting: str):
             creationflags=CREATE_NO_WINDOW,
         )
     elif setting == "netdrive":
-        system("cmd.exe /c netdrive --reset")
+        system("cmd.exe /c netdrive -reset")
         showinfo(
             title="Network drives reset", message="All network drives have been reset"
         )
-    else:
-        pass
+
     del setting
+    return
 def LaunchGame(game_url: str = None, game_name: str = None, placed_frame: str = None) -> None:
     """Launches selected game"""
 
@@ -736,8 +735,8 @@ def LaunchGame(game_url: str = None, game_name: str = None, placed_frame: str = 
         if usr_input is True:
             WBopen(game_url)
         del usr_input
-        return
     del game_url, game_name
+    return
 def SocialMediaLoader(media_url: str = None, media_name: str = None, placed_frame: str = None) -> None:
     """Launches a website URL (either http or https)"""
     if EditModeVar.get() is True:
@@ -1316,33 +1315,45 @@ def ChatGPTConfig():
 
     api_key_textbox.focus_force()
 
-def GetPowerPlans():
+def UpdatePowerPlans():
     """Gets all power plans that are listed at:\n
     control panel > hardware and sound > power options"""
 
-    # Run a command to list the power plans without showing a window. I do nothing with the error output because this command does not return an error
-    output, error = Popen(["powercfg", "/list"], stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW).communicate()
-    output_text = output.decode("utf-8")
+    def update():
+        global UserPowerPlans
 
-    # Extract power plan information from the output
-    power_plans = {}
-    for line in output_text.splitlines():
-        if "GUID" in line:
-            guid = line.split("(")[1].split(")")[0]
-            name = line.split(":")[1].split("(")[0].strip()
-            power_plans[guid] = name
+        # Run a command to list the power plans without showing a window. I do nothing with the error output because this command does not return an error
+        output, error = Popen(["powercfg", "/list"], stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW).communicate()
+        output_text = output.decode("utf-8")
 
-    # Find the active power plan
-    active_plan = None
-    for line in output_text.splitlines():
-        if "*" in line and "GUID" in line:
-            active_plan = line.split("(")[1].split(")")[0]
-            break
+        # Extract power plan information from the output
+        power_plans = {}
+        for line in output_text.splitlines():
+            if "GUID" in line:
+                guid = line.split("(")[1].split(")")[0]
+                name = line.split(":")[1].split("(")[0].strip()
+                power_plans[guid] = name
 
-    # Store the active power plan in the dictionary
-    power_plans["active"] = active_plan
+        # Find the active power plan
+        active_plan = None
+        for line in output_text.splitlines():
+            if "*" in line and "GUID" in line:
+                active_plan = line.split("(")[1].split(")")[0]
+                break
 
-    return power_plans
+        # Store the active power plan in the dictionary
+        power_plans["active"] = active_plan
+
+        UserPowerPlans = power_plans
+
+        # update the optionmenu with the power plans
+        system_frame_power_optionmenu.configure(values=list(power_plans.keys())[:-1], command=lambda PlanName: ChangePowerPlan(PlanName), state="normal")
+        system_frame_power_optionmenu.set(power_plans['active'])
+        del output, error, output_text, power_plans, active_plan
+        return
+
+    system_frame_power_optionmenu.configure(values=["Loading..."], command=None, state="disabled")
+    Thread(name="UpdatePowerPlansThread", daemon=True, target=update).start()
 def ChangePowerPlan(PlanName: str):
     """Changes the selected power plan"""
     if PlanName not in UserPowerPlans:
@@ -1350,6 +1361,8 @@ def ChangePowerPlan(PlanName: str):
         return
     PowerPlanGUID = UserPowerPlans[PlanName]
     Popen(["powercfg", "/setactive", PowerPlanGUID], stdout=PIPE, stderr=PIPE, stdin=PIPE, creationflags=CREATE_NO_WINDOW)
+    del PowerPlanGUID
+    return
 
 def GetDeviceInfo(device_name: str = None, connectivity_type: str = "Bluetooth", device_battery_data: str = "{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2", device_type_data: str = "DEVPKEY_DeviceContainer_Category"):
     """Gets Bluetooth device information based on the provided parameters"""
@@ -1502,8 +1515,10 @@ def select_frame_by_name(frame_name: str):
         window.unbind('<Control-r>')
     if frame_name == "System":
         system_frame.pack(anchor="center", pady=(0, 20), fill="x", expand=True)
+        window.bind("<Control-r>", lambda event: UpdatePowerPlans())
     else:
         system_frame.pack_forget()
+        window.unbind("<Control-r>")
     if frame_name == "Settings":
         settings_frame.pack(anchor="center", fill="both", expand=True)
     else:
@@ -1931,9 +1946,8 @@ system_frame_button_8 = CTkButton(system_frame, text="Network setings", compound
 system_frame_button_8.grid(row=2, column=2, padx=5, pady=10)
 system_frame_button_9 = CTkButton(system_frame, text="Windows update", compound="top", width=200, fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: systemsettings("windowsupdate"))
 system_frame_button_9.grid(row=2, column=3, padx=5, pady=10)
-system_frame_power_optionmenu = CTkOptionMenu(system_frame, values=list(UserPowerPlans.keys())[:-1], command=lambda PlanName: ChangePowerPlan(PlanName), fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 17), dropdown_font=("sans-serif", 15), width=200, height=30, anchor="center")
+system_frame_power_optionmenu = CTkOptionMenu(system_frame, values=["Loading..."], state="disabled", command=None, fg_color="#343638", button_color="#4d4d4d", button_hover_color="#444", font=("sans-serif", 17), dropdown_font=("sans-serif", 15), width=200, height=30, anchor="center")
 system_frame_power_optionmenu.grid(row=4, column=2, padx=5, pady=10)
-system_frame_power_optionmenu.set(UserPowerPlans['active'])
 
 
 settingsgrid = CTkFrame(settings_frame, corner_radius=0, fg_color="transparent")
@@ -1993,6 +2007,9 @@ music_manager.start_event_loop()
 # initialize and start the TitleUpdater
 title_bar = TitleUpdater(navigation_frame_label)
 title_bar.start()
+
+# Start to update the powerplan optionmenu
+UpdatePowerPlans()
 
 # set the navigation state to the last known state in settings.json
 if settings["AppSettings"]["NavigationState"] == "close":
