@@ -89,7 +89,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.3.0"
+CurrentAppVersion = "4.3.1"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
