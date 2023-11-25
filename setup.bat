@@ -29,7 +29,7 @@ start Management_Panel.pyw
 :: is to clean up any previous instances of the getadmin.vbs script
 :: that might have been created in the user's temporary directory.
 :: This is done to ensure that there are no lingering 
-:: or conflicting scripts from previous runs. Not deleting ur system32, alright?
+:: or conflicting scripts from previous runs.
 :: and the getadmin.vbs script is a Visual Basic Script (VBS) used in the batch script 
 :: to request administrative privileges when running a batch file.
 ::

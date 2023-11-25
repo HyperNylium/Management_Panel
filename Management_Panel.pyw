@@ -12,6 +12,8 @@
 ###
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
+### TODO: Create a function like "configure_button_image(button, image_path, color, size)" to handle the repeated logic seen in lines 263, 266, 269.
+###
 ### Done: Make a "Edit Mode" toggle both for "Games" and "Social Media" frames that will be on the "window" frame next to the X to close the menu.
 ###       It will allow you to edit the buttons in that frame. Will have functionality to add, remove, edit, and move button grid indexes (change order)
 ### DONE: Make a auto updater script that updates the main app instead of the user needing to go to github and download the new version
@@ -87,7 +89,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.3.0"
+CurrentAppVersion = "4.3.1"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -440,6 +442,8 @@ def StartUp():
         if shortcut_target_path != file_path():
             reset_LaunchOnStartup_shortcut()
             SaveSettingsToJson("LaunchAtLogin", "True")
+        else:
+            settingslaunchwithwindowsvar.set(True)
         del shortcut_target_path
     elif exists(join(UserStartupDir, "Management_Panel.lnk")):
         usr_res = askyesno(title="Startup shortcut found", message="Despite 'LaunchAtLogin' being turned off, we've discovered a startup shortcut for this app.\nWould you like the app to still lauch on startup?")
