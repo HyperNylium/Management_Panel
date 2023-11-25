@@ -25,7 +25,7 @@ def on_closing():
     exit()
 
 if len(argv) != 3:
-    print(f"{RED}Error{RESET}: Invalid arguments count {len(argv)}. Expected argument count 4. Passed arguments:\n")
+    print(f"{RED}Error{RESET}: Invalid arguments count {len(argv)}. Expected argument count 3. Passed arguments:\n")
     for arg in argv:
         print(f" -> {arg}")
     on_closing()
