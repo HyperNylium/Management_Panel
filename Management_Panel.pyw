@@ -68,7 +68,8 @@ try:
     from winshell import desktop, startup, CreateShortcut, shortcut
     from pytube import YouTube as PY_Youtube
     from requests.exceptions import Timeout
-    from pygame import mixer as pygmixer
+    import vlc
+    from tinytag import TinyTag
     from pyttsx3 import init as ttsinit
     from numpy import array as nparray
     from CTkListbox import CTkListbox
@@ -141,29 +142,38 @@ class TitleUpdater:
                 current_date = date.today().strftime('%a, %b %d, %Y')
             self.label.configure(text=f"{current_date}\n{current_time}")
             del current_time, current_date
+
+
+
+
+
+
 class MusicManager:
     def __init__(self):
-        self.song_info = {}  # Dictionary to store song info: {"song_name"(str): {"duration"(str): duration_in_seconds(int)}}
+        self.song_info = {} # Dictionary to store song info: {"song_name"(str): {"duration"(str): duration_in_seconds(int)}}
         self.song_list = []
         self.current_song_index = 0
         self.current_song_paused = False
         self.has_started_before = False
         self.updating = False
-        pygmixer.init()
-        pygmixer.music.set_volume(float(int(settings["MusicSettings"]["Volume"]) / 100))
+        self.event_loop_running = False
+        self.player = vlc.MediaPlayer()
+        self.player.audio_set_volume(int(settings["MusicSettings"]["Volume"]))
 
     def cleanup(self):
+        self.event_loop_running = False
         try:
-            pygmixer.music.stop()
-            pygmixer.quit()
-        except: pass
+            self.player.stop()
+            self.player.release()
+        except:
+            pass
         del self.song_info, self.current_song_index, self.current_song_paused, self.has_started_before, self.updating
         return
 
-    def main_event_loop(self):
-        while True:
-            if pygmixer.music.get_busy() and not self.current_song_paused:
-                current_pos_secs = pygmixer.music.get_pos() / 1000  # Get current position in seconds
+    def event_loop(self):
+        while self.event_loop_running:
+            if self.is_playing() and not self.current_song_paused:
+                current_pos_secs = self.player.get_time() / 1000 # Get current position in seconds
                 total_duration = self.song_info[self.song_list[self.current_song_index]]["duration"]
                 remaining_time = total_duration - current_pos_secs
 
@@ -173,47 +183,52 @@ class MusicManager:
                 time_left_label.configure(text=formatted_remaining_time)
                 song_progressbar.set((current_pos_secs / total_duration))
                 total_time_label.configure(text=formatted_total_duration)
+
                 del current_pos_secs, total_duration, remaining_time, formatted_remaining_time, formatted_total_duration
-            if pygmixer.music.get_pos() == -1 and self.current_song_paused is False and self.has_started_before is True:
+                
+            if not self.is_playing() and not self.current_song_paused and self.has_started_before:
                 if settings["MusicSettings"]["LoopState"] == "all":
-                    # This is where the infinite loop around all the music in your music dir happens.
-                    # Almost like replaying a playlist infinitely.
-                    # But the playlist is your music folder.
-                    # So, after the last song is done playing in your music dir, 
-                    # it will come back to the first song and play that. 
-                    # It will do this infinitely.
                     self.next()
                 elif settings["MusicSettings"]["LoopState"] == "one":
-                    # This is where the infinite loop around the currently playing song happens.
-                    # After the current song is done playing, it will start playing it again after it finishes.
-                    # You can still change the song by clicking the next or previous button.
-                    # And that new song will be the new song to be played infinitely.
-                    pygmixer.music.stop()
+                    self.player.stop()
                     self.play()
                 elif settings["MusicSettings"]["LoopState"] == "off":
-                    # When the song finishes playing, it will stop playing music
-                    # until either you click the Play button or the Next button.
-                    pygmixer.music.stop()
+                    self.player.stop()
                     pre_song_btn.configure(state="disabled")
                     next_song_btn.configure(state="disabled")
                     play_pause_song_btn.configure(image=playimage, command=music_manager.play)
                     if self.updating is False:
                         SaveSettingsToJson("CurrentlyPlaying", "False")
             sleep(1)
+        return
 
     def start_event_loop(self):
-        Thread(target=self.main_event_loop, daemon=True, name="MusicManager").start()
+        self.event_loop_running = True
+        Thread(target=self.event_loop, daemon=True, name="MusicManager").start()
 
-    ### Functions for managing music (play, pause, etc) ###
-    def play(self) -> None:
-        """Plays the current song or resumes the song if it was paused"""
+    def is_playing(self):
+        if self.event_loop_running:
+            return bool(self.player.is_playing())
+
+    def update_all_music_frame(self):
+        for widget in all_music_frame.winfo_children():
+            widget.destroy()
+            all_music_frame.update()
+        for index, song_name in enumerate(self.song_list):
+            CTkLabel(all_music_frame, text=f"{str(index+1)}. {str(song_name)}", font=("sans-serif", 20)).grid(
+                row=index, column=1, padx=(20, 0), pady=5, sticky="w")
+            all_music_frame.update()
+        return
+
+    def play(self):
         if len(self.song_list) > 0:
-            if self.current_song_paused is True:
-                pygmixer.music.unpause()
+            if self.current_song_paused:
+                self.player.play()
                 self.current_song_paused = False
             else:
-                pygmixer.music.load(join(settings["MusicSettings"]["MusicDir"], self.song_list[self.current_song_index]))
-                pygmixer.music.play()
+                song_path = join(settings["MusicSettings"]["MusicDir"], self.song_list[self.current_song_index])
+                self.player.set_media(vlc.Media(song_path))
+                self.player.play()
                 currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index]}")
                 self.has_started_before = True
                 self.current_song_paused = False
@@ -222,45 +237,39 @@ class MusicManager:
             play_pause_song_btn.configure(image=pauseimage, command=music_manager.pause)
             SaveSettingsToJson("CurrentlyPlaying", "True")
         return
-    def pause(self) -> None:
-        """Pauses the current playing song"""
-        if self.current_song_paused is False:
-            pygmixer.music.pause()
-            self.current_song_paused = True
-        else:
-            self.current_song_paused = False
-            self.play()
+
+    def pause(self):
+        self.player.pause()
+        self.current_song_paused = True
         pre_song_btn.configure(state="disabled")
         next_song_btn.configure(state="disabled")
         play_pause_song_btn.configure(image=playimage, command=music_manager.play)
         if self.updating is False:
             SaveSettingsToJson("CurrentlyPlaying", "False")
         return
-    def next(self) -> None:
-        """Plays the next song in the song list"""
+
+    def next(self):
         if len(self.song_list) > 0:
-            pygmixer.music.stop()
             self.current_song_index = (self.current_song_index + 1) % len(self.song_list)
             self.play()
         return
-    def previous(self) -> None:
-        """Plays the previous song in the song list"""
+
+    def previous(self):
         if len(self.song_list) > 0:
-            pygmixer.music.stop()
             self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
             self.play()
         return
-    def volume(self) -> None:
-        """Changes the volume of the music player"""
+
+    def volume(self):
         def savevolume():
             SaveSettingsToJson("Volume", musicVolumeVar.get())
-        pygmixer.music.set_volume(float(musicVolumeVar.get() / 100))
+        self.player.audio_set_volume(musicVolumeVar.get())
         volume_label.configure(text=f"{musicVolumeVar.get()}%")
         schedule_cancel(window, savevolume)
         schedule_create(window, 420, savevolume)
         return
-    def loop(self) -> None:
-        """Changes the loop state of the music player"""
+
+    def loop(self):
         self.loopstate = settings["MusicSettings"]["LoopState"]
         if self.loopstate == "all":
             loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop-1.png'), "#00ff00"), size=(25, 25)))
@@ -273,8 +282,8 @@ class MusicManager:
             SaveSettingsToJson("LoopState", "all")
         del self.loopstate
         return
-    def changedir(self) -> None:
-        """Changes the music directory"""
+
+    def changedir(self):
         if settings["MusicSettings"]["MusicDir"] != "" and exists(settings["MusicSettings"]["MusicDir"]):
             tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=settings["MusicSettings"]["MusicDir"])
         else:
@@ -284,31 +293,36 @@ class MusicManager:
             self.update()
         del tmp_music_dir
         return
-    def update(self) -> None:
+
+    def update(self):
         """Updates the music list and the music directory label (if changed)"""
-        def update_song_list(self: MusicManager):
+        def update_song_list():
             MusicDir = str(settings["MusicSettings"]["MusicDir"])
             if exists(MusicDir):
-                self.song_list = [f for f in listdir(MusicDir) if f.endswith((".mp3", ".m4a"))]
+                self.song_list = [file for file in listdir(MusicDir) if file.endswith(tuple(TinyTag.SUPPORTED_FILE_EXTENSIONS))]
                 for song_name in self.song_list:
-                    self.song_info[song_name] = {"duration": pygmixer.Sound(join(MusicDir, song_name)).get_length()}
+                    song_path = join(MusicDir, song_name)
+                    tag = TinyTag.get(song_path)
+                    self.song_info[song_name] = {"duration": tag.duration}
             else:
                 self.song_list = []
-            for widget in all_music_frame.winfo_children():
-                widget.destroy()
-            for index, song_name in enumerate(self.song_list):
-                CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=self.song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
+
+            Thread(target=self.update_all_music_frame, daemon=True, name="update_all_music_frame").start()
+
             update_music_list.configure(state="normal")
             change_music_dir.configure(state="normal")
             play_pause_song_btn.configure(state="normal")
             volume_slider.configure(state="normal")
-            currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir is True > 0 else 'None'}")
+            currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before and len(self.song_list) > 0 else 'None'}")
             music_dir_label.configure(text=f"Music Directory: {shorten_path(MusicDir, 25)}" if MusicDir != "" else "Music Directory: None")
-            del MusicDir
+
             if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
                 self.play()
+
+            self.updating = False
+
             return
-        self.updating = False
+
         self.updating = True
         update_music_list.configure(state="disabled")
         change_music_dir.configure(state="disabled")
@@ -320,9 +334,14 @@ class MusicManager:
         song_progressbar.set(0.0)
         time_left_label.configure(text="0:00")
         total_time_label.configure(text="0:00")
-        if pygmixer.music.get_busy() and not self.current_song_paused:
+
+        if self.is_playing() and not self.current_song_paused:
             self.pause()
-        Thread(target=lambda: update_song_list(self), daemon=True, name="MusicManager_updater").start()
+
+        Thread(target=update_song_list, daemon=True, name="MusicManager_updater").start()
+
+
+
 
 
 def StartUp():
