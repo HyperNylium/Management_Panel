@@ -142,12 +142,6 @@ class TitleUpdater:
                 current_date = date.today().strftime('%a, %b %d, %Y')
             self.label.configure(text=f"{current_date}\n{current_time}")
             del current_time, current_date
-
-
-
-
-
-
 class MusicManager:
     def __init__(self):
         self.song_info = {} # Dictionary to store song info: {"song_name"(str): {"duration"(str): duration_in_seconds(int)}}
@@ -167,7 +161,6 @@ class MusicManager:
             self.player.release()
         except:
             pass
-        del self.song_info, self.current_song_index, self.current_song_paused, self.has_started_before, self.updating
         return
 
     def event_loop(self):
@@ -209,16 +202,6 @@ class MusicManager:
     def is_playing(self):
         if self.event_loop_running:
             return bool(self.player.is_playing())
-
-    def update_all_music_frame(self):
-        for widget in all_music_frame.winfo_children():
-            widget.destroy()
-            all_music_frame.update()
-        for index, song_name in enumerate(self.song_list):
-            CTkLabel(all_music_frame, text=f"{str(index+1)}. {str(song_name)}", font=("sans-serif", 20)).grid(
-                row=index, column=1, padx=(20, 0), pady=5, sticky="w")
-            all_music_frame.update()
-        return
 
     def play(self):
         if len(self.song_list) > 0:
@@ -294,6 +277,32 @@ class MusicManager:
         del tmp_music_dir
         return
 
+    def update_all_music_frame(self):
+        delete_widgets = []
+        for widget in all_music_frame.winfo_children():
+            window.after(0, widget.grid_forget)
+            delete_widgets.append(widget)
+
+        for index, song_name in enumerate(self.song_list):
+            CTkLabel(all_music_frame, text=f"{str(index+1)}. {str(song_name)}", font=("sans-serif", 20)).grid(
+                row=index, column=1, padx=(20, 0), pady=5, sticky="w")
+
+        if len(delete_widgets) > 0:
+            for widget in delete_widgets:
+                window.after(0, widget.destroy)
+                del widget
+
+        all_music_frame.update()
+
+        update_music_list.configure(state="normal")
+        change_music_dir.configure(state="normal")
+        play_pause_song_btn.configure(state="normal")
+        volume_slider.configure(state="normal")
+        currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before and len(self.song_list) > 0 else 'None'}")
+
+        del delete_widgets
+        return
+
     def update(self):
         """Updates the music list and the music directory label (if changed)"""
         def update_song_list():
@@ -309,18 +318,12 @@ class MusicManager:
 
             Thread(target=self.update_all_music_frame, daemon=True, name="update_all_music_frame").start()
 
-            update_music_list.configure(state="normal")
-            change_music_dir.configure(state="normal")
-            play_pause_song_btn.configure(state="normal")
-            volume_slider.configure(state="normal")
-            currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before and len(self.song_list) > 0 else 'None'}")
             music_dir_label.configure(text=f"Music Directory: {shorten_path(MusicDir, 25)}" if MusicDir != "" else "Music Directory: None")
 
             if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
                 self.play()
 
             self.updating = False
-
             return
 
         self.updating = True
@@ -339,9 +342,6 @@ class MusicManager:
             self.pause()
 
         Thread(target=update_song_list, daemon=True, name="MusicManager_updater").start()
-
-
-
 
 
 def StartUp():
