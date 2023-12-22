@@ -195,7 +195,7 @@ class MusicManager:
                     next_song_btn.configure(state="disabled")
                     play_pause_song_btn.configure(image=playimage, command=music_manager.play)
                     if self.updating is False:
-                        SaveSettingsToJson("CurrentlyPlaying", "False")
+                        SaveSettingsToJson("CurrentlyPlaying", False)
             sleep(1)
         return
 
@@ -250,7 +250,7 @@ class MusicManager:
             pre_song_btn.configure(state="normal")
             next_song_btn.configure(state="normal")
             play_pause_song_btn.configure(image=pauseimage, command=music_manager.pause)
-            SaveSettingsToJson("CurrentlyPlaying", "True")
+            SaveSettingsToJson("CurrentlyPlaying", True)
         return
 
     def pause(self):
@@ -261,7 +261,7 @@ class MusicManager:
         next_song_btn.configure(state="disabled")
         play_pause_song_btn.configure(image=playimage, command=music_manager.play)
         if not self.updating:
-            SaveSettingsToJson("CurrentlyPlaying", "False")
+            SaveSettingsToJson("CurrentlyPlaying", False)
         return
 
     def next(self):
@@ -370,7 +370,7 @@ class MusicManager:
             volume_slider.configure(state="normal")
             music_dir_label.configure(text=f"Music Directory: {shorten_path(MusicDir, 25)}" if MusicDir != "" else "Music Directory: None")
 
-            if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
+            if settings["MusicSettings"]["CurrentlyPlaying"] == True:
                 self.play()
             return
 
@@ -393,10 +393,7 @@ class MusicManager:
 
 
 def StartUp():
-    """Reads settings.json and loads all the variables into the settings variable.\n
-    If the file isn't found, it creates one within the same directory and loads it with default values.\n
-    settings[Property][Key] => value\n
-    settings['AppSettings']['AlwaysOnTop'] => True | False"""
+    """Main function that gets the app going. Should be called only once at the start of the app"""
 
     try:
         window.iconbitmap("assets/AppIcon/Management_Panel_Icon.ico")
@@ -404,90 +401,72 @@ def StartUp():
         showerror(title="Error loading window icon", message=f"An error occurred while loading the window icon\n{e}")
         sys.exit()
 
-    settings_loaded = False
+    global settings
+    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingslaunchwithwindowsvar
+    global settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager, EditModeVar
 
-    def load_settings():
-        nonlocal settings_loaded
-        global settings
-        default_settings = {
-            "URLs": {
-                "HyperNylium.com": "http://hypernylium.com/",
-                "Github": "https://github.com/HyperNylium",
-                "Discord": "https://discord.gg/4FHTjAgw95",
-                "Instagram": "https://www.instagram.com/",
-                "Youtube": "https://www.youtube.com/",
-                "TikTok": "https://www.tiktok.com/",
-                "Facebook": "https://www.facebook.com/",
-                "Twitter": "https://twitter.com/"
-            },
-            "GameShortcutURLs": {
-                "Game 1": "",
-                "Game 2": "",
-                "Game 3": "",
-                "Game 4": "",
-                "Game 5": "",
-                "Game 6": "",
-                "Game 7": "",
-                "Game 8": "",
-                "Game 9": ""
-            },
-            "OpenAISettings": {
-                "VoiceType": 0,
-                "OpenAI_API_Key": "",
-                "OpenAI_model_engine": "text-davinci-003",
-                "OpenAI_Max_Tokens": 1024,
-                "OpenAI_Temperature": 0.5
-            },
-            "MusicSettings": {
-                "MusicDir": "",
-                "Volume": 0,
-                "CurrentlyPlaying": "False",
-                "LoopState": "all"
-            },
-            "AppSettings": {
-                "PreviouslyUpdated": "False",
-                "AlwaysOnTop": "False",
-                "LaunchAtLogin": "False",
-                "SpeakResponce": "False",
-                "CheckForUpdatesOnLaunch": "True",
-                "NavigationState": "open",
-                "DownloadsFolderName": "YT_Downloads",
-                "DefaultFrame": "Home",
-                "Alpha": 1.0,
-                "Window_State": "normal",
-                "Window_Width": "",
-                "Window_Height": "",
-                "Window_X": "",
-                "Window_Y": ""
-            },
-            "Devices": []
-        }
-        try:
-            with open(SETTINGSFILE, 'r') as settings_file:
-                settings = JSload(settings_file)
+    default_settings = {
+        "URLs": {
+            "HyperNylium.com": "http://hypernylium.com/",
+            "Github": "https://github.com/HyperNylium",
+            "Discord": "https://discord.gg/4FHTjAgw95",
+            "Instagram": "https://www.instagram.com/",
+            "Youtube": "https://www.youtube.com/",
+            "TikTok": "https://www.tiktok.com/",
+            "Facebook": "https://www.facebook.com/",
+            "Twitter": "https://twitter.com/"
+        },
+        "GameShortcutURLs": {
+            "Game 1": "",
+            "Game 2": "",
+            "Game 3": ""
+        },
+        "OpenAISettings": {
+            "VoiceType": 0,
+            "OpenAI_API_Key": "",
+            "OpenAI_model_engine": "text-davinci-003",
+            "OpenAI_Max_Tokens": 1024,
+            "OpenAI_Temperature": 0.5
+        },
+        "MusicSettings": {
+            "MusicDir": "",
+            "Volume": 0,
+            "CurrentlyPlaying": False,
+            "LoopState": "all"
+        },
+        "AppSettings": {
+            "PreviouslyUpdated": False,
+            "AlwaysOnTop": False,
+            "LaunchAtLogin": False,
+            "SpeakResponce": False,
+            "CheckForUpdatesOnLaunch": True,
+            "NavigationState": "open",
+            "DownloadsFolderName": "YT_Downloads",
+            "DefaultFrame": "Home",
+            "Alpha": 1.0,
+            "Window_State": "normal",
+            "Window_Width": "",
+            "Window_Height": "",
+            "Window_X": "",
+            "Window_Y": ""
+        },
+        "Devices": []
+    }
+    try:
+        with open(SETTINGSFILE, 'r') as settings_file:
+            settings = JSload(settings_file)
 
-            if settings["AppSettings"]["PreviouslyUpdated"] == "True":
-                for Property in default_settings:
-                    if Property not in settings:
-                        settings[Property] = default_settings[Property]
-                    else:
-                        for key in default_settings[Property]:
-                            if key not in settings[Property]:
-                                settings[Property][key] = default_settings[Property][key]
-                settings["AppSettings"]["PreviouslyUpdated"] = "False"
-                with open(SETTINGSFILE, 'w') as settings_file:
-                    JSdump(settings, settings_file, indent=2)
-                restart(pass_args=False)
-
-        except FileNotFoundError:
+        if settings["AppSettings"]["PreviouslyUpdated"] == True:
+            settings.update(default_settings)
+            settings["AppSettings"]["PreviouslyUpdated"] = False
             with open(SETTINGSFILE, 'w') as settings_file:
-                JSdump(default_settings, settings_file, indent=2)
-            settings = default_settings
-        settings_loaded = True
+                JSdump(settings, settings_file, indent=2)
 
-    Thread(target=load_settings, name="settings_thread", daemon=True).start()
+    except FileNotFoundError:
+        with open(SETTINGSFILE, 'w') as settings_file:
+            JSdump(default_settings, settings_file, indent=2)
+        settings = default_settings
 
-    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingslaunchwithwindowsvar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager, EditModeVar
     settingsSpeakResponceVar = BooleanVar()
     settingsAlwayOnTopVar = BooleanVar()
     settingslaunchwithwindowsvar = BooleanVar()
@@ -497,18 +476,15 @@ def StartUp():
     EditModeVar = BooleanVar()
     UserPowerPlans = None
 
-    while not settings_loaded:
-        sleep(0.3)
-
-    if settings["AppSettings"]["AlwaysOnTop"] == "True":
+    if settings["AppSettings"]["AlwaysOnTop"] == True:
         window.attributes('-topmost', True)
         settingsAlwayOnTopVar.set(True)
 
-    if settings["AppSettings"]["LaunchAtLogin"] == "True":
+    if settings["AppSettings"]["LaunchAtLogin"] == True:
         shortcut_target_path = shortcut(join(UserStartupDir, "Management_Panel.lnk")).path
         if shortcut_target_path != file_path():
             reset_LaunchOnStartup_shortcut()
-            SaveSettingsToJson("LaunchAtLogin", "True")
+            SaveSettingsToJson("LaunchAtLogin", True)
         else:
             settingslaunchwithwindowsvar.set(True)
         del shortcut_target_path
@@ -516,13 +492,13 @@ def StartUp():
         usr_res = askyesno(title="Startup shortcut found", message="Despite 'LaunchAtLogin' being turned off, we've discovered a startup shortcut for this app.\nWould you like the app to still lauch on startup?")
         if usr_res is True:
             reset_LaunchOnStartup_shortcut()
-            SaveSettingsToJson("LaunchAtLogin", "True")
+            SaveSettingsToJson("LaunchAtLogin", True)
         else:
             settingslaunchwithwindowsvar.set(False)
             LaunchOnStartupTrueFalse()
-            SaveSettingsToJson("LaunchAtLogin", "False")
+            SaveSettingsToJson("LaunchAtLogin", False)
 
-    if settings["AppSettings"]["SpeakResponce"] == "True":
+    if settings["AppSettings"]["SpeakResponce"] == True:
         settingsSpeakResponceVar.set(True)
 
     if isinstance(settings["MusicSettings"]["Volume"], int):
@@ -533,16 +509,13 @@ def StartUp():
     check_for_updates_startup()
 
     music_manager = MusicManager()
-def restart(pass_args=True):
+def restart():
     """Restarts app"""
     python = sys.executable
-    if pass_args is True:
-        execl(python, python, *sys.argv)
-    else:
-        execl(python, python, sys.argv[0])
+    execl(python, python, *sys.argv)
 def on_closing():
     """App termination function"""
-    SaveSettingsToJson("CurrentlyPlaying", "False")
+    SaveSettingsToJson("CurrentlyPlaying", False)
     music_manager.cleanup()
     window.destroy()
     sys.exit()
@@ -609,7 +582,7 @@ def get_data_content():
 def check_for_updates_startup():
     """Checks for updates on startup if the user has the setting enabled"""
     global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
-    if settings["AppSettings"]["CheckForUpdatesOnLaunch"] == "True":
+    if settings["AppSettings"]["CheckForUpdatesOnLaunch"] == True:
         settingsCheckForUpdates.set(True)
 
         live_data = get_data_content()
@@ -1169,7 +1142,7 @@ def AlwaysOnTopTrueFalse():
     """Sets the window to always be on top or not and saves the state to settings.json"""
     value = settingsAlwayOnTopVar.get()
     window.attributes('-topmost', value)
-    SaveSettingsToJson("AlwaysOnTop", str(value))
+    SaveSettingsToJson("AlwaysOnTop", value)
     del value
     return
 def LaunchOnStartupTrueFalse():
@@ -1188,7 +1161,7 @@ def LaunchOnStartupTrueFalse():
         except FileNotFoundError:
             pass
 
-    SaveSettingsToJson("LaunchAtLogin", str(value))
+    SaveSettingsToJson("LaunchAtLogin", value)
     del value
     return
 def set_alpha(alpha_var: float):
@@ -1356,7 +1329,7 @@ def ChatGPT():
                 message = response.choices[0].text.strip()
                 assistant_responce_box_2.delete("0.0", "end")
                 assistant_responce_box_2.insert("end", message)
-                if settingsSpeakResponceVar.get():
+                if settingsSpeakResponceVar.get() == True:
                     speak(message)
             except Exception as e:
                 assistant_responce_box_2.delete("0.0", "end")
@@ -1661,7 +1634,7 @@ def select_frame_by_name(frame_name: str):
         assistant_submit_button.pack_forget()
 
     SaveSettingsToJson("DefaultFrame", frame_name)
-def SaveSettingsToJson(key: str, value: str):
+def SaveSettingsToJson(key: str, value):
     """Saves data to settings.json file"""
     for Property in ['URLs', 'GameShortcutURLs', 'OpenAISettings', 'MusicSettings', 'AppSettings']:
         if Property in settings and key in settings[Property]:
@@ -2075,11 +2048,11 @@ settingslaunchwithwindowsswitch = CTkSwitch(settingsgrid, text="", variable=sett
 settingslaunchwithwindowslabel = CTkLabel(settingsgrid, text="Launch at login", font=("sans-serif", 22))
 settingslaunchwithwindowsswitch.grid(row=2, column=1, pady=5, sticky="e")
 settingslaunchwithwindowslabel.grid(row=2, column=2, pady=5, sticky="w")
-settingsSpeakResponceswitch = CTkSwitch(settingsgrid, text="", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("SpeakResponce", str(settingsSpeakResponceVar.get())))
+settingsSpeakResponceswitch = CTkSwitch(settingsgrid, text="", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("SpeakResponce", settingsSpeakResponceVar.get()))
 settingsSpeakResponcelabel = CTkLabel(settingsgrid, text="Speak response from AI", font=("sans-serif", 22))
 settingsSpeakResponceswitch.grid(row=3, column=1, pady=5, sticky="e")
 settingsSpeakResponcelabel.grid(row=3, column=2, pady=5, sticky="w")
-settingscheckupdatesswitch = CTkSwitch(settingsgrid, text="", variable=settingsCheckForUpdates, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("CheckForUpdatesOnLaunch", str(settingsCheckForUpdates.get())))
+settingscheckupdatesswitch = CTkSwitch(settingsgrid, text="", variable=settingsCheckForUpdates, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("CheckForUpdatesOnLaunch", settingsCheckForUpdates.get()))
 settingscheckupdateslabel = CTkLabel(settingsgrid, text="Check for updates on launch", font=("sans-serif", 22))
 settingscheckupdatesswitch.grid(row=4, column=1, pady=5, sticky="e")
 settingscheckupdateslabel.grid(row=4, column=2, pady=5, sticky="w")

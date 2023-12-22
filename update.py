@@ -72,7 +72,7 @@ try:
             settings = JSload(json_file)
 
         if "AppSettings" in settings and "PreviouslyUpdated" in settings["AppSettings"]:
-            settings["AppSettings"]["PreviouslyUpdated"] = "True"
+            settings["AppSettings"]["PreviouslyUpdated"] = True
 
         with open(SETTINGSFILE, 'w') as json_file:
             JSdump(settings, json_file, indent=4)
