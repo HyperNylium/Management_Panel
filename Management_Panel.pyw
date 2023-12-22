@@ -13,7 +13,6 @@
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
 ### TODO: Create a function like "configure_button_image(button, image_path, color, size)" to handle the repeated logic seen in lines 263, 266, 269.
-### TODO: re-make the check_for_updates() function.
 ###
 ### Done: Make a "Edit Mode" toggle both for "Games" and "Social Media" frames that will be on the "window" frame next to the X to close the menu.
 ###       It will allow you to edit the buttons in that frame. Will have functionality to add, remove, edit, and move button grid indexes (change order)
@@ -27,6 +26,7 @@
 ### DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
 ### DONE: make all window.after() use schedule_create() instead
 ### DONE: finish making the app responsive
+### DONE: re-make the check_for_updates() function.
 ### DISREGARDED: Instead of using tkinter.messagebox use CTkMessagebox (Didn't work out as i hoped it did. The library is not at fault, i just didn't like the way it worked)
 ###
 ###
@@ -37,6 +37,7 @@ from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd,
 from os.path import exists, join, splitext, expanduser, relpath, abspath, splitdrive
 from tkinter.messagebox import showerror, askyesno, showinfo
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
+from packaging.version import parse as parse_version
 from tkinter import BooleanVar, DoubleVar, IntVar
 from json import load as JSload, dump as JSdump
 from datetime import datetime, date, timedelta
@@ -114,7 +115,6 @@ prev_y = 0 # variable to store previous y coordinate of the window
 AppsLaucherGUISetup_max_buttons_per_row = 3 # Maximum number of buttons per row in the "Games" and "Social Media" frames
 AppsLaucherGUISetup_row_num = 0 # Current row number in the "Games" and "Social Media" frames
 AppsLaucherGUISetup_col_num = 0 # Current column number in the "Games" and "Social Media" frames
-
 
 class TitleUpdater:
     def __init__(self, label: CTkLabel = None):
@@ -530,97 +530,9 @@ def StartUp():
     elif isinstance(settings["MusicSettings"]["Volume"], float):
         musicVolumeVar.set(int(settings["MusicSettings"]["Volume"]))
 
-    CheckForUpdatesOnLaunch = str(settings["AppSettings"]["CheckForUpdatesOnLaunch"])
-    check_for_updates(CheckForUpdatesOnLaunch)
-    settingsCheckForUpdates.set(CheckForUpdatesOnLaunch)
-    del CheckForUpdatesOnLaunch
+    check_for_updates_startup()
 
     music_manager = MusicManager()
-def check_for_updates(option: str):
-    global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
-    if option == "True":
-        try:
-            response = get(DataTXTFileUrl, timeout=3, headers=headers)
-            lines = response.text.split('\n')
-            delimiter = "="
-
-            for line in lines:
-                key_value = line.split(delimiter, 1)
-                if len(key_value) == 2:
-                    key = key_value[0].strip()
-                    value = key_value[1].strip().replace(" ", "")
-                    if key == "Version":
-                        LiveAppVersion = value
-                    elif key == "DevName":
-                        Developer = value
-                    elif key == "LastEditDate":
-                        LastEditDate = value
-            if LiveAppVersion < CurrentAppVersion:
-                    Developer = "Unknown"
-                    LastEditDate = "Unknown"
-                    ShowUserInfo = "- Unauthentic"
-            elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
-                    ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-            else:
-                ShowUserInfo = "- Latest version"
-        except Timeout:
-            showerror(title='Request timed out', message=f"Main data file request timed out\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n> Your internet connection is slow\n\nThe app will now start in offline mode.")
-            LiveAppVersion = "N/A"
-            Developer = "N/A"
-            LastEditDate = "N/A"
-            ShowUserInfo = "- timed out"
-        except Exception as e:
-            showerror(title='Launching in offline mode', message=f"There was an error while retrieving the main data file\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n\nThe app will now start in offline mode.")
-            LiveAppVersion = "N/A"
-            Developer = "N/A"
-            LastEditDate = "N/A"
-            ShowUserInfo = "- offline mode"
-    elif option == "in-app":
-        check_for_updates_button.configure(text="Checking for updates...", state="disabled")
-        try:
-            response = get(DataTXTFileUrl, timeout=3, headers=headers)
-            lines = response.text.split('\n')
-            delimiter = "="
-
-            for line in lines:
-                key_value = line.split(delimiter, 1)
-                if len(key_value) == 2:
-                    key = key_value[0].strip()
-                    value = key_value[1].strip().replace(" ", "")
-                    if key == "Version":
-                        LiveAppVersion = value
-                    elif key == "DevName":
-                        Developer = value
-                    elif key == "LastEditDate":
-                        LastEditDate = value
-            if LiveAppVersion < CurrentAppVersion:
-                    Developer = "Unknown"
-                    LastEditDate = "Unknown"
-                    ShowUserInfo = "- Unauthentic"
-            elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
-                    ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-            else:
-                ShowUserInfo = "- Latest version"
-        except Timeout:
-            LiveAppVersion = "N/A"
-            Developer = "N/A"
-            LastEditDate = "N/A"
-            ShowUserInfo = "- timed out"
-        except Exception as e:
-            LiveAppVersion = "N/A"
-            Developer = "N/A"
-            LastEditDate = "N/A"
-            ShowUserInfo = "- offline mode"
-        home_frame_label_1.configure(text=f"Version: {CurrentAppVersion} {ShowUserInfo}")
-        home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
-        home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
-        check_for_updates_button.configure(text="Check complete", state="disabled")
-        schedule_create(window, 3500, lambda: check_for_updates_button.configure(text="Check for updates", state="normal"), True)
-    else:
-        LiveAppVersion = "N/A"
-        Developer = "N/A"
-        LastEditDate = "N/A"
-        ShowUserInfo = "- Check disabled"
 def restart(pass_args=True):
     """Restarts app"""
     python = sys.executable
@@ -667,6 +579,140 @@ def NavbarAction(option: str):
         close_open_nav_button.configure(image=closeimage, command=lambda: NavbarAction("close"))
         window.minsize(650, 420)
     title_bar.update()
+
+def get_data_content():
+    """
+    Gets the data from the data.txt file and returns it as a dictionary
+    > Success: (Version, DevName, LastEditDate)
+    > Error: (error, errorTitle, errorBody, info)
+    """
+    data = {}
+
+    try:
+        response = get(DataTXTFileUrl, timeout=3, headers=headers)
+        lines = response.text.split('\n')
+        delimiter = "="
+
+        for line in lines:
+            key_value = line.split(delimiter, 1)
+            if len(key_value) == 2:
+                key = key_value[0].strip()
+                value = key_value[1].strip().replace(" ", "")
+                data[key] = value
+
+    except Timeout:
+        data = {"error": "timeout", "errorTitle": "Request timed out", "errorBody": "Main data file request timed out\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n> Your internet connection is slow\n\nThe app will now start in offline mode.", "info": "- timed out"}
+    except Exception as e:
+        data = {"error": "Unknown error", "errorTitle": "Launching in offline mode", "errorBody": "There was an error while retrieving the main data file\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n\nThe app will now start in offline mode.", "info": "- offline mode"}
+
+    return data
+def check_for_updates_startup():
+    """Checks for updates on startup if the user has the setting enabled"""
+    global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
+    if settings["AppSettings"]["CheckForUpdatesOnLaunch"] == "True":
+        settingsCheckForUpdates.set(True)
+
+        live_data = get_data_content()
+
+        if "error" in live_data:
+            LiveAppVersion = "N/A"
+            Developer = "N/A"
+            LastEditDate = "N/A"
+            ShowUserInfo = live_data["info"]
+            showerror(title=live_data["errorTitle"], message=live_data["errorBody"])
+            return
+
+        LiveAppVersion = live_data["Version"]
+        Developer = live_data["DevName"]
+        LastEditDate = live_data["LastEditDate"]
+
+        live_version = parse_version(live_data["Version"])
+        current_version = parse_version(CurrentAppVersion)
+        if live_version < current_version:
+            Developer = "Unknown"
+            LastEditDate = "Unknown"
+            ShowUserInfo = "- Unauthentic"
+        elif live_version > current_version:
+            ShowUserInfo = f"- Update available (v{live_version})"
+        else:
+            ShowUserInfo = "- Latest version"
+    else:
+        settingsCheckForUpdates.set(False)
+        LiveAppVersion = "N/A"
+        Developer = "N/A"
+        LastEditDate = "N/A"
+        ShowUserInfo = "- Check disabled"
+    return
+def check_for_updates_GUI():
+    """Checks for updates (GUI only)"""
+    global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
+
+    check_for_updates_button.configure(text="Checking for updates...", state="disabled")
+
+    live_data = get_data_content()
+
+    if "error" in live_data:
+        LiveAppVersion = "N/A"
+        Developer = "N/A"
+        LastEditDate = "N/A"
+        ShowUserInfo = live_data["info"]
+        return
+
+    LiveAppVersion = live_data["Version"]
+    Developer = live_data["DevName"]
+    LastEditDate = live_data["LastEditDate"]
+
+    live_version = parse_version(live_data["Version"])
+    current_version = parse_version(CurrentAppVersion)
+    if live_version < current_version:
+        Developer = "Unknown"
+        LastEditDate = "Unknown"
+        ShowUserInfo = "- Unauthentic"
+    elif live_version > current_version:
+        ShowUserInfo = f"- Update available (v{live_version})"
+    else:
+        ShowUserInfo = "- Latest version"
+
+    home_frame_label_1.configure(text=f"Version: {CurrentAppVersion} {ShowUserInfo}")
+    home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
+    home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
+    check_for_updates_button.configure(text="Check complete", state="disabled")
+    schedule_create(window, 3500, lambda: check_for_updates_button.configure(text="Check for updates", state="normal"), True)
+
+    return
+def check_for_updates_silent():
+    """Checks for updates silently"""
+    global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
+
+    live_data = get_data_content()
+
+    if "error" in live_data:
+        LiveAppVersion = "N/A"
+        Developer = "N/A"
+        LastEditDate = "N/A"
+        ShowUserInfo = live_data["info"]
+        return
+
+    LiveAppVersion = live_data["Version"]
+    Developer = live_data["DevName"]
+    LastEditDate = live_data["LastEditDate"]
+
+    live_version = parse_version(live_data["Version"])
+    current_version = parse_version(CurrentAppVersion)
+    if live_version < current_version:
+        Developer = "Unknown"
+        LastEditDate = "Unknown"
+        ShowUserInfo = "- Unauthentic"
+    elif live_version > current_version:
+        ShowUserInfo = f"- Update available (v{live_version})"
+    else:
+        ShowUserInfo = "- Latest version"
+
+    home_frame_label_1.configure(text=f"Version: {CurrentAppVersion} {ShowUserInfo}")
+    home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
+    home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
+
+    return
 
 def on_drag_end(event):
     global prev_x, prev_y
@@ -1675,7 +1721,7 @@ def shorten_path(text, max_length, replacement: str = "..."):
         return text[:max_length - 3] + replacement  # Replace the last three characters with "..."
     return text
 def LaunchUpdater():
-    check_for_updates("in-app")
+    check_for_updates_silent()
     cwd = getcwd()
     if getattr(sys, 'frozen', False):
         downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
@@ -1919,7 +1965,7 @@ home_frame_label_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", 
 home_frame_label_3.pack(anchor="center")
 chkforupdatesframe = CTkFrame(home_frame, corner_radius=0, fg_color="transparent")
 chkforupdatesframe.pack(anchor="s", fill="x", expand=True)
-check_for_updates_button = CTkButton(chkforupdatesframe, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: check_for_updates(option="in-app"))
+check_for_updates_button = CTkButton(chkforupdatesframe, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=check_for_updates_GUI)
 update_now_button = CTkButton(chkforupdatesframe, text="Update now", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=LaunchUpdater)
 check_for_updates_button.grid(row=1, column=0, columnspan=2, padx=5, pady=10, sticky="ew")
 update_now_button.grid(row=1, column=2, columnspan=2, padx=5, pady=10, sticky="ew")
