@@ -116,6 +116,7 @@ AppsLaucherGUISetup_max_buttons_per_row = 3 # Maximum number of buttons per row 
 AppsLaucherGUISetup_row_num = 0 # Current row number in the "Games" and "Social Media" frames
 AppsLaucherGUISetup_col_num = 0 # Current column number in the "Games" and "Social Media" frames
 
+
 class TitleUpdater:
     def __init__(self, label: CTkLabel = None):
         if label is not None:
@@ -215,7 +216,7 @@ class MusicManager:
             return bool(self.player.is_playing())
 
     def stop(self):
-        """Stops the current song and resets the player"""
+        """Stops the current song, resets the player and releases the media"""
         if self.is_playing():
             self.player.stop()
 
@@ -226,8 +227,9 @@ class MusicManager:
         self.current_song_paused = False
         self.has_started_before = False
 
+        stop_song_btn.configure(state="disabled")
         play_pause_song_btn.configure(image=playimage, command=self.play)
-        all_music_frame.configure(label_text="No song is playing")
+        all_music_frame.configure(label_text="Not playing anything")
 
         song_progressbar.set(0.0)
         time_left_label.configure(text="0:00:00")
@@ -247,8 +249,10 @@ class MusicManager:
                 self.current_song_paused = False
                 if not self.updating:
                     all_music_frame.configure(label_text=f"Currently Playing: {splitext(self.get_current_playing_song())[0]}")
+            stop_song_btn.configure(state="normal")
             pre_song_btn.configure(state="normal")
             next_song_btn.configure(state="normal")
+            stop_song_btn.configure(state="normal")
             play_pause_song_btn.configure(image=pauseimage, command=music_manager.pause)
             SaveSettingsToJson("CurrentlyPlaying", True)
         return
@@ -257,6 +261,7 @@ class MusicManager:
         """Pauses the current playing song"""
         self.player.pause()
         self.current_song_paused = True
+        stop_song_btn.configure(state="disabled")
         pre_song_btn.configure(state="disabled")
         next_song_btn.configure(state="disabled")
         play_pause_song_btn.configure(image=playimage, command=music_manager.play)
@@ -377,6 +382,7 @@ class MusicManager:
         self.updating = True
         update_music_list.configure(state="disabled")
         change_music_dir.configure(state="disabled")
+        stop_song_btn.configure(state="disabled")
         pre_song_btn.configure(state="disabled")
         play_pause_song_btn.configure(state="disabled")
         next_song_btn.configure(state="disabled")
@@ -1858,6 +1864,7 @@ try:
     pauseimage = CTkImage(change_image_clr(PILopen("assets/MusicPlayer/pause.png"), "#ffffff"), size=(25, 25))
     playimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/play.png'), "#ffffff"), size=(25, 25))
     nextimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/next.png'), "#ffffff"), size=(25, 25))
+    stopimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/stop.png'), "#ffffff"), size=(25, 25))
     if settings["MusicSettings"]["LoopState"] == "all":
         loopimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#00ff00"), size=(25, 25))
     elif settings["MusicSettings"]["LoopState"] == "one":
@@ -1987,14 +1994,16 @@ music_dir_label.grid(row=2, column=1, padx=10, pady=5, sticky="w")
 update_music_list.grid(row=2, column=2, padx=5, pady=5, sticky="e")
 change_music_dir.grid(row=2, column=3, padx=5, pady=5, sticky="w")
 music_info_frame.grid_columnconfigure([0, 3], weight=1)
+stop_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=stopimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.stop)
 pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.previous)
 play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.play)
 next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.next)
 loop_playlist_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=loopimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.loop)
-pre_song_btn.grid(row=1, column=1, padx=10, pady=0, sticky="e")
-play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
-next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
-loop_playlist_btn.grid(row=1, column=4, padx=10, pady=0, sticky="w")
+stop_song_btn.grid(row=1, column=1, padx=5, pady=0, sticky="w")
+pre_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
+play_pause_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
+next_song_btn.grid(row=1, column=4, padx=10, pady=0, sticky="e")
+loop_playlist_btn.grid(row=1, column=5, padx=10, pady=0, sticky="w")
 volume_slider = CTkSlider(music_volume_frame, width=250, from_=0, to=100, command=lambda volume: music_manager.volume(), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
 volume_label = CTkLabel(music_volume_frame, text=f"{musicVolumeVar.get()}%", font=("sans-serif", 18, "bold"), fg_color="transparent")
 volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
@@ -2079,7 +2088,7 @@ responsive_grid(devices_frame, 3, 1) # 3 rows, 1 column responsive
 responsive_grid(system_frame, 2, 3) # 2 rows, 3 columns responsive
 responsive_grid(settings_frame, 2, 2) # 2 rows, 2 columns responsive
 chkforupdatesframe.grid_columnconfigure([0, 3], weight=1)
-music_controls_frame.grid_columnconfigure([0, 4], weight=1)
+music_controls_frame.grid_columnconfigure([0, 5], weight=1)
 settingsgrid.grid_columnconfigure([0, 3], weight=1)
 
 # add all buttons and their text to a list for later use
