@@ -4,12 +4,12 @@
 
 ## App Information
 
-**Version:** v4.3.1\
-**Last updated Github Repo:** 11/24/2023
+**Version:** v4.3.2\
+**Last updated Github Repo:** 12/31/2023
 
 ## Setup
 
-### For release setup
+### Release setup
 1. Download the [Management_Panel-[version]-windows.zip](https://github.com/HyperNylium/Management_Panel/releases/latest)
 
 2. Unzip the downloaded file wherever you want.
@@ -18,7 +18,7 @@
 
 4. I highly recommend you to create a shortcut of the `Management_Panel.exe` file and put it on your desktop or wherever you want for easy access. You can do this by right clicking on the `Management_Panel.exe` file and selecting `Create shortcut`. Then, you can move the shortcut to wherever you want.
 
-### For source code
+### Source code setup
 
 1. Make sure to have the latest version of [Python](https://www.python.org/downloads/). Python 3.9.0 or above is recommended.
 

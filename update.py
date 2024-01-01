@@ -25,7 +25,7 @@ def on_closing():
     exit()
 
 if len(argv) != 3:
-    print(f"{RED}Error{RESET}: Invalid arguments count {len(argv)}. Expected argument count 3. Passed arguments:\n")
+    print(f"{RED}Error{RESET}: Invalid arguments count {len(argv)}. Expected argument count 4. Passed arguments:\n")
     for arg in argv:
         print(f" -> {arg}")
     on_closing()
@@ -72,7 +72,7 @@ try:
             settings = JSload(json_file)
 
         if "AppSettings" in settings and "PreviouslyUpdated" in settings["AppSettings"]:
-            settings["AppSettings"]["PreviouslyUpdated"] = "True"
+            settings["AppSettings"]["PreviouslyUpdated"] = True
 
         with open(SETTINGSFILE, 'w') as json_file:
             JSdump(settings, json_file, indent=4)

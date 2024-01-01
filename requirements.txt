@@ -5,6 +5,7 @@ pillow==10.0.1
 openai==0.28.1
 pytube==15.0.0
 pyttsx3==2.90
-pygame==2.5.2
 numpy==1.26.0
 CTkListbox==0.9
+python_vlc==3.0.20123
+tinytag==1.10.1

@@ -26,6 +26,7 @@
 ### DONE: make a dropdown menu in the settings tab for changing the default open tab on launch
 ### DONE: make all window.after() use schedule_create() instead
 ### DONE: finish making the app responsive
+### DONE: re-make the check_for_updates() function.
 ### DISREGARDED: Instead of using tkinter.messagebox use CTkMessagebox (Didn't work out as i hoped it did. The library is not at fault, i just didn't like the way it worked)
 ###
 ###
@@ -36,6 +37,7 @@ from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd,
 from os.path import exists, join, splitext, expanduser, relpath, abspath, splitdrive
 from tkinter.messagebox import showerror, askyesno, showinfo
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
+from packaging.version import parse as parse_version
 from tkinter import BooleanVar, DoubleVar, IntVar
 from json import load as JSload, dump as JSdump
 from datetime import datetime, date, timedelta
@@ -66,12 +68,13 @@ try:
     )
     from PIL.Image import open as PILopen, fromarray as PILfromarray
     from winshell import desktop, startup, CreateShortcut, shortcut
+    from vlc import MediaPlayer, Media as vlcMedia
     from pytube import YouTube as PY_Youtube
     from requests.exceptions import Timeout
-    from pygame import mixer as pygmixer
     from pyttsx3 import init as ttsinit
     from numpy import array as nparray
     from CTkListbox import CTkListbox
+    from tinytag import TinyTag
     from requests import get
     import openai
 except ImportError as importError:
@@ -89,7 +92,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.3.1"
+CurrentAppVersion = "4.3.2"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -99,7 +102,7 @@ headers = {
 
 SETTINGSFILE = "settings.json"
 model_prompt = "Hello, how can I help you today?"
-UserDesktopDir = desktop()
+UserDesktopDir = desktop() # shell:desktop
 UserStartupDir = startup() # shell:startup
 devices_per_row = 2  # Maximum number of devices per ro
 DeviceFrames = []  # List to store references to DeviceFrame frames
@@ -143,28 +146,33 @@ class TitleUpdater:
             del current_time, current_date
 class MusicManager:
     def __init__(self):
-        self.song_info = {}  # Dictionary to store song info: {"song_name"(str): {"duration"(str): duration_in_seconds(int)}}
+        self.song_info = {} # Dictionary to store song info: {"song_name"(str): {"duration"(str): duration_in_seconds(int)}}
         self.song_list = []
         self.current_song_index = 0
         self.current_song_paused = False
         self.has_started_before = False
+        self.music_dir_exists = None
         self.updating = False
-        pygmixer.init()
-        pygmixer.music.set_volume(float(int(settings["MusicSettings"]["Volume"]) / 100))
+        self.event_loop_running = False
+        self.player = MediaPlayer()
+        self.player.audio_set_volume(int(settings["MusicSettings"]["Volume"]))
 
     def cleanup(self):
+        """Cleans up the music player"""
+        self.event_loop_running = False
         try:
-            pygmixer.music.stop()
-            pygmixer.quit()
-        except: pass
-        del self.song_info, self.current_song_index, self.current_song_paused, self.has_started_before, self.updating
+            self.player.stop()
+            self.player.release()
+        except:
+            pass
         return
 
-    def main_event_loop(self):
-        while True:
-            if pygmixer.music.get_busy() and not self.current_song_paused:
-                current_pos_secs = pygmixer.music.get_pos() / 1000  # Get current position in seconds
-                total_duration = self.song_info[self.song_list[self.current_song_index]]["duration"]
+    def event_loop(self):
+        """Event loop for the music player"""
+        while self.event_loop_running:
+            if self.is_playing() and not self.current_song_paused:
+                current_pos_secs = self.player.get_time() / 1000 # Get current position in seconds
+                total_duration = self.song_info[self.get_current_playing_song()]["duration"]
                 remaining_time = total_duration - current_pos_secs
 
                 formatted_remaining_time = str(timedelta(seconds=remaining_time)).split(".")[0]
@@ -173,94 +181,120 @@ class MusicManager:
                 time_left_label.configure(text=formatted_remaining_time)
                 song_progressbar.set((current_pos_secs / total_duration))
                 total_time_label.configure(text=formatted_total_duration)
+
                 del current_pos_secs, total_duration, remaining_time, formatted_remaining_time, formatted_total_duration
-            if pygmixer.music.get_pos() == -1 and self.current_song_paused is False and self.has_started_before is True:
+                
+            if not self.is_playing() and not self.current_song_paused and self.has_started_before:
                 if settings["MusicSettings"]["LoopState"] == "all":
-                    # This is where the infinite loop around all the music in your music dir happens.
-                    # Almost like replaying a playlist infinitely.
-                    # But the playlist is your music folder.
-                    # So, after the last song is done playing in your music dir, 
-                    # it will come back to the first song and play that. 
-                    # It will do this infinitely.
                     self.next()
                 elif settings["MusicSettings"]["LoopState"] == "one":
-                    # This is where the infinite loop around the currently playing song happens.
-                    # After the current song is done playing, it will start playing it again after it finishes.
-                    # You can still change the song by clicking the next or previous button.
-                    # And that new song will be the new song to be played infinitely.
-                    pygmixer.music.stop()
+                    self.player.stop()
                     self.play()
                 elif settings["MusicSettings"]["LoopState"] == "off":
-                    # When the song finishes playing, it will stop playing music
-                    # until either you click the Play button or the Next button.
-                    pygmixer.music.stop()
+                    self.player.stop()
                     pre_song_btn.configure(state="disabled")
                     next_song_btn.configure(state="disabled")
                     play_pause_song_btn.configure(image=playimage, command=music_manager.play)
                     if self.updating is False:
-                        SaveSettingsToJson("CurrentlyPlaying", "False")
+                        SaveSettingsToJson("CurrentlyPlaying", False)
             sleep(1)
+        return
 
     def start_event_loop(self):
-        Thread(target=self.main_event_loop, daemon=True, name="MusicManager").start()
+        """Starts the event loop for the music player"""
+        self.event_loop_running = True
+        Thread(target=self.event_loop, daemon=True, name="MusicManager").start()
 
-    ### Functions for managing music (play, pause, etc) ###
-    def play(self) -> None:
-        """Plays the current song or resumes the song if it was paused"""
+    def get_current_playing_song(self):
+        """Returns the current playing song"""
+        if self.event_loop_running:
+            return self.song_list[self.current_song_index]
+
+    def is_playing(self):
+        """Returns True if a song is playing and False if not"""
+        if self.event_loop_running:
+            return bool(self.player.is_playing())
+
+    def stop(self):
+        """Stops the current song, resets the player and releases the media"""
+        if self.is_playing():
+            self.player.stop()
+
+        if self.player.get_media():
+            self.player.get_media().release()
+
+        self.current_song_index = 0
+        self.current_song_paused = False
+        self.has_started_before = False
+
+        stop_song_btn.configure(state="disabled")
+        play_pause_song_btn.configure(image=playimage, command=self.play)
+        all_music_frame.configure(label_text="Not playing anything")
+
+        song_progressbar.set(0.0)
+        time_left_label.configure(text="0:00:00")
+        total_time_label.configure(text="0:00:00")
+
+    def play(self):
+        """Plays the current song or the first song in the list if no song is playing"""
         if len(self.song_list) > 0:
-            if self.current_song_paused is True:
-                pygmixer.music.unpause()
+            if self.current_song_paused:
+                self.player.play()
                 self.current_song_paused = False
             else:
-                pygmixer.music.load(join(settings["MusicSettings"]["MusicDir"], self.song_list[self.current_song_index]))
-                pygmixer.music.play()
-                currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index]}")
+                song_path = join(settings["MusicSettings"]["MusicDir"], self.get_current_playing_song())
+                self.player.set_media(vlcMedia(song_path))
+                self.player.play()
                 self.has_started_before = True
                 self.current_song_paused = False
+                if not self.updating:
+                    all_music_frame.configure(label_text=f"Currently Playing: {splitext(self.get_current_playing_song())[0]}")
+            stop_song_btn.configure(state="normal")
             pre_song_btn.configure(state="normal")
             next_song_btn.configure(state="normal")
+            stop_song_btn.configure(state="normal")
             play_pause_song_btn.configure(image=pauseimage, command=music_manager.pause)
-            SaveSettingsToJson("CurrentlyPlaying", "True")
+            SaveSettingsToJson("CurrentlyPlaying", True)
         return
-    def pause(self) -> None:
+
+    def pause(self):
         """Pauses the current playing song"""
-        if self.current_song_paused is False:
-            pygmixer.music.pause()
-            self.current_song_paused = True
-        else:
-            self.current_song_paused = False
-            self.play()
+        self.player.pause()
+        self.current_song_paused = True
+        stop_song_btn.configure(state="disabled")
         pre_song_btn.configure(state="disabled")
         next_song_btn.configure(state="disabled")
         play_pause_song_btn.configure(image=playimage, command=music_manager.play)
-        if self.updating is False:
-            SaveSettingsToJson("CurrentlyPlaying", "False")
+        if not self.updating:
+            SaveSettingsToJson("CurrentlyPlaying", False)
         return
-    def next(self) -> None:
-        """Plays the next song in the song list"""
+
+    def next(self):
+        """Plays the next song in the list"""
         if len(self.song_list) > 0:
-            pygmixer.music.stop()
             self.current_song_index = (self.current_song_index + 1) % len(self.song_list)
             self.play()
         return
-    def previous(self) -> None:
-        """Plays the previous song in the song list"""
+
+    def previous(self):
+        """Plays the previous song in the list"""
         if len(self.song_list) > 0:
-            pygmixer.music.stop()
             self.current_song_index = (self.current_song_index - 1) % len(self.song_list)
             self.play()
         return
-    def volume(self) -> None:
-        """Changes the volume of the music player"""
+
+    def volume(self):
+        """Sets the volume of the music player"""
         def savevolume():
             SaveSettingsToJson("Volume", musicVolumeVar.get())
-        pygmixer.music.set_volume(float(musicVolumeVar.get() / 100))
+        self.player.audio_set_volume(musicVolumeVar.get())
         volume_label.configure(text=f"{musicVolumeVar.get()}%")
         schedule_cancel(window, savevolume)
         schedule_create(window, 420, savevolume)
         return
-    def loop(self) -> None:
-        """Changes the loop state of the music player"""
+
+    def loop(self):
+        """Loops the current song or the whole playlist (keep in mind the playlist is the whole music directory)"""
         self.loopstate = settings["MusicSettings"]["LoopState"]
         if self.loopstate == "all":
             loop_playlist_btn.configure(image=CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop-1.png'), "#00ff00"), size=(25, 25)))
@@ -273,7 +307,8 @@ class MusicManager:
             SaveSettingsToJson("LoopState", "all")
         del self.loopstate
         return
-    def changedir(self) -> None:
+
+    def changedir(self):
         """Changes the music directory"""
         if settings["MusicSettings"]["MusicDir"] != "" and exists(settings["MusicSettings"]["MusicDir"]):
             tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=settings["MusicSettings"]["MusicDir"])
@@ -281,55 +316,90 @@ class MusicManager:
             tmp_music_dir = askdirectory(title="Select Your Music Directory", initialdir=expanduser("~"))
         if tmp_music_dir != "":
             SaveSettingsToJson("MusicDir", tmp_music_dir)
+            self.stop()
             self.update()
+
         del tmp_music_dir
         return
-    def update(self) -> None:
-        """Updates the music list and the music directory label (if changed)"""
-        def update_song_list(self: MusicManager):
+
+    def update_all_music_frame(self):
+        """Updates the all_music_frame frame"""
+        delete_widgets = []
+        for widget in all_music_frame.winfo_children():
+            window.after(0, widget.grid_forget)
+            delete_widgets.append(widget)
+
+        for index, song_name in enumerate(self.song_list):
+            CTkLabel(all_music_frame, text=f"{str(index+1)}. {splitext(song_name)[0]}", font=("sans-serif", 20)).grid(
+                row=index, column=1, padx=(20, 0), pady=5, sticky="w")
+
+        if len(delete_widgets) > 0:
+            for widget in delete_widgets:
+                window.after(0, widget.destroy)
+                del widget
+
+        all_music_frame.update()
+        if self.music_dir_exists:
+            all_music_frame.configure(label_text=f"Currently Playing: {splitext(self.get_current_playing_song())[0]}" if self.has_started_before and len(self.song_list) > 0 else "Not playing anything")
+
+        self.updating = False
+
+        del delete_widgets
+        return
+
+    def update(self):
+        """Updates the music player"""
+        def update_song_list():
             MusicDir = str(settings["MusicSettings"]["MusicDir"])
             if exists(MusicDir):
-                self.song_list = [f for f in listdir(MusicDir) if f.endswith((".mp3", ".m4a"))]
+                self.music_dir_exists = True
+                self.song_list = [file for file in listdir(MusicDir) if file.endswith(tuple(TinyTag.SUPPORTED_FILE_EXTENSIONS))]
                 for song_name in self.song_list:
-                    self.song_info[song_name] = {"duration": pygmixer.Sound(join(MusicDir, song_name)).get_length()}
+                    song_path = join(MusicDir, song_name)
+                    tag = TinyTag.get(song_path)
+                    self.song_info[song_name] = {"duration": tag.duration}
             else:
+                self.music_dir_exists = False
                 self.song_list = []
-            for widget in all_music_frame.winfo_children():
-                widget.destroy()
-            for index, song_name in enumerate(self.song_list):
-                CTkLabel(all_music_frame, text=f"{index+1}. {song_name}", font=("sans-serif", 20)).grid(row=self.song_list.index(song_name), column=1, padx=(20, 0), pady=5, sticky="w")
+                all_music_frame.configure(label_text="Please choose a valid music directory by clicking the 'Change' button")
+                SaveSettingsToJson("MusicDir", "")
+                MusicDir = ""
+
+            Thread(target=self.update_all_music_frame, daemon=True, name="update_all_music_frame").start()
+
             update_music_list.configure(state="normal")
             change_music_dir.configure(state="normal")
+            pre_song_btn.configure(state="normal")
             play_pause_song_btn.configure(state="normal")
+            next_song_btn.configure(state="normal")
             volume_slider.configure(state="normal")
-            currently_playing_label.configure(text=f"Currently Playing: {self.song_list[self.current_song_index] if self.has_started_before is True and MusicDir is True > 0 else 'None'}")
             music_dir_label.configure(text=f"Music Directory: {shorten_path(MusicDir, 25)}" if MusicDir != "" else "Music Directory: None")
-            del MusicDir
-            if settings["MusicSettings"]["CurrentlyPlaying"] == "True":
+
+            if settings["MusicSettings"]["CurrentlyPlaying"] == True:
                 self.play()
             return
-        self.updating = False
+
         self.updating = True
         update_music_list.configure(state="disabled")
         change_music_dir.configure(state="disabled")
+        stop_song_btn.configure(state="disabled")
         pre_song_btn.configure(state="disabled")
         play_pause_song_btn.configure(state="disabled")
         next_song_btn.configure(state="disabled")
         volume_slider.configure(state="disabled")
-        currently_playing_label.configure(text="Status: Scanning files...")
+        all_music_frame.configure(label_text="Updating...")
         song_progressbar.set(0.0)
-        time_left_label.configure(text="0:00")
-        total_time_label.configure(text="0:00")
-        if pygmixer.music.get_busy() and not self.current_song_paused:
+        time_left_label.configure(text="0:00:00")
+        total_time_label.configure(text="0:00:00")
+
+        if self.is_playing() and not self.current_song_paused:
             self.pause()
-        Thread(target=lambda: update_song_list(self), daemon=True, name="MusicManager_updater").start()
+
+        Thread(target=update_song_list, daemon=True, name="MusicManager_updater").start()
 
 
 def StartUp():
-    """Reads settings.json and loads all the variables into the settings variable.\n
-    If the file isn't found, it creates one within the same directory and loads it with default values.\n
-    settings[Property][Key] => value\n
-    settings['AppSettings']['AlwaysOnTop'] => True | False"""
+    """Main function that gets the app going. Should be called only once at the start of the app"""
 
     try:
         window.iconbitmap("assets/AppIcon/Management_Panel_Icon.ico")
@@ -337,90 +407,72 @@ def StartUp():
         showerror(title="Error loading window icon", message=f"An error occurred while loading the window icon\n{e}")
         sys.exit()
 
-    settings_loaded = False
+    global settings
+    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingslaunchwithwindowsvar
+    global settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager, EditModeVar
 
-    def load_settings():
-        nonlocal settings_loaded
-        global settings
-        default_settings = {
-            "URLs": {
-                "HyperNylium.com": "http://hypernylium.com/",
-                "Github": "https://github.com/HyperNylium",
-                "Discord": "https://discord.gg/4FHTjAgw95",
-                "Instagram": "https://www.instagram.com/",
-                "Youtube": "https://www.youtube.com/",
-                "TikTok": "https://www.tiktok.com/",
-                "Facebook": "https://www.facebook.com/",
-                "Twitter": "https://twitter.com/"
-            },
-            "GameShortcutURLs": {
-                "Game 1": "",
-                "Game 2": "",
-                "Game 3": "",
-                "Game 4": "",
-                "Game 5": "",
-                "Game 6": "",
-                "Game 7": "",
-                "Game 8": "",
-                "Game 9": ""
-            },
-            "OpenAISettings": {
-                "VoiceType": 0,
-                "OpenAI_API_Key": "",
-                "OpenAI_model_engine": "text-davinci-003",
-                "OpenAI_Max_Tokens": 1024,
-                "OpenAI_Temperature": 0.5
-            },
-            "MusicSettings": {
-                "MusicDir": "",
-                "Volume": 0,
-                "CurrentlyPlaying": "False",
-                "LoopState": "all"
-            },
-            "AppSettings": {
-                "PreviouslyUpdated": "False",
-                "AlwaysOnTop": "False",
-                "LaunchAtLogin": "False",
-                "SpeakResponce": "False",
-                "CheckForUpdatesOnLaunch": "True",
-                "NavigationState": "open",
-                "DownloadsFolderName": "YT_Downloads",
-                "DefaultFrame": "Home",
-                "Alpha": 1.0,
-                "Window_State": "normal",
-                "Window_Width": "",
-                "Window_Height": "",
-                "Window_X": "",
-                "Window_Y": ""
-            },
-            "Devices": []
-        }
-        try:
-            with open(SETTINGSFILE, 'r') as settings_file:
-                settings = JSload(settings_file)
+    default_settings = {
+        "URLs": {
+            "HyperNylium.com": "http://hypernylium.com/",
+            "Github": "https://github.com/HyperNylium",
+            "Discord": "https://discord.gg/4FHTjAgw95",
+            "Instagram": "https://www.instagram.com/",
+            "Youtube": "https://www.youtube.com/",
+            "TikTok": "https://www.tiktok.com/",
+            "Facebook": "https://www.facebook.com/",
+            "Twitter": "https://twitter.com/"
+        },
+        "GameShortcutURLs": {
+            "Game 1": "",
+            "Game 2": "",
+            "Game 3": ""
+        },
+        "OpenAISettings": {
+            "VoiceType": 0,
+            "OpenAI_API_Key": "",
+            "OpenAI_model_engine": "text-davinci-003",
+            "OpenAI_Max_Tokens": 1024,
+            "OpenAI_Temperature": 0.5
+        },
+        "MusicSettings": {
+            "MusicDir": "",
+            "Volume": 0,
+            "CurrentlyPlaying": False,
+            "LoopState": "all"
+        },
+        "AppSettings": {
+            "PreviouslyUpdated": False,
+            "AlwaysOnTop": False,
+            "LaunchAtLogin": False,
+            "SpeakResponce": False,
+            "CheckForUpdatesOnLaunch": True,
+            "NavigationState": "open",
+            "DownloadsFolderName": "YT_Downloads",
+            "DefaultFrame": "Home",
+            "Alpha": 1.0,
+            "Window_State": "normal",
+            "Window_Width": "",
+            "Window_Height": "",
+            "Window_X": "",
+            "Window_Y": ""
+        },
+        "Devices": []
+    }
+    try:
+        with open(SETTINGSFILE, 'r') as settings_file:
+            settings = JSload(settings_file)
 
-            if settings["AppSettings"]["PreviouslyUpdated"] == "True":
-                for Property in default_settings:
-                    if Property not in settings:
-                        settings[Property] = default_settings[Property]
-                    else:
-                        for key in default_settings[Property]:
-                            if key not in settings[Property]:
-                                settings[Property][key] = default_settings[Property][key]
-                settings["AppSettings"]["PreviouslyUpdated"] = "False"
-                with open(SETTINGSFILE, 'w') as settings_file:
-                    JSdump(settings, settings_file, indent=2)
-                restart(pass_args=False)
-
-        except FileNotFoundError:
+        if settings["AppSettings"]["PreviouslyUpdated"] == True:
+            settings.update(default_settings)
+            settings["AppSettings"]["PreviouslyUpdated"] = False
             with open(SETTINGSFILE, 'w') as settings_file:
-                JSdump(default_settings, settings_file, indent=2)
-            settings = default_settings
-        settings_loaded = True
+                JSdump(settings, settings_file, indent=2)
 
-    Thread(target=load_settings, name="settings_thread", daemon=True).start()
+    except FileNotFoundError:
+        with open(SETTINGSFILE, 'w') as settings_file:
+            JSdump(default_settings, settings_file, indent=2)
+        settings = default_settings
 
-    global UserPowerPlans, settingsSpeakResponceVar, settingsAlwayOnTopVar, settingslaunchwithwindowsvar, settingsCheckForUpdates, settingsAlphavar, musicVolumeVar, music_manager, EditModeVar
     settingsSpeakResponceVar = BooleanVar()
     settingsAlwayOnTopVar = BooleanVar()
     settingslaunchwithwindowsvar = BooleanVar()
@@ -430,18 +482,15 @@ def StartUp():
     EditModeVar = BooleanVar()
     UserPowerPlans = None
 
-    while not settings_loaded:
-        sleep(0.3)
-
-    if settings["AppSettings"]["AlwaysOnTop"] == "True":
+    if settings["AppSettings"]["AlwaysOnTop"] == True:
         window.attributes('-topmost', True)
         settingsAlwayOnTopVar.set(True)
 
-    if settings["AppSettings"]["LaunchAtLogin"] == "True":
+    if settings["AppSettings"]["LaunchAtLogin"] == True:
         shortcut_target_path = shortcut(join(UserStartupDir, "Management_Panel.lnk")).path
         if shortcut_target_path != file_path():
             reset_LaunchOnStartup_shortcut()
-            SaveSettingsToJson("LaunchAtLogin", "True")
+            SaveSettingsToJson("LaunchAtLogin", True)
         else:
             settingslaunchwithwindowsvar.set(True)
         del shortcut_target_path
@@ -449,13 +498,13 @@ def StartUp():
         usr_res = askyesno(title="Startup shortcut found", message="Despite 'LaunchAtLogin' being turned off, we've discovered a startup shortcut for this app.\nWould you like the app to still lauch on startup?")
         if usr_res is True:
             reset_LaunchOnStartup_shortcut()
-            SaveSettingsToJson("LaunchAtLogin", "True")
+            SaveSettingsToJson("LaunchAtLogin", True)
         else:
             settingslaunchwithwindowsvar.set(False)
             LaunchOnStartupTrueFalse()
-            SaveSettingsToJson("LaunchAtLogin", "False")
+            SaveSettingsToJson("LaunchAtLogin", False)
 
-    if settings["AppSettings"]["SpeakResponce"] == "True":
+    if settings["AppSettings"]["SpeakResponce"] == True:
         settingsSpeakResponceVar.set(True)
 
     if isinstance(settings["MusicSettings"]["Volume"], int):
@@ -463,107 +512,16 @@ def StartUp():
     elif isinstance(settings["MusicSettings"]["Volume"], float):
         musicVolumeVar.set(int(settings["MusicSettings"]["Volume"]))
 
-    CheckForUpdatesOnLaunch = str(settings["AppSettings"]["CheckForUpdatesOnLaunch"])
-    check_for_updates(CheckForUpdatesOnLaunch)
-    settingsCheckForUpdates.set(CheckForUpdatesOnLaunch)
-    del CheckForUpdatesOnLaunch
+    check_for_updates_startup()
 
     music_manager = MusicManager()
-def check_for_updates(option: str):
-    global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
-    if option == "True":
-        try:
-            response = get(DataTXTFileUrl, timeout=3, headers=headers)
-            lines = response.text.split('\n')
-            delimiter = "="
-
-            for line in lines:
-                key_value = line.split(delimiter, 1)
-                if len(key_value) == 2:
-                    key = key_value[0].strip()
-                    value = key_value[1].strip().replace(" ", "")
-                    if key == "Version":
-                        LiveAppVersion = value
-                    elif key == "DevName":
-                        Developer = value
-                    elif key == "LastEditDate":
-                        LastEditDate = value
-            if LiveAppVersion < CurrentAppVersion:
-                    Developer = "Unknown"
-                    LastEditDate = "Unknown"
-                    ShowUserInfo = "- Unauthentic"
-            elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
-                    ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-            else:
-                ShowUserInfo = "- Latest version"
-        except Timeout:
-            showerror(title='Request timed out', message=f"Main data file request timed out\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n> Your internet connection is slow\n\nThe app will now start in offline mode.")
-            LiveAppVersion = "N/A"
-            Developer = "N/A"
-            LastEditDate = "N/A"
-            ShowUserInfo = "- timed out"
-        except Exception as e:
-            showerror(title='Launching in offline mode', message=f"There was an error while retrieving the main data file\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n\nThe app will now start in offline mode.")
-            LiveAppVersion = "N/A"
-            Developer = "N/A"
-            LastEditDate = "N/A"
-            ShowUserInfo = "- offline mode"
-    elif option == "in-app":
-        check_for_updates_button.configure(text="Checking for updates...", state="disabled")
-        try:
-            response = get(DataTXTFileUrl, timeout=3, headers=headers)
-            lines = response.text.split('\n')
-            delimiter = "="
-
-            for line in lines:
-                key_value = line.split(delimiter, 1)
-                if len(key_value) == 2:
-                    key = key_value[0].strip()
-                    value = key_value[1].strip().replace(" ", "")
-                    if key == "Version":
-                        LiveAppVersion = value
-                    elif key == "DevName":
-                        Developer = value
-                    elif key == "LastEditDate":
-                        LastEditDate = value
-            if LiveAppVersion < CurrentAppVersion:
-                    Developer = "Unknown"
-                    LastEditDate = "Unknown"
-                    ShowUserInfo = "- Unauthentic"
-            elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
-                    ShowUserInfo = f"- Update available (v{LiveAppVersion})"
-            else:
-                ShowUserInfo = "- Latest version"
-        except Timeout:
-            LiveAppVersion = "N/A"
-            Developer = "N/A"
-            LastEditDate = "N/A"
-            ShowUserInfo = "- timed out"
-        except Exception as e:
-            LiveAppVersion = "N/A"
-            Developer = "N/A"
-            LastEditDate = "N/A"
-            ShowUserInfo = "- offline mode"
-        home_frame_label_1.configure(text=f"Version: {CurrentAppVersion} {ShowUserInfo}")
-        home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
-        home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
-        check_for_updates_button.configure(text="Check complete", state="disabled")
-        schedule_create(window, 3500, lambda: check_for_updates_button.configure(text="Check for updates", state="normal"), True)
-    else:
-        LiveAppVersion = "N/A"
-        Developer = "N/A"
-        LastEditDate = "N/A"
-        ShowUserInfo = "- Check disabled"
-def restart(pass_args=True):
+def restart():
     """Restarts app"""
     python = sys.executable
-    if pass_args is True:
-        execl(python, python, *sys.argv)
-    else:
-        execl(python, python, sys.argv[0])
+    execl(python, python, *sys.argv)
 def on_closing():
     """App termination function"""
-    SaveSettingsToJson("CurrentlyPlaying", "False")
+    SaveSettingsToJson("CurrentlyPlaying", False)
     music_manager.cleanup()
     window.destroy()
     sys.exit()
@@ -600,6 +558,140 @@ def NavbarAction(option: str):
         close_open_nav_button.configure(image=closeimage, command=lambda: NavbarAction("close"))
         window.minsize(650, 420)
     title_bar.update()
+
+def get_data_content():
+    """
+    Gets the data from the data.txt file and returns it as a dictionary
+    > Success: (Version, DevName, LastEditDate)
+    > Error: (error, errorTitle, errorBody, info)
+    """
+    data = {}
+
+    try:
+        response = get(DataTXTFileUrl, timeout=3, headers=headers)
+        lines = response.text.split('\n')
+        delimiter = "="
+
+        for line in lines:
+            key_value = line.split(delimiter, 1)
+            if len(key_value) == 2:
+                key = key_value[0].strip()
+                value = key_value[1].strip().replace(" ", "")
+                data[key] = value
+
+    except Timeout:
+        data = {"error": "timeout", "errorTitle": "Request timed out", "errorBody": "Main data file request timed out\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n> Your internet connection is slow\n\nThe app will now start in offline mode.", "info": "- timed out"}
+    except Exception as e:
+        data = {"error": "Unknown error", "errorTitle": "Launching in offline mode", "errorBody": "There was an error while retrieving the main data file\nThis can happen because:\n> You are offline\n> The webserver is not hosting the file at the moment\n\nThe app will now start in offline mode.", "info": "- offline mode"}
+
+    return data
+def check_for_updates_startup():
+    """Checks for updates on startup if the user has the setting enabled"""
+    global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
+    if settings["AppSettings"]["CheckForUpdatesOnLaunch"] == True:
+        settingsCheckForUpdates.set(True)
+
+        live_data = get_data_content()
+
+        if "error" in live_data:
+            LiveAppVersion = "N/A"
+            Developer = "N/A"
+            LastEditDate = "N/A"
+            ShowUserInfo = live_data["info"]
+            showerror(title=live_data["errorTitle"], message=live_data["errorBody"])
+            return
+
+        LiveAppVersion = live_data["Version"]
+        Developer = live_data["DevName"]
+        LastEditDate = live_data["LastEditDate"]
+
+        live_version = parse_version(live_data["Version"])
+        current_version = parse_version(CurrentAppVersion)
+        if live_version < current_version:
+            Developer = "Unknown"
+            LastEditDate = "Unknown"
+            ShowUserInfo = "- Unauthentic"
+        elif live_version > current_version:
+            ShowUserInfo = f"- Update available (v{live_version})"
+        else:
+            ShowUserInfo = "- Latest version"
+    else:
+        settingsCheckForUpdates.set(False)
+        LiveAppVersion = "N/A"
+        Developer = "N/A"
+        LastEditDate = "N/A"
+        ShowUserInfo = "- Check disabled"
+    return
+def check_for_updates_GUI():
+    """Checks for updates (GUI only)"""
+    global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
+
+    check_for_updates_button.configure(text="Checking for updates...", state="disabled")
+
+    live_data = get_data_content()
+
+    if "error" in live_data:
+        LiveAppVersion = "N/A"
+        Developer = "N/A"
+        LastEditDate = "N/A"
+        ShowUserInfo = live_data["info"]
+        return
+
+    LiveAppVersion = live_data["Version"]
+    Developer = live_data["DevName"]
+    LastEditDate = live_data["LastEditDate"]
+
+    live_version = parse_version(live_data["Version"])
+    current_version = parse_version(CurrentAppVersion)
+    if live_version < current_version:
+        Developer = "Unknown"
+        LastEditDate = "Unknown"
+        ShowUserInfo = "- Unauthentic"
+    elif live_version > current_version:
+        ShowUserInfo = f"- Update available (v{live_version})"
+    else:
+        ShowUserInfo = "- Latest version"
+
+    home_frame_label_1.configure(text=f"Version: {CurrentAppVersion} {ShowUserInfo}")
+    home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
+    home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
+    check_for_updates_button.configure(text="Check complete", state="disabled")
+    schedule_create(window, 3500, lambda: check_for_updates_button.configure(text="Check for updates", state="normal"), True)
+
+    return
+def check_for_updates_silent():
+    """Checks for updates silently"""
+    global LiveAppVersion, Developer, LastEditDate, ShowUserInfo
+
+    live_data = get_data_content()
+
+    if "error" in live_data:
+        LiveAppVersion = "N/A"
+        Developer = "N/A"
+        LastEditDate = "N/A"
+        ShowUserInfo = live_data["info"]
+        return
+
+    LiveAppVersion = live_data["Version"]
+    Developer = live_data["DevName"]
+    LastEditDate = live_data["LastEditDate"]
+
+    live_version = parse_version(live_data["Version"])
+    current_version = parse_version(CurrentAppVersion)
+    if live_version < current_version:
+        Developer = "Unknown"
+        LastEditDate = "Unknown"
+        ShowUserInfo = "- Unauthentic"
+    elif live_version > current_version:
+        ShowUserInfo = f"- Update available (v{live_version})"
+    else:
+        ShowUserInfo = "- Latest version"
+
+    home_frame_label_1.configure(text=f"Version: {CurrentAppVersion} {ShowUserInfo}")
+    home_frame_label_2.configure(text=f"Creator/developer: {Developer}")
+    home_frame_label_3.configure(text=f"Last updated: {LastEditDate}")
+
+    return
 
 def on_drag_end(event):
     global prev_x, prev_y
@@ -1056,7 +1148,7 @@ def AlwaysOnTopTrueFalse():
     """Sets the window to always be on top or not and saves the state to settings.json"""
     value = settingsAlwayOnTopVar.get()
     window.attributes('-topmost', value)
-    SaveSettingsToJson("AlwaysOnTop", str(value))
+    SaveSettingsToJson("AlwaysOnTop", value)
     del value
     return
 def LaunchOnStartupTrueFalse():
@@ -1075,7 +1167,7 @@ def LaunchOnStartupTrueFalse():
         except FileNotFoundError:
             pass
 
-    SaveSettingsToJson("LaunchAtLogin", str(value))
+    SaveSettingsToJson("LaunchAtLogin", value)
     del value
     return
 def set_alpha(alpha_var: float):
@@ -1243,7 +1335,7 @@ def ChatGPT():
                 message = response.choices[0].text.strip()
                 assistant_responce_box_2.delete("0.0", "end")
                 assistant_responce_box_2.insert("end", message)
-                if settingsSpeakResponceVar.get():
+                if settingsSpeakResponceVar.get() == True:
                     speak(message)
             except Exception as e:
                 assistant_responce_box_2.delete("0.0", "end")
@@ -1548,7 +1640,7 @@ def select_frame_by_name(frame_name: str):
         assistant_submit_button.pack_forget()
 
     SaveSettingsToJson("DefaultFrame", frame_name)
-def SaveSettingsToJson(key: str, value: str):
+def SaveSettingsToJson(key: str, value):
     """Saves data to settings.json file"""
     for Property in ['URLs', 'GameShortcutURLs', 'OpenAISettings', 'MusicSettings', 'AppSettings']:
         if Property in settings and key in settings[Property]:
@@ -1608,7 +1700,7 @@ def shorten_path(text, max_length, replacement: str = "..."):
         return text[:max_length - 3] + replacement  # Replace the last three characters with "..."
     return text
 def LaunchUpdater():
-    check_for_updates("in-app")
+    check_for_updates_silent()
     cwd = getcwd()
     if getattr(sys, 'frozen', False):
         downurl = f"https://github.com/HyperNylium/Management_Panel/releases/download/v{LiveAppVersion}/Management_Panel-{LiveAppVersion}-windows.zip"
@@ -1772,6 +1864,7 @@ try:
     pauseimage = CTkImage(change_image_clr(PILopen("assets/MusicPlayer/pause.png"), "#ffffff"), size=(25, 25))
     playimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/play.png'), "#ffffff"), size=(25, 25))
     nextimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/next.png'), "#ffffff"), size=(25, 25))
+    stopimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/stop.png'), "#ffffff"), size=(25, 25))
     if settings["MusicSettings"]["LoopState"] == "all":
         loopimage = CTkImage(change_image_clr(PILopen('assets/MusicPlayer/loop.png'), "#00ff00"), size=(25, 25))
     elif settings["MusicSettings"]["LoopState"] == "one":
@@ -1852,7 +1945,7 @@ home_frame_label_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", 
 home_frame_label_3.pack(anchor="center")
 chkforupdatesframe = CTkFrame(home_frame, corner_radius=0, fg_color="transparent")
 chkforupdatesframe.pack(anchor="s", fill="x", expand=True)
-check_for_updates_button = CTkButton(chkforupdatesframe, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=lambda: check_for_updates(option="in-app"))
+check_for_updates_button = CTkButton(chkforupdatesframe, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=check_for_updates_GUI)
 update_now_button = CTkButton(chkforupdatesframe, text="Update now", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=LaunchUpdater)
 check_for_updates_button.grid(row=1, column=0, columnspan=2, padx=5, pady=10, sticky="ew")
 update_now_button.grid(row=1, column=2, columnspan=2, padx=5, pady=10, sticky="ew")
@@ -1883,7 +1976,7 @@ assistant_responce_box_2.grid(row=1, column=0, padx=10, pady=10)
 
 
 music_frame_container = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
-all_music_frame = CTkScrollableFrame(music_frame, height=150, corner_radius=0, fg_color="transparent", border_width=3, border_color="#333")
+all_music_frame = CTkScrollableFrame(music_frame, height=150, corner_radius=0, fg_color="transparent", border_width=2, border_color="#333", label_text="Updating...", label_font=("sans-serif", 18))
 music_info_frame = CTkFrame(music_frame, corner_radius=0, fg_color="transparent")
 music_controls_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
 music_volume_frame = CTkFrame(music_frame_container, corner_radius=0, fg_color="transparent")
@@ -1894,32 +1987,32 @@ music_frame_container.pack(fill="x", expand=True, anchor="s", pady=0)
 music_controls_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 music_volume_frame.pack(fill="x", expand=True, anchor="s", pady=0)
 music_progress_frame.pack(fill="x", expand=True, anchor="s", pady=0)
-currently_playing_label = CTkLabel(music_info_frame, text="Status: Scanning files...", font=("sans-serif", 18))
 music_dir_label = CTkLabel(music_info_frame, text=f"Music Directory: {shorten_path(settings['MusicSettings']['MusicDir'], 45)}" if settings['MusicSettings']['MusicDir'] != "" else "Music Directory: None", font=("sans-serif", 18))
 update_music_list = CTkButton(music_info_frame, width=80, text="Update", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=music_manager.update)
 change_music_dir = CTkButton(music_info_frame, width=80, text="Change", compound="top", fg_color=("gray75", "gray30"), font=("sans-serif", 18), corner_radius=10, command=music_manager.changedir)
-currently_playing_label.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 music_dir_label.grid(row=2, column=1, padx=10, pady=5, sticky="w")
 update_music_list.grid(row=2, column=2, padx=5, pady=5, sticky="e")
 change_music_dir.grid(row=2, column=3, padx=5, pady=5, sticky="w")
 music_info_frame.grid_columnconfigure([0, 3], weight=1)
+stop_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=stopimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.stop)
 pre_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=previousimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.previous)
 play_pause_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=playimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.play)
 next_song_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=nextimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.next)
 loop_playlist_btn = CTkButton(music_controls_frame, width=40, height=40, text="", fg_color="transparent", image=loopimage, anchor="w", hover_color=("gray70", "gray30"), command=music_manager.loop)
-pre_song_btn.grid(row=1, column=1, padx=10, pady=0, sticky="e")
-play_pause_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
-next_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
-loop_playlist_btn.grid(row=1, column=4, padx=10, pady=0, sticky="w")
+stop_song_btn.grid(row=1, column=1, padx=5, pady=0, sticky="w")
+pre_song_btn.grid(row=1, column=2, padx=10, pady=0, sticky="e")
+play_pause_song_btn.grid(row=1, column=3, padx=10, pady=0, sticky="e")
+next_song_btn.grid(row=1, column=4, padx=10, pady=0, sticky="e")
+loop_playlist_btn.grid(row=1, column=5, padx=10, pady=0, sticky="w")
 volume_slider = CTkSlider(music_volume_frame, width=250, from_=0, to=100, command=lambda volume: music_manager.volume(), variable=musicVolumeVar, button_color="#fff", button_hover_color="#ccc")
 volume_label = CTkLabel(music_volume_frame, text=f"{musicVolumeVar.get()}%", font=("sans-serif", 18, "bold"), fg_color="transparent")
 volume_label.grid(row=1, column=1, padx=0, pady=0, sticky="w")
 volume_slider.grid(row=1, column=1, padx=40, pady=0, sticky="e")
 music_volume_frame.grid_columnconfigure([0, 2], weight=1)
-time_left_label = CTkLabel(music_progress_frame, text="0:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
+time_left_label = CTkLabel(music_progress_frame, text="0:00:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
 song_progressbar = CTkProgressBar(music_progress_frame, mode="determinate", height=15)
 song_progressbar.set(0.0)
-total_time_label = CTkLabel(music_progress_frame, text="0:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
+total_time_label = CTkLabel(music_progress_frame, text="0:00:00", font=("sans-serif", 18, "bold"), fg_color="transparent")
 time_left_label.grid(row=1, column=0, padx=10, pady=0, sticky="w")
 song_progressbar.grid(row=1, column=1, padx=10, pady=0, sticky="ew")
 total_time_label.grid(row=1, column=2, padx=10, pady=0, sticky="e")
@@ -1964,11 +2057,11 @@ settingslaunchwithwindowsswitch = CTkSwitch(settingsgrid, text="", variable=sett
 settingslaunchwithwindowslabel = CTkLabel(settingsgrid, text="Launch at login", font=("sans-serif", 22))
 settingslaunchwithwindowsswitch.grid(row=2, column=1, pady=5, sticky="e")
 settingslaunchwithwindowslabel.grid(row=2, column=2, pady=5, sticky="w")
-settingsSpeakResponceswitch = CTkSwitch(settingsgrid, text="", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("SpeakResponce", str(settingsSpeakResponceVar.get())))
+settingsSpeakResponceswitch = CTkSwitch(settingsgrid, text="", variable=settingsSpeakResponceVar, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("SpeakResponce", settingsSpeakResponceVar.get()))
 settingsSpeakResponcelabel = CTkLabel(settingsgrid, text="Speak response from AI", font=("sans-serif", 22))
 settingsSpeakResponceswitch.grid(row=3, column=1, pady=5, sticky="e")
 settingsSpeakResponcelabel.grid(row=3, column=2, pady=5, sticky="w")
-settingscheckupdatesswitch = CTkSwitch(settingsgrid, text="", variable=settingsCheckForUpdates, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("CheckForUpdatesOnLaunch", str(settingsCheckForUpdates.get())))
+settingscheckupdatesswitch = CTkSwitch(settingsgrid, text="", variable=settingsCheckForUpdates, onvalue=True, offvalue=False, font=("sans-serif", 22), command=lambda: SaveSettingsToJson("CheckForUpdatesOnLaunch", settingsCheckForUpdates.get()))
 settingscheckupdateslabel = CTkLabel(settingsgrid, text="Check for updates on launch", font=("sans-serif", 22))
 settingscheckupdatesswitch.grid(row=4, column=1, pady=5, sticky="e")
 settingscheckupdateslabel.grid(row=4, column=2, pady=5, sticky="w")
@@ -1995,7 +2088,7 @@ responsive_grid(devices_frame, 3, 1) # 3 rows, 1 column responsive
 responsive_grid(system_frame, 2, 3) # 2 rows, 3 columns responsive
 responsive_grid(settings_frame, 2, 2) # 2 rows, 2 columns responsive
 chkforupdatesframe.grid_columnconfigure([0, 3], weight=1)
-music_controls_frame.grid_columnconfigure([0, 4], weight=1)
+music_controls_frame.grid_columnconfigure([0, 5], weight=1)
 settingsgrid.grid_columnconfigure([0, 3], weight=1)
 
 # add all buttons and their text to a list for later use
