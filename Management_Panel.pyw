@@ -92,7 +92,7 @@ except ImportError as importError:
 # Don't want to burn them eyes now do we?
 set_appearance_mode("dark") 
 
-CurrentAppVersion = "4.3.1"
+CurrentAppVersion = "4.3.2"
 UpdateLink = "https://github.com/HyperNylium/Management_Panel"
 DataTXTFileUrl = "http://www.hypernylium.com/projects/ManagementPanel/assets/data.txt"
 headers = {
@@ -102,7 +102,7 @@ headers = {
 
 SETTINGSFILE = "settings.json"
 model_prompt = "Hello, how can I help you today?"
-UserDesktopDir = desktop()
+UserDesktopDir = desktop() # shell:desktop
 UserStartupDir = startup() # shell:startup
 devices_per_row = 2  # Maximum number of devices per ro
 DeviceFrames = []  # List to store references to DeviceFrame frames
