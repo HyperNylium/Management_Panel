@@ -13,6 +13,8 @@
 ###
 ### TODO: Make the YT Downloader tab download audio files in a valid way rather than just downloading the video with only audio and converting it to audio
 ### TODO: Create a function like "configure_button_image(button, image_path, color, size)" to handle the repeated logic seen in lines 263, 266, 269.
+### TODO: In "update.py" make it first delete all files and folders and exclude the ones in the "disregard" list, then copy the new files and folders.
+### TODO: Make sure the new version checking logic works properly in "LaunchUpdater"
 ###
 ### Done: Make a "Edit Mode" toggle both for "Games" and "Social Media" frames that will be on the "window" frame next to the X to close the menu.
 ###       It will allow you to edit the buttons in that frame. Will have functionality to add, remove, edit, and move button grid indexes (change order)
@@ -1711,11 +1713,14 @@ def LaunchUpdater():
         local_path_zip = f"Management_Panel-{LiveAppVersion}.zip"
         local_path = f"{cwd}\\Management_Panel-{LiveAppVersion}"
 
-    if LiveAppVersion < CurrentAppVersion:
+    live_version = parse_version(LiveAppVersion)
+    current_version = parse_version(CurrentAppVersion)
+
+    if live_version < current_version:
         showerror(title="Invalid version!", message=f"You have an invalid copy/version of this software.\n\nLive/Public version: {LiveAppVersion}\nYour version: {CurrentAppVersion}\n\nPlease go to:\nhttps://github.com/HyperNylium/Management_Panel\nto get the latest/authentic version of this app.")
         return
 
-    elif LiveAppVersion != CurrentAppVersion or LiveAppVersion > CurrentAppVersion:
+    elif live_version > current_version:
         usr_choice = askyesno(title='New Version!', message=f'New Version is v{LiveAppVersion}\nYour Version is v{CurrentAppVersion}\n\nNew Version of the app is now available to download/install\nClick "Yes" to update and "No" to cancel')
         if usr_choice is True:
             def updatewindow_on_closing():
