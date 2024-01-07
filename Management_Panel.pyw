@@ -15,6 +15,7 @@
 ### TODO: Create a function like "configure_button_image(button, image_path, color, size)" to handle the repeated logic seen in lines 263, 266, 269.
 ### TODO: In "update.py" make it first delete all files and folders and exclude the ones in the "disregard" list, then copy the new files and folders.
 ### TODO: Make sure the new version checking logic works properly in "LaunchUpdater"
+### TODO: Update "ChatGPT()" function to use the new OpenAI API
 ###
 ### Done: Make a "Edit Mode" toggle both for "Games" and "Social Media" frames that will be on the "window" frame next to the X to close the menu.
 ###       It will allow you to edit the buttons in that frame. Will have functionality to add, remove, edit, and move button grid indexes (change order)
@@ -39,7 +40,6 @@ from os import system, startfile, execl, mkdir, rename, listdir, remove, getcwd,
 from os.path import exists, join, splitext, expanduser, relpath, abspath, splitdrive
 from tkinter.messagebox import showerror, askyesno, showinfo
 from subprocess import Popen, PIPE, CREATE_NO_WINDOW
-from packaging.version import parse as parse_version
 from tkinter import BooleanVar, DoubleVar, IntVar
 from json import load as JSload, dump as JSdump
 from datetime import datetime, date, timedelta
@@ -70,6 +70,7 @@ try:
     )
     from PIL.Image import open as PILopen, fromarray as PILfromarray
     from winshell import desktop, startup, CreateShortcut, shortcut
+    from packaging.version import parse as parse_version
     from vlc import MediaPlayer, Media as vlcMedia
     from pytube import YouTube as PY_Youtube
     from requests.exceptions import Timeout
@@ -738,7 +739,7 @@ def systemsettings(setting: str):
     """Launches different settings within windows 10 and 11 (only tested on windows 11)"""
     if setting == "power":
         Popen(
-            "cmd.exe /c control powercfg.cpl",
+            r"cmd.exe /c control powercfg.cpl",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
@@ -746,7 +747,7 @@ def systemsettings(setting: str):
         )
     elif setting == "display":
         Popen(
-            "cmd.exe /c control desk.cpl",
+            r"cmd.exe /c control desk.cpl",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
@@ -754,7 +755,7 @@ def systemsettings(setting: str):
         )
     elif setting == "network":
         Popen(
-            "cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.NetworkAndSharingCenter",
+            r"cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.NetworkAndSharingCenter",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
@@ -762,7 +763,7 @@ def systemsettings(setting: str):
         )
     elif setting == "sound":
         Popen(
-            "cmd.exe /c control mmsys.cpl sounds",
+            r"cmd.exe /c control mmsys.cpl sounds",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
@@ -770,7 +771,7 @@ def systemsettings(setting: str):
         )
     elif setting == "apps":
         Popen(
-            "cmd.exe /c start ms-settings:appsfeatures",
+            r"cmd.exe /c start ms-settings:appsfeatures",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
@@ -778,7 +779,7 @@ def systemsettings(setting: str):
         )  # Put "appwiz.cpl" for control center version
     elif setting == "storage":
         Popen(
-            "cmd.exe /c start ms-settings:storagesense",
+            r"cmd.exe /c start ms-settings:storagesense",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
@@ -786,7 +787,7 @@ def systemsettings(setting: str):
         )
     elif setting == "windowsupdate":
         Popen(
-            "cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.WindowsUpdate",
+            r"cmd.exe /c %systemroot%\system32\control.exe /name Microsoft.WindowsUpdate",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
@@ -794,7 +795,7 @@ def systemsettings(setting: str):
         )
     elif setting == "taskmanager":
         Popen(
-            "cmd.exe /c taskmgr",
+            r"cmd.exe /c taskmgr",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
@@ -802,14 +803,14 @@ def systemsettings(setting: str):
         )
     elif setting == "vpn":
         Popen(
-            "cmd.exe /c start ms-settings:network-vpn",
+            r"cmd.exe /c start ms-settings:network-vpn",
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE,
             creationflags=CREATE_NO_WINDOW,
         )
     elif setting == "netdrive":
-        system("cmd.exe /c netdrive -reset")
+        system("cmd.exe /c netdrive -1")
         showinfo(
             title="Network drives reset", message="All network drives have been reset"
         )
@@ -1288,7 +1289,7 @@ def YTVideoDownloader(ContentType: str):
             viderror = str(viderror)
             if (viderror == "'streamingData'"):
                 YTVideoDownloader(ContentType)
-            elif (viderror == "regex_search: could not find match for (?:v=|\/)([0-9A-Za-z_-]{11}).*"):
+            elif (viderror == r"regex_search: could not find match for (?:v=|\/)([0-9A-Za-z_-]{11}).*"):
                 # showerror(title="URL error", message="The URL that you have inputed does not seem to be a vaild URL.\nPlease make sure you are inputing an actual URL from youtube")
                 ytdownloader_OptionMenu.grid_configure(row=3, column=0, columnspan=2, padx=0, pady=0)
                 ytdownloader_frame_button_1.grid_configure(row=4, rowspan=2, column=0, columnspan=2, padx=10, pady=20, sticky="ews")
