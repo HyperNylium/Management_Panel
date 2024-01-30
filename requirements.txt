@@ -1,11 +1,12 @@
-customtkinter==5.2.0
+customtkinter==5.2.2
 requests==2.31.0
 winshell==0.6
-pillow==10.0.1
-openai==0.28.1
+pillow==10.2.0
+openai==1.10.0
 pytube==15.0.0
 pyttsx3==2.90
-numpy==1.26.0
-CTkListbox==0.9
+numpy==1.26.3
+CTkListbox==1.2
 python_vlc==3.0.20123
 tinytag==1.10.1
+packaging==23.2
