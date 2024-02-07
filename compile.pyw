@@ -13,7 +13,7 @@
 
 # Compile into executable (.exe, doesn't require python to run)
 #############################################
-# from os import system, listdir, getcwd
+# from os import system, getcwd
 # from os.path import expanduser
 # from time import sleep
 # from sys import exit
@@ -24,7 +24,6 @@
 # system(cmd_line)
 # src_dir = f"{current_dir}/assets/"
 # dest_dir = f"{current_dir}/dist/Management_Panel/assets/"
-# files = listdir(src_dir)
 # copytree(src_dir, dest_dir)
 # copyfile(f"{current_dir}/update.exe", f"{current_dir}/dist/Management_Panel/update.exe")
 # sleep(3)
