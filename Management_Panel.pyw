@@ -1834,7 +1834,7 @@ if check_window_properties():
 
     if WINDOW_STATE == "maximized":
         # Thank you Akascape for helping me out (https://github.com/TomSchimansky/CustomTkinter/discussions/1819)
-        schedule_create(window, 50,  lambda: window.state('zoomed'), True)
+        schedule_create(window, 50, lambda: window.state('zoomed'), True)
 
     del WIDTH, HEIGHT, X, Y, WINDOW_STATE
 else:
@@ -1951,6 +1951,7 @@ home_frame_label_3 = CTkLabel(home_frame, text=f"Last updated: {LastEditDate}", 
 home_frame_label_3.pack(anchor="center")
 chkforupdatesframe = CTkFrame(home_frame, corner_radius=0, fg_color="transparent")
 chkforupdatesframe.pack(anchor="s", fill="x", expand=True)
+
 check_for_updates_button = CTkButton(chkforupdatesframe, text="Check for updates", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=check_for_updates_GUI)
 update_now_button = CTkButton(chkforupdatesframe, text="Update now", fg_color=("gray75", "gray30"), font=("sans-serif", 22), corner_radius=10, command=LaunchUpdater)
 check_for_updates_button.grid(row=1, column=0, columnspan=2, padx=5, pady=10, sticky="ew")

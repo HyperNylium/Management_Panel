@@ -1,4 +1,12 @@
 
+# EOL NOTE FROM DEVELOPER
+
+Hi! Im am the original developer of this project. I am not sure if anyone really used this project, but if you did, i wanted to say thank you for using it!
+I started developing this when i was 14-15 years (i am much older now lol) old as a hobby project to fix most issues i was having with my at-the-time laptop. Was also to learn more about python and customtkinter.
+I have upgraded that laptop long ago and dont have said issues anymore, so i stopped maintaining this project.
+If anyone wants to take over maintaining this project, feel free to fork it and do so.
+Thank you for using this project. Was super fun developing it and learning new things along the way.
+Hope you all have a great day! :) - HyperNylium
 
 # Management_Panel
 
